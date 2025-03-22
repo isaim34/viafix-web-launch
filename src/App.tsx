@@ -11,6 +11,7 @@ import Mechanics from "./pages/Mechanics";
 import MechanicProfile from "./pages/MechanicProfile";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
+import Signin from "./pages/Signin";
 import MechanicDashboard from "./pages/MechanicDashboard";
 import TwoFactorAuth from "./pages/TwoFactorAuth";
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
               <Route path="/mechanics" element={<Mechanics />} />
               <Route path="/mechanics/:id" element={<MechanicProfile />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/signin" element={<Signin />} />
               <Route path="/mechanic/dashboard" element={<MechanicDashboard />} />
               <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
               <Route path="*" element={<NotFound />} />

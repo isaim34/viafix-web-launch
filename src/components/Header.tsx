@@ -72,7 +72,11 @@ export const Header = () => {
 
           {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/signin')}
+            >
               <User className="h-4 w-4 mr-2" />
               Sign In
             </Button>
@@ -124,7 +128,12 @@ export const Header = () => {
                 </motion.div>
               ))}
               <div className="flex flex-col space-y-2 pt-4 border-t">
-                <Button variant="ghost" size="sm" className="justify-start">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="justify-start"
+                  onClick={() => navigate('/signin')}
+                >
                   <User className="h-4 w-4 mr-2" />
                   Sign In
                 </Button>
