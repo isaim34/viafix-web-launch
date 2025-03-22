@@ -49,8 +49,18 @@ const Signin = () => {
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="customer">Customer</TabsTrigger>
-              <TabsTrigger value="mechanic">Mechanic</TabsTrigger>
+              <TabsTrigger 
+                value="customer"
+                className={`${activeTab === 'customer' ? 'bg-primary !text-white font-semibold' : ''} transition-colors duration-200`}
+              >
+                Customer
+              </TabsTrigger>
+              <TabsTrigger 
+                value="mechanic"
+                className={`${activeTab === 'mechanic' ? 'bg-primary !text-white font-semibold' : ''} transition-colors duration-200`}
+              >
+                Mechanic
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="customer">
               <div className="border p-6 rounded-lg shadow-sm">
