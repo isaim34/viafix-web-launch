@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 const customerFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -57,9 +57,17 @@ const CustomerSigninForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email<span className="text-destructive ml-1">*</span></FormLabel>
+              <FormLabel className="text-base">Email<span className="text-destructive ml-1">*</span></FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input 
+                    type="email" 
+                    placeholder="Enter your email" 
+                    className="pl-10" 
+                    {...field} 
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -71,17 +79,19 @@ const CustomerSigninForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password<span className="text-destructive ml-1">*</span></FormLabel>
+              <FormLabel className="text-base">Password<span className="text-destructive ml-1">*</span></FormLabel>
               <FormControl>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input 
                     type={showPassword ? "text" : "password"} 
                     placeholder="Enter your password" 
+                    className="pl-10" 
                     {...field} 
                   />
                   <button 
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -89,10 +99,10 @@ const CustomerSigninForm = () => {
                 </div>
               </FormControl>
               <FormMessage />
-              <div className="text-sm text-right mt-1">
+              <div className="text-sm text-right mt-2">
                 <button 
                   type="button" 
-                  className="text-primary hover:underline"
+                  className="text-primary hover:underline font-medium"
                   onClick={() => console.log('Forgot password')}
                 >
                   Forgot password?
@@ -102,15 +112,29 @@ const CustomerSigninForm = () => {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Sign In
+        <Button 
+          type="submit" 
+          className="w-full bg-[#6E59A5] hover:bg-[#7E69AB] text-white py-2 font-medium"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Signing in...
+            </>
+          ) : (
+            'Sign In'
+          )}
         </Button>
         
-        <div className="text-center text-sm">
+        <div className="text-center text-sm pt-2">
           Don't have an account?{" "}
           <button 
             type="button" 
-            className="text-primary hover:underline"
+            className="text-[#6E59A5] hover:text-[#7E69AB] hover:underline font-medium transition-colors"
             onClick={() => navigate('/signup')}
           >
             Sign up
