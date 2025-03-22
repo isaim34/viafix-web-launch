@@ -71,7 +71,7 @@ const Signin = () => {
                   You are signing in as a <strong>Customer</strong>. If you're a mechanic, please switch to the mechanic tab.
                 </AlertDescription>
               </Alert>
-              <div className="border p-6 rounded-lg shadow-sm">
+              <div className="border p-6 rounded-lg shadow-sm bg-gray-50">
                 <CustomerSigninForm />
               </div>
             </TabsContent>
@@ -82,7 +82,7 @@ const Signin = () => {
                   You are signing in as a <strong>Mechanic</strong>. If you're a customer, please switch to the customer tab.
                 </AlertDescription>
               </Alert>
-              <div className="border p-6 rounded-lg shadow-sm">
+              <div className="border p-6 rounded-lg shadow-sm bg-gray-50">
                 <MechanicSigninForm />
               </div>
             </TabsContent>

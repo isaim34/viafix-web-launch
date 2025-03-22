@@ -71,7 +71,7 @@ const Signup = () => {
                   You are creating a <strong>Customer</strong> account. As a customer, you'll be able to find and hire mechanics.
                 </AlertDescription>
               </Alert>
-              <div className="border p-6 rounded-lg shadow-sm">
+              <div className="border p-6 rounded-lg shadow-sm bg-gray-50">
                 <CustomerSignupForm />
               </div>
             </TabsContent>
@@ -82,7 +82,7 @@ const Signup = () => {
                   You are creating a <strong>Mechanic</strong> account. As a mechanic, you'll be able to offer your services to customers.
                 </AlertDescription>
               </Alert>
-              <div className="border p-6 rounded-lg shadow-sm">
+              <div className="border p-6 rounded-lg shadow-sm bg-gray-50">
                 <MechanicSignupForm />
               </div>
             </TabsContent>
