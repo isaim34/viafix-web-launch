@@ -1,22 +1,12 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
-import { Mail, MessageCircle, CheckCircle, XCircle, Clock, ChevronRight, ChevronDown, Search, Star, ChevronLeft } from 'lucide-react';
+import { Mail, MessageCircle, CheckCircle, XCircle, Star, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-// Define the Message type with a proper union type for 'type'
-type Message = {
-  id: string;
-  from: string;
-  subject: string;
-  message: string;
-  date: string;
-  read: boolean;
-  type: 'booking' | 'contact';
-};
+import { Message, MechanicStats } from '@/types/mechanic';
+import { StatsCard } from './mechanic/StatsCard';
+import { MessageItem } from './mechanic/MessageItem';
+import { MessageDetail } from './mechanic/MessageDetail';
 
 // Sample message data with explicit 'booking' or 'contact' types
 const sampleMessages: Message[] = [
@@ -59,7 +49,7 @@ const sampleMessages: Message[] = [
 ];
 
 // Sample statistics data
-const sampleStats = {
+const sampleStats: MechanicStats = {
   completed: 42,
   cancelled: 7,
   ongoing: 3,
@@ -67,96 +57,6 @@ const sampleStats = {
   averageRating: 4.8,
   responseRate: 97
 };
-
-const MessageItem = ({ message, onOpen }: { message: Message, onOpen: (id: string) => void }) => {
-  const formattedDate = new Date(message.date).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric'
-  });
-  
-  return (
-    <div 
-      onClick={() => onOpen(message.id)}
-      className={`p-4 border-b cursor-pointer transition-colors ${message.read ? 'bg-white' : 'bg-blue-50'} hover:bg-gray-50`}
-    >
-      <div className="flex items-center gap-3">
-        <div className={`rounded-full p-2 ${message.type === 'booking' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
-          {message.type === 'booking' ? <Clock size={16} /> : <MessageCircle size={16} />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center mb-1">
-            <h4 className={`text-sm font-medium truncate ${!message.read ? 'font-semibold' : ''}`}>{message.from}</h4>
-            <span className="text-xs text-gray-500">{formattedDate}</span>
-          </div>
-          <p className={`text-sm ${!message.read ? 'font-medium' : 'text-gray-700'} truncate`}>
-            {message.subject}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const MessageDetail = ({ message, onClose }: { message: Message, onClose: () => void }) => {
-  const formattedDate = new Date(message.date).toLocaleString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric'
-  });
-  
-  return (
-    <div className="p-4">
-      <Button variant="outline" size="sm" onClick={onClose} className="mb-4">
-        <ChevronLeft size={16} className="mr-1" /> Back to inbox
-      </Button>
-      
-      <div className="mb-6">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-semibold">{message.subject}</h3>
-          <Badge variant={message.type === 'booking' ? 'default' : 'secondary'}>
-            {message.type === 'booking' ? 'Booking Request' : 'Contact Message'}
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center mb-6 text-sm text-gray-500">
-          <div>From: <span className="font-medium text-gray-700">{message.from}</span></div>
-          <div>{formattedDate}</div>
-        </div>
-        
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <p className="text-gray-800">{message.message}</p>
-        </div>
-        
-        <div className="flex gap-3 justify-end">
-          {message.type === 'booking' ? (
-            <>
-              <Button variant="outline">Decline</Button>
-              <Button>Accept Booking</Button>
-            </>
-          ) : (
-            <Button>Reply</Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const StatCard = ({ title, value, icon, color }: { title: string, value: number | string, icon: React.ReactNode, color: string }) => (
-  <div className="bg-white rounded-lg border p-4">
-    <div className="flex items-center gap-3">
-      <div className={`rounded-full p-2 ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-        <p className="text-2xl font-bold">{value}</p>
-      </div>
-    </div>
-  </div>
-);
 
 const MechanicMailbox = () => {
   const [messages, setMessages] = useState<Message[]>(sampleMessages);
@@ -189,19 +89,19 @@ const MechanicMailbox = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard 
+        <StatsCard 
           title="Completed Gigs" 
           value={stats.completed}
           icon={<CheckCircle size={18} />}
           color="bg-green-100 text-green-600"
         />
-        <StatCard 
+        <StatsCard 
           title="Cancelled Gigs" 
           value={stats.cancelled}
           icon={<XCircle size={18} />}
           color="bg-red-100 text-red-600"
         />
-        <StatCard 
+        <StatsCard 
           title="Average Rating" 
           value={`${stats.averageRating}/5.0`}
           icon={<Star size={18} className="fill-yellow-400 text-yellow-400" />}
