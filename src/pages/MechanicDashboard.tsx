@@ -3,8 +3,10 @@ import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
+import { Inbox, Settings, BarChart3, Wrench } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
+import MechanicMailbox from '@/components/MechanicMailbox';
 
 const MechanicDashboard = () => {
   return (
@@ -24,30 +26,40 @@ const MechanicDashboard = () => {
 
         <Tabs defaultValue="gigs" className="w-full">
           <TabsList className="mb-8">
-            <TabsTrigger value="gigs">My Gigs</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="gigs" className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              My Gigs
+            </TabsTrigger>
+            <TabsTrigger value="inbox" className="flex items-center gap-2">
+              <Inbox className="h-4 w-4" />
+              Inbox
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Statistics
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Profile
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="gigs">
             <GigManagement />
           </TabsContent>
           
-          <TabsContent value="profile">
-            <ProfileEditor />
+          <TabsContent value="inbox">
+            <MechanicMailbox />
           </TabsContent>
           
           <TabsContent value="stats">
             <div className="text-center py-20 text-muted-foreground">
-              Statistics coming soon
+              Detailed statistics coming soon
             </div>
           </TabsContent>
           
-          <TabsContent value="bookings">
-            <div className="text-center py-20 text-muted-foreground">
-              Bookings management coming soon
-            </div>
+          <TabsContent value="profile">
+            <ProfileEditor />
           </TabsContent>
         </Tabs>
       </div>

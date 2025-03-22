@@ -2,9 +2,10 @@
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/Button';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, MessageCircle, Smartphone, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 // Sample mechanic detailed data
 const mechanicsDetailedData = {
@@ -62,11 +63,45 @@ const mechanicsDetailedData = {
 
 const MechanicProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Default to first mechanic if ID not found (for demo purposes)
   const mechanic = id && mechanicsDetailedData[id as keyof typeof mechanicsDetailedData] 
     ? mechanicsDetailedData[id as keyof typeof mechanicsDetailedData]
     : mechanicsDetailedData['1'];
+
+  const handleBookService = () => {
+    // In a real app, this would create a booking in the database
+    // For now, just show a toast message
+    toast({
+      title: "Booking Request Sent",
+      description: `Your booking request has been sent to ${mechanic.name}.`,
+      variant: "default",
+    });
+    
+    // Navigate to dashboard for demo purposes
+    // In a real app, this might go to a booking confirmation page
+    setTimeout(() => {
+      navigate('/mechanic-dashboard');
+    }, 1500);
+  };
+
+  const handleContact = () => {
+    // In a real app, this would create a message in the database
+    // For now, just show a toast message
+    toast({
+      title: "Message Sent",
+      description: `Your message has been sent to ${mechanic.name}.`,
+      variant: "default",
+    });
+    
+    // Navigate to dashboard for demo purposes
+    // In a real app, this might go to a message confirmation page
+    setTimeout(() => {
+      navigate('/mechanic-dashboard');
+    }, 1500);
+  };
 
   return (
     <Layout>
@@ -223,11 +258,11 @@ const MechanicProfile = () => {
                 </div>
               </div>
               
-              <Button className="w-full mb-3">
+              <Button className="w-full mb-3" onClick={handleBookService}>
                 Book Service
               </Button>
               
-              <Button variant="outline" className="w-full mb-6" icon={<MessageCircle className="w-4 h-4" />}>
+              <Button variant="outline" className="w-full mb-6" icon={<MessageCircle className="w-4 h-4" />} onClick={handleContact}>
                 Contact
               </Button>
               
