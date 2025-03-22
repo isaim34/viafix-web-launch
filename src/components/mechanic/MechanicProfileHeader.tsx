@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, Shield, Heart } from 'lucide-react';
+import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, Shield, Heart, Share2 } from 'lucide-react';
 import { MechanicDetail } from '@/types/mechanic';
 import { useToast } from '@/hooks/use-toast';
 import { isMechanicFavorite, toggleMechanicFavorite } from '@/utils/favoriteUtils';
@@ -55,6 +55,28 @@ export const MechanicProfileHeader = ({ mechanic, isCustomerLoggedIn }: Mechanic
     });
   };
 
+  const handleShareProfile = () => {
+    // Get the current URL to share
+    const shareUrl = window.location.href;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        toast({
+          title: "Link Copied!",
+          description: "Profile link has been copied to your clipboard.",
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to copy link:', error);
+        toast({
+          title: "Failed to Copy",
+          description: "Could not copy the link. Please try again.",
+          variant: "destructive",
+        });
+      });
+  };
+
   return (
     <>
       <Link to="/mechanics" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
@@ -84,17 +106,27 @@ export const MechanicProfileHeader = ({ mechanic, isCustomerLoggedIn }: Mechanic
                 </div>
               </div>
               
-              <button 
-                onClick={handleToggleFavorite}
-                className={`p-2 rounded-full transition-all ${
-                  isFavorite 
-                    ? 'bg-red-50 text-red-500 hover:bg-red-100' 
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleShareProfile}
+                  className="p-2 rounded-full transition-all bg-blue-50 text-blue-500 hover:bg-blue-100"
+                  aria-label="Share profile"
+                >
+                  <Share2 className="w-5 h-5" />
+                </button>
+                
+                <button 
+                  onClick={handleToggleFavorite}
+                  className={`p-2 rounded-full transition-all ${
+                    isFavorite 
+                      ? 'bg-red-50 text-red-500 hover:bg-red-100' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
+                </button>
+              </div>
             </div>
             
             <div className="flex items-center mb-3">
