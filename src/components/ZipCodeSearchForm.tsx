@@ -70,7 +70,10 @@ export const ZipCodeSearchForm: React.FC<ZipCodeSearchFormProps> = ({ isOpen, on
               placeholder="Enter zip code"
               className="pl-10"
               value={zipCode}
-              onChange={(e) => setZipCode(e.target.value.slice(0, 5))}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                setZipCode(value);
+              }}
               type="text"
               pattern="[0-9]*"
               inputMode="numeric"
