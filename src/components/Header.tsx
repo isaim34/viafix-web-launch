@@ -40,11 +40,14 @@ export const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <motion.div 
-              className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center" 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-white font-bold">M</span>
+              <img 
+                src="/lovable-uploads/4915728c-953e-47f3-b79d-40efb1ce4950.png" 
+                alt="Mobex Logo" 
+                className="h-10 w-auto" 
+              />
             </motion.div>
             <span className="font-medium text-lg">Mobex</span>
           </Link>
