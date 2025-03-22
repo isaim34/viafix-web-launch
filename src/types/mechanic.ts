@@ -35,3 +35,30 @@ export type ChatThread = {
   lastMessage?: ChatMessage;
   unreadCount: number;
 };
+
+export type Service = {
+  name: string;
+  price: number;
+};
+
+export type Review = {
+  author: string;
+  rating: number;
+  text: string;
+};
+
+export type MechanicDetail = {
+  id: string;
+  name: string;
+  avatar: string;
+  specialties: string[];
+  rating: number;
+  reviewCount: number;
+  location: string;
+  hourlyRate: number;
+  yearsExperience: number;
+  about: string;
+  responseTime: string;
+  services: Service[];
+  reviews: Review[];
+};
