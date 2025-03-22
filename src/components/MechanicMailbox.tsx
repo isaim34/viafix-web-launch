@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,19 @@ import { motion } from 'framer-motion';
 import { Mail, MessageCircle, CheckCircle, XCircle, Clock, ChevronRight, ChevronDown, Search, Star, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-// Sample message data
-const sampleMessages = [
+// Define the Message type with a proper union type for 'type'
+type Message = {
+  id: string;
+  from: string;
+  subject: string;
+  message: string;
+  date: string;
+  read: boolean;
+  type: 'booking' | 'contact';
+};
+
+// Sample message data with explicit 'booking' or 'contact' types
+const sampleMessages: Message[] = [
   {
     id: "msg1",
     from: "John Smith",
@@ -56,16 +66,6 @@ const sampleStats = {
   totalEarnings: 4250,
   averageRating: 4.8,
   responseRate: 97
-};
-
-type Message = {
-  id: string;
-  from: string;
-  subject: string;
-  message: string;
-  date: string;
-  read: boolean;
-  type: 'booking' | 'contact';
 };
 
 const MessageItem = ({ message, onOpen }: { message: Message, onOpen: (id: string) => void }) => {
