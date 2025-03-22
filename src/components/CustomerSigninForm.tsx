@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 const customerFormSchema = z.object({
@@ -26,7 +26,12 @@ type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSigninForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = React.useState(false);
+  
+  // Get redirect information from location state (if available)
+  const redirectTo = location.state?.redirectTo || '/';
+  const redirectAction = location.state?.action || null;
   
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -39,14 +44,37 @@ const CustomerSigninForm = () => {
   const onSubmit = (data: CustomerFormValues) => {
     console.log('Customer signin data:', data);
     
-    // Simulate successful login
+    // Simulate successful login - store auth info in localStorage for demo
+    localStorage.setItem('userLoggedIn', 'true');
+    localStorage.setItem('userRole', 'customer');
+    localStorage.setItem('userId', 'customer-123');
+    localStorage.setItem('userName', 'Current Customer');
+    
+    // Show success toast
     toast({
       title: "Welcome back!",
       description: "You have successfully signed in.",
     });
     
-    // Navigate to home page or dashboard
-    navigate('/');
+    // Navigate to the redirect path or home page
+    navigate(redirectTo);
+    
+    // If there was a specific action requested before login, show appropriate toast
+    if (redirectAction) {
+      setTimeout(() => {
+        if (redirectAction === 'book') {
+          toast({
+            title: "You can now book services",
+            description: "You've been signed in as a customer and can now book mechanic services.",
+          });
+        } else if (redirectAction === 'contact') {
+          toast({
+            title: "You can now chat with mechanics",
+            description: "You've been signed in as a customer and can now chat with mechanics.",
+          });
+        }
+      }, 500);
+    }
   };
 
   return (
@@ -129,6 +157,13 @@ const CustomerSigninForm = () => {
             'Sign In'
           )}
         </Button>
+        
+        {redirectAction && (
+          <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+            <p className="font-medium">Sign in required</p>
+            <p>You need to sign in as a customer to {redirectAction === 'book' ? 'book services' : 'chat with mechanics'}.</p>
+          </div>
+        )}
         
         <div className="text-center text-sm pt-2">
           Don't have an account?{" "}

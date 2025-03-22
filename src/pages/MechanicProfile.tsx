@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/Button';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, MessageCircle, Smartphone, Shield } from 'lucide-react';
+import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, MessageCircle, Smartphone, Shield, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatBox } from '@/components/chat/ChatBox';
 import { findOrCreateChatThread, sendChatMessage, getChatMessages } from '@/services/chatService';
@@ -70,6 +70,22 @@ const MechanicProfile = () => {
   const { toast } = useToast();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isCustomerLoggedIn, setIsCustomerLoggedIn] = useState(false);
+  
+  // Simulate checking if user is logged in as a customer
+  useEffect(() => {
+    // In a real app, this would check localStorage, cookies, or a state management store
+    // For demo purposes, we'll assume the user is not logged in initially
+    const checkUserAuth = () => {
+      // Check if user is logged in and is a customer (not a mechanic)
+      const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+      const userRole = localStorage.getItem('userRole');
+      
+      setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
+    };
+    
+    checkUserAuth();
+  }, []);
   
   // For demo purposes - in a real app, this would come from auth
   const currentUserId = 'customer-123';
@@ -81,6 +97,23 @@ const MechanicProfile = () => {
     : mechanicsDetailedData['1'];
 
   const handleBookService = () => {
+    if (!isCustomerLoggedIn) {
+      // Redirect to login if not logged in
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in as a customer to book services.",
+        variant: "destructive",
+      });
+      
+      navigate('/signin', { 
+        state: { 
+          redirectTo: `/mechanics/${id}`,
+          action: 'book'
+        } 
+      });
+      return;
+    }
+    
     // In a real app, this would create a booking in the database
     // For now, just show a toast message
     toast({
@@ -88,16 +121,27 @@ const MechanicProfile = () => {
       description: `Your booking request has been sent to ${mechanic.name}.`,
       variant: "default",
     });
-    
-    // Navigate to dashboard for demo purposes
-    // In a real app, this might go to a booking confirmation page
-    setTimeout(() => {
-      navigate('/mechanic/dashboard');
-    }, 1500);
   };
 
   const handleContact = () => {
-    // Open chat instead of just showing a toast
+    if (!isCustomerLoggedIn) {
+      // Redirect to login if not logged in
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in as a customer to contact mechanics.",
+        variant: "destructive",
+      });
+      
+      navigate('/signin', { 
+        state: { 
+          redirectTo: `/mechanics/${id}`,
+          action: 'contact'
+        } 
+      });
+      return;
+    }
+    
+    // Open chat if logged in
     openChat();
   };
   
@@ -143,6 +187,23 @@ const MechanicProfile = () => {
       title: "Message Sent",
       description: `Your message has been sent to ${mechanic.name}.`,
     });
+  };
+
+  // Helper function to render the authentication status indicator
+  const renderAuthStatusIndicator = () => {
+    if (isCustomerLoggedIn) {
+      return null; // No indicator needed if logged in
+    }
+    
+    return (
+      <div className="flex items-center mb-4 p-3 bg-amber-50 text-amber-800 rounded-lg border border-amber-200">
+        <Lock className="w-5 h-5 mr-2" />
+        <div>
+          <p className="font-medium">Sign in required</p>
+          <p className="text-sm">You need to sign in as a customer to book services or contact mechanics.</p>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -289,6 +350,8 @@ const MechanicProfile = () => {
             >
               <h2 className="text-xl font-bold mb-4">Book {mechanic.name.split(' ')[0]}</h2>
               
+              {renderAuthStatusIndicator()}
+              
               <div className="bg-blue-50 rounded-lg p-4 mb-6">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-gray-700">Hourly Rate</span>
@@ -300,12 +363,20 @@ const MechanicProfile = () => {
                 </div>
               </div>
               
-              <Button className="w-full mb-3" onClick={handleBookService}>
-                Book Service
+              <Button 
+                className={`w-full mb-3 ${!isCustomerLoggedIn ? 'opacity-90' : ''}`} 
+                onClick={handleBookService}
+              >
+                {isCustomerLoggedIn ? 'Book Service' : 'Sign In to Book'}
               </Button>
               
-              <Button variant="outline" className="w-full mb-6" icon={<MessageCircle className="w-4 h-4" />} onClick={handleContact}>
-                Chat Now
+              <Button 
+                variant="outline" 
+                className="w-full mb-6" 
+                icon={<MessageCircle className="w-4 h-4" />} 
+                onClick={handleContact}
+              >
+                {isCustomerLoggedIn ? 'Chat Now' : 'Sign In to Chat'}
               </Button>
               
               <div className="text-sm text-gray-500 flex items-start mb-4">
@@ -326,17 +397,19 @@ const MechanicProfile = () => {
         </div>
       </div>
       
-      {/* Chat component */}
-      <ChatBox 
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        recipientId={`mechanic-${mechanic.id}`}
-        recipientName={mechanic.name}
-        currentUserId={currentUserId}
-        currentUserName={currentUserName}
-        messages={chatMessages}
-        onSendMessage={handleSendMessage}
-      />
+      {/* Chat component - only shown if customer is logged in */}
+      {isCustomerLoggedIn && (
+        <ChatBox 
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          recipientId={`mechanic-${mechanic.id}`}
+          recipientName={mechanic.name}
+          currentUserId={currentUserId}
+          currentUserName={currentUserName}
+          messages={chatMessages}
+          onSendMessage={handleSendMessage}
+        />
+      )}
     </Layout>
   );
 };
