@@ -51,13 +51,13 @@ const Signin = () => {
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger 
                 value="customer"
-                className={`${activeTab === 'customer' ? 'bg-primary !text-white font-semibold' : ''} transition-colors duration-200`}
+                className={`${activeTab === 'customer' ? 'bg-[#F2FCE2] text-green-800 font-semibold' : ''} transition-colors duration-200`}
               >
                 Customer
               </TabsTrigger>
               <TabsTrigger 
                 value="mechanic"
-                className={`${activeTab === 'mechanic' ? 'bg-primary !text-white font-semibold' : ''} transition-colors duration-200`}
+                className={`${activeTab === 'mechanic' ? 'bg-[#F2FCE2] text-green-800 font-semibold' : ''} transition-colors duration-200`}
               >
                 Mechanic
               </TabsTrigger>
