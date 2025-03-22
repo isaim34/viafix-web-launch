@@ -7,6 +7,8 @@ import SocialLoginButtons from '@/components/SocialLoginButtons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const Signup = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
@@ -63,11 +65,23 @@ const Signup = () => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="customer">
+              <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
+                <AlertCircle className="h-4 w-4 text-green-800" />
+                <AlertDescription className="text-green-800">
+                  You are creating a <strong>Customer</strong> account. As a customer, you'll be able to find and hire mechanics.
+                </AlertDescription>
+              </Alert>
               <div className="border p-6 rounded-lg shadow-sm">
                 <CustomerSignupForm />
               </div>
             </TabsContent>
             <TabsContent value="mechanic">
+              <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
+                <AlertCircle className="h-4 w-4 text-green-800" />
+                <AlertDescription className="text-green-800">
+                  You are creating a <strong>Mechanic</strong> account. As a mechanic, you'll be able to offer your services to customers.
+                </AlertDescription>
+              </Alert>
               <div className="border p-6 rounded-lg shadow-sm">
                 <MechanicSignupForm />
               </div>

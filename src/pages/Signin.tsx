@@ -7,6 +7,8 @@ import SocialLoginButtons from '@/components/SocialLoginButtons';
 import { Separator } from '@/components/ui/separator';
 import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
@@ -63,11 +65,23 @@ const Signin = () => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="customer">
+              <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
+                <AlertCircle className="h-4 w-4 text-green-800" />
+                <AlertDescription className="text-green-800">
+                  You are signing in as a <strong>Customer</strong>. If you're a mechanic, please switch to the mechanic tab.
+                </AlertDescription>
+              </Alert>
               <div className="border p-6 rounded-lg shadow-sm">
                 <CustomerSigninForm />
               </div>
             </TabsContent>
             <TabsContent value="mechanic">
+              <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
+                <AlertCircle className="h-4 w-4 text-green-800" />
+                <AlertDescription className="text-green-800">
+                  You are signing in as a <strong>Mechanic</strong>. If you're a customer, please switch to the customer tab.
+                </AlertDescription>
+              </Alert>
               <div className="border p-6 rounded-lg shadow-sm">
                 <MechanicSigninForm />
               </div>
