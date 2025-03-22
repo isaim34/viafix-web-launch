@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, Menu, X, LogOut } from 'lucide-react';
 import { Button } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCustomerAuth } from '@/hooks/useCustomerAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 export const Header = () => {
@@ -12,7 +12,7 @@ export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isCustomerLoggedIn, currentUserName } = useCustomerAuth();
+  const { isLoggedIn, isCustomerLoggedIn, isMechanicLoggedIn, currentUserName, currentUserRole } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,6 +33,15 @@ export const Header = () => {
     { name: 'How It Works', path: '/how-it-works' },
   ];
   
+  // Add dashboard link based on user role
+  const getDashboardLink = () => {
+    if (isMechanicLoggedIn) {
+      return '/mechanic/dashboard';
+    }
+    // We could add a customer dashboard in the future
+    return null;
+  };
+  
   const handleSignOut = () => {
     // Clear auth data
     localStorage.removeItem('userLoggedIn');
@@ -48,6 +57,63 @@ export const Header = () => {
     
     // Redirect to home page
     navigate('/');
+  };
+
+  const renderAuthButtons = (isMobile = false) => {
+    const baseClassName = isMobile ? "justify-start" : "";
+    
+    if (isLoggedIn) {
+      return (
+        <>
+          <div className={`text-sm font-medium ${isMobile ? "py-2" : ""}`}>
+            Hello, {currentUserName}
+            {currentUserRole && <span className="ml-1 text-xs text-gray-500">({currentUserRole})</span>}
+          </div>
+          
+          {/* Dashboard link for mechanics */}
+          {getDashboardLink() && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={baseClassName}
+              onClick={() => navigate(getDashboardLink() || '/')}
+            >
+              Dashboard
+            </Button>
+          )}
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={baseClassName}
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={baseClassName}
+            onClick={() => navigate('/signin')}
+          >
+            <User className="h-4 w-4 mr-2" />
+            Sign In
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={() => navigate('/signup')}
+          >
+            Sign Up
+          </Button>
+        </>
+      );
+    }
   };
 
   return (
@@ -92,35 +158,7 @@ export const Header = () => {
 
           {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            {isCustomerLoggedIn ? (
-              // Show user info and sign out button when logged in
-              <div className="flex items-center space-x-4">
-                <div className="text-sm font-medium">
-                  Hello, {currentUserName}
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </div>
-            ) : (
-              // Show sign in and sign up buttons when logged out
-              <>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate('/signin')}
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-                <Button size="sm" onClick={() => navigate('/signup')}>Sign Up</Button>
-              </>
-            )}
+            {renderAuthButtons()}
           </div>
 
           {/* Mobile Menu Button */}
@@ -168,37 +206,7 @@ export const Header = () => {
                 </motion.div>
               ))}
               <div className="flex flex-col space-y-2 pt-4 border-t">
-                {isCustomerLoggedIn ? (
-                  // Show user info and sign out button when logged in (mobile)
-                  <>
-                    <div className="text-sm font-medium py-2">
-                      Hello, {currentUserName}
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="justify-start"
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  // Show sign in and sign up buttons when logged out (mobile)
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="justify-start"
-                      onClick={() => navigate('/signin')}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Sign In
-                    </Button>
-                    <Button size="sm" onClick={() => navigate('/signup')}>Sign Up</Button>
-                  </>
-                )}
+                {renderAuthButtons(true)}
               </div>
             </div>
           </motion.div>
