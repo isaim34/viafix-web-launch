@@ -11,6 +11,7 @@ import Mechanics from "./pages/Mechanics";
 import MechanicProfile from "./pages/MechanicProfile";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
+import MechanicDashboard from "./pages/MechanicDashboard";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App: React.FC = () => {
               <Route path="/mechanics" element={<Mechanics />} />
               <Route path="/mechanics/:id" element={<MechanicProfile />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/mechanic/dashboard" element={<MechanicDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>
