@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './Button';
 import { motion } from 'framer-motion';
 import { Search, Wrench, Clock, ChevronDown } from 'lucide-react';
 import { AnimatedIcon } from './AnimatedIcon';
+import { ZipCodeSearchForm } from './ZipCodeSearchForm';
 
 export const HeroSection = () => {
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features');
     if (featuresSection) {
@@ -90,6 +93,7 @@ export const HeroSection = () => {
             <Button 
               size="lg" 
               icon={<Search className="w-4 h-4" />}
+              onClick={() => setIsSearchDialogOpen(true)}
             >
               Find a Mechanic
             </Button>
@@ -157,6 +161,12 @@ export const HeroSection = () => {
           </motion.button>
         </div>
       </div>
+      
+      {/* Zip Code Search Dialog */}
+      <ZipCodeSearchForm 
+        isOpen={isSearchDialogOpen} 
+        onClose={() => setIsSearchDialogOpen(false)} 
+      />
     </section>
   );
 };
