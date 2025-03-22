@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/Button';
@@ -83,7 +82,7 @@ const MechanicProfile = () => {
     // Navigate to dashboard for demo purposes
     // In a real app, this might go to a booking confirmation page
     setTimeout(() => {
-      navigate('/mechanic-dashboard');
+      navigate('/mechanic/dashboard');
     }, 1500);
   };
 
@@ -99,7 +98,7 @@ const MechanicProfile = () => {
     // Navigate to dashboard for demo purposes
     // In a real app, this might go to a message confirmation page
     setTimeout(() => {
-      navigate('/mechanic-dashboard');
+      navigate('/mechanic/dashboard');
     }, 1500);
   };
 
