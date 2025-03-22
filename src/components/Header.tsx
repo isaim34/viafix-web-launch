@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, Menu, X } from 'lucide-react';
 import { Button } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +9,7 @@ export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,7 +76,7 @@ export const Header = () => {
               <User className="h-4 w-4 mr-2" />
               Sign In
             </Button>
-            <Button size="sm">Sign Up</Button>
+            <Button size="sm" onClick={() => navigate('/signup')}>Sign Up</Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -127,7 +128,7 @@ export const Header = () => {
                   <User className="h-4 w-4 mr-2" />
                   Sign In
                 </Button>
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm" onClick={() => navigate('/signup')}>Sign Up</Button>
               </div>
             </div>
           </motion.div>

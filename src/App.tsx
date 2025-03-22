@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Mechanics from "./pages/Mechanics";
 import MechanicProfile from "./pages/MechanicProfile";
 import NotFound from "./pages/NotFound";
+import Signup from "./pages/Signup";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App: React.FC = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/mechanics" element={<Mechanics />} />
                 <Route path="/mechanics/:id" element={<MechanicProfile />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AnimatePresence>
