@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import ZipCodeInput from './ZipCodeInput';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const customerFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -28,6 +29,8 @@ const customerFormSchema = z.object({
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSignupForm = () => {
+  const navigate = useNavigate();
+  
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
@@ -41,13 +44,20 @@ const CustomerSignupForm = () => {
 
   const onSubmit = (data: CustomerFormValues) => {
     console.log('Customer signup data:', data);
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Account created!",
-        description: "Your customer account has been created successfully.",
-      });
-    }, 1000);
+    
+    // Simulate API call for account creation
+    toast({
+      title: "Account created!",
+      description: "Now let's set up two-factor authentication for your security.",
+    });
+    
+    // Navigate to 2FA setup with user data
+    navigate('/two-factor-auth', { 
+      state: { 
+        userData: data,
+        userType: 'customer' 
+      } 
+    });
   };
 
   return (

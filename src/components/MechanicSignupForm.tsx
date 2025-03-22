@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import ZipCodeInput from './ZipCodeInput';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const mechanicFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -31,6 +32,8 @@ const mechanicFormSchema = z.object({
 type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 
 const MechanicSignupForm = () => {
+  const navigate = useNavigate();
+  
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
     defaultValues: {
@@ -46,13 +49,20 @@ const MechanicSignupForm = () => {
 
   const onSubmit = (data: MechanicFormValues) => {
     console.log('Mechanic signup data:', data);
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Account created!",
-        description: "Your mechanic account has been created successfully.",
-      });
-    }, 1000);
+    
+    // Simulate API call for account creation
+    toast({
+      title: "Account created!",
+      description: "Now let's set up two-factor authentication for your security.",
+    });
+    
+    // Navigate to 2FA setup with user data
+    navigate('/two-factor-auth', { 
+      state: { 
+        userData: data,
+        userType: 'mechanic' 
+      } 
+    });
   };
 
   return (

@@ -12,6 +12,7 @@ import MechanicProfile from "./pages/MechanicProfile";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import MechanicDashboard from "./pages/MechanicDashboard";
+import TwoFactorAuth from "./pages/TwoFactorAuth";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App: React.FC = () => {
               <Route path="/mechanics/:id" element={<MechanicProfile />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/mechanic/dashboard" element={<MechanicDashboard />} />
+              <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>
