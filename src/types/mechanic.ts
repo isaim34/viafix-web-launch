@@ -17,3 +17,21 @@ export type MechanicStats = {
   averageRating: number;
   responseRate: number;
 };
+
+export type ChatMessage = {
+  id: string;
+  senderId: string;
+  senderName: string;
+  receiverId: string;
+  content: string;
+  timestamp: string;
+  isRead: boolean;
+};
+
+export type ChatThread = {
+  id: string;
+  participants: string[];
+  participantNames: Record<string, string>;
+  lastMessage?: ChatMessage;
+  unreadCount: number;
+};

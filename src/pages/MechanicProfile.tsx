@@ -1,10 +1,14 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/Button';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, MessageCircle, Smartphone, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ChatBox } from '@/components/chat/ChatBox';
+import { findOrCreateChatThread, sendChatMessage, getChatMessages } from '@/services/chatService';
+import { ChatMessage } from '@/types/mechanic';
 
 // Sample mechanic detailed data
 const mechanicsDetailedData = {
@@ -64,6 +68,12 @@ const MechanicProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  
+  // For demo purposes - in a real app, this would come from auth
+  const currentUserId = 'customer-123';
+  const currentUserName = 'Current Customer';
   
   // Default to first mechanic if ID not found (for demo purposes)
   const mechanic = id && mechanicsDetailedData[id as keyof typeof mechanicsDetailedData] 
@@ -87,19 +97,52 @@ const MechanicProfile = () => {
   };
 
   const handleContact = () => {
-    // In a real app, this would create a message in the database
-    // For now, just show a toast message
+    // Open chat instead of just showing a toast
+    openChat();
+  };
+  
+  const openChat = () => {
+    // Find or create a chat thread between customer and mechanic
+    const threadId = findOrCreateChatThread(
+      currentUserId,
+      currentUserName,
+      `mechanic-${mechanic.id}`,
+      mechanic.name
+    ).id;
+    
+    // Get messages for this thread
+    const messages = getChatMessages(threadId);
+    setChatMessages(messages);
+    setIsChatOpen(true);
+  };
+  
+  const handleSendMessage = (content: string) => {
+    // Find or create thread
+    const thread = findOrCreateChatThread(
+      currentUserId,
+      currentUserName,
+      `mechanic-${mechanic.id}`,
+      mechanic.name
+    );
+    
+    // Send message
+    const newMessage = sendChatMessage(thread.id, {
+      senderId: currentUserId,
+      senderName: currentUserName,
+      receiverId: `mechanic-${mechanic.id}`,
+      content,
+      timestamp: new Date().toISOString(),
+      isRead: false
+    });
+    
+    // Update local state
+    setChatMessages(prev => [...prev, newMessage]);
+    
+    // Show toast for demo purposes
     toast({
       title: "Message Sent",
       description: `Your message has been sent to ${mechanic.name}.`,
-      variant: "default",
     });
-    
-    // Navigate to dashboard for demo purposes
-    // In a real app, this might go to a message confirmation page
-    setTimeout(() => {
-      navigate('/mechanic/dashboard');
-    }, 1500);
   };
 
   return (
@@ -262,7 +305,7 @@ const MechanicProfile = () => {
               </Button>
               
               <Button variant="outline" className="w-full mb-6" icon={<MessageCircle className="w-4 h-4" />} onClick={handleContact}>
-                Contact
+                Chat Now
               </Button>
               
               <div className="text-sm text-gray-500 flex items-start mb-4">
@@ -282,6 +325,18 @@ const MechanicProfile = () => {
           </div>
         </div>
       </div>
+      
+      {/* Chat component */}
+      <ChatBox 
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        recipientId={`mechanic-${mechanic.id}`}
+        recipientName={mechanic.name}
+        currentUserId={currentUserId}
+        currentUserName={currentUserName}
+        messages={chatMessages}
+        onSendMessage={handleSendMessage}
+      />
     </Layout>
   );
 };

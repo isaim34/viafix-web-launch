@@ -3,10 +3,11 @@ import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { Inbox, Settings, BarChart3, Wrench } from 'lucide-react';
+import { Inbox, Settings, BarChart3, Wrench, MessageCircle } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
 import MechanicMailbox from '@/components/MechanicMailbox';
+import MechanicChat from '@/components/MechanicChat';
 
 const MechanicDashboard = () => {
   return (
@@ -34,6 +35,10 @@ const MechanicDashboard = () => {
               <Inbox className="h-4 w-4" />
               Inbox
             </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Chat
+            </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Statistics
@@ -50,6 +55,10 @@ const MechanicDashboard = () => {
           
           <TabsContent value="inbox">
             <MechanicMailbox />
+          </TabsContent>
+          
+          <TabsContent value="chat">
+            <MechanicChat />
           </TabsContent>
           
           <TabsContent value="stats">
