@@ -85,7 +85,7 @@ const Index = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              Why Choose MobiMech
+              Why Choose Mobex
             </motion.h2>
             <motion.p 
               className="text-gray-600 max-w-xl mx-auto"

@@ -46,7 +46,7 @@ export const Header = () => {
             >
               <span className="text-white font-bold">M</span>
             </motion.div>
-            <span className="font-medium text-lg">MobiMech</span>
+            <span className="font-medium text-lg">Mobex</span>
           </Link>
 
           {/* Desktop Nav */}
