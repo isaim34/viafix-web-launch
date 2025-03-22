@@ -61,4 +61,15 @@ export type MechanicDetail = {
   responseTime: string;
   services: Service[];
   reviews: Review[];
+  isFavorite?: boolean;
+};
+
+export type FavoriteMechanic = {
+  id: string;
+  name: string;
+  avatar: string;
+  location: string;
+  rating: number;
+  hourlyRate: number;
+  addedAt: string;
 };

@@ -197,7 +197,10 @@ const MechanicProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Profile */}
           <div className="col-span-2">
-            <MechanicProfileHeader mechanic={mechanic} />
+            <MechanicProfileHeader 
+              mechanic={mechanic} 
+              isCustomerLoggedIn={isCustomerLoggedIn} 
+            />
             <MechanicAbout about={mechanic.about} />
             <MechanicServices services={mechanic.services} />
             <MechanicReviews 
