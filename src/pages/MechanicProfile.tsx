@@ -4,7 +4,7 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/Button';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, MapPin, Tool, Clock, Calendar, ArrowLeft, MessageCircle, Smartphone, Shield } from 'lucide-react';
+import { Star, MapPin, Wrench, Clock, Calendar, ArrowLeft, MessageCircle, Smartphone, Shield } from 'lucide-react';
 
 // Sample mechanic detailed data
 const mechanicsDetailedData = {
@@ -112,7 +112,7 @@ const MechanicProfile = () => {
                         key={index} 
                         className="inline-flex items-center bg-blue-50 rounded-full px-3 py-1 text-xs font-medium text-blue-700"
                       >
-                        <Tool className="w-3 h-3 mr-1" />
+                        <Wrench className="w-3 h-3 mr-1" />
                         {specialty}
                       </span>
                     ))}

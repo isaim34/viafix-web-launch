@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from './Button';
 import { motion } from 'framer-motion';
-import { Search, Tool, Clock, ChevronDown } from 'lucide-react';
+import { Search, Wrench, Clock, ChevronDown } from 'lucide-react';
 import { AnimatedIcon } from './AnimatedIcon';
 
 export const HeroSection = () => {
@@ -96,7 +96,7 @@ export const HeroSection = () => {
             <Button 
               variant="outline" 
               size="lg"
-              icon={<Tool className="w-4 h-4" />}
+              icon={<Wrench className="w-4 h-4" />}
             >
               Join as a Mechanic
             </Button>
@@ -120,7 +120,7 @@ export const HeroSection = () => {
               icon={
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                    <Tool className="w-6 h-6 text-primary" />
+                    <Wrench className="w-6 h-6 text-primary" />
                   </div>
                   <span className="text-sm font-medium">Fix</span>
                 </div>
