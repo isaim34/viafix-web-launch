@@ -31,9 +31,13 @@ const samplePaymentMethods: PaymentMethod[] = [
 
 interface PaymentMethodSelectorProps {
   onSelectMethod?: (id: string) => void;
+  confirmButtonText?: string;
 }
 
-export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ onSelectMethod }) => {
+export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ 
+  onSelectMethod,
+  confirmButtonText = "Continue with Selected Method"
+}) => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(samplePaymentMethods);
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(
     paymentMethods.find(m => m.isDefault)?.id || null
@@ -131,7 +135,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ on
               className="w-full"
               onClick={handleConfirmSelection}
             >
-              Continue with Selected Method
+              {confirmButtonText}
             </Button>
           )}
         </div>
@@ -139,4 +143,3 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ on
     </div>
   );
 };
-
