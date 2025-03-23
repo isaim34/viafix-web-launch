@@ -8,6 +8,6 @@ export function useCustomerAuth() {
     ...auth,
     isCustomerLoggedIn: auth.isCustomerLoggedIn,
     currentUserId: localStorage.getItem('userId') || '',
-    currentUserName: localStorage.getItem('userName') || 'Customer',
+    currentUserName: auth.currentUserName || 'Customer',
   };
 }

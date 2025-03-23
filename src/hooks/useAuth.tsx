@@ -16,7 +16,7 @@ export function useAuth() {
       
       setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
       setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
-      setCurrentUserName(userName || 'User');
+      setCurrentUserName(userName || '');
       setCurrentUserRole(userRole);
     };
     
