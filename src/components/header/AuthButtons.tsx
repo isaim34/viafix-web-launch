@@ -62,6 +62,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   // Check if user is actually logged in by verifying localStorage directly
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole');
+  const userName = localStorage.getItem('userName') || currentUserName;
   
   // Determine if we should show auth buttons
   if (userLoggedIn) {
@@ -71,12 +72,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         <div className="text-sm">
           {isMobile ? (
             <div className="pb-2">
-              <p className="font-medium">Hello, {currentUserName}</p>
+              <p className="font-medium">Hello, {userName}</p>
               <p className="text-muted-foreground capitalize">{userRole || currentUserRole}</p>
             </div>
           ) : (
             <p className="hidden md:block text-right mr-2">
-              Hello, <span className="font-medium">{currentUserName}</span>
+              Hello, <span className="font-medium">{userName}</span>
             </p>
           )}
         </div>
@@ -85,9 +86,9 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profileImage} alt={currentUserName} />
+                <AvatarImage src={profileImage} alt={userName} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {currentUserName ? currentUserName.charAt(0).toUpperCase() : 'U'}
+                  {userName ? userName.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
               </Avatar>
             </Button>
