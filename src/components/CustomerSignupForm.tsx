@@ -25,8 +25,8 @@ const customerFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   zipCode: z.string().regex(/^\d{5}$/, "Please enter a valid 5-digit zip code"),
-  termsAccepted: z.literal(true, {
-    errorMap: () => ({ message: "You must accept the Terms of Service to continue" }),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "You must accept the Terms of Service to continue",
   }),
 });
 

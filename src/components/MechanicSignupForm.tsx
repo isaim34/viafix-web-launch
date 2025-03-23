@@ -28,8 +28,8 @@ const mechanicFormSchema = z.object({
   zipCode: z.string().regex(/^\d{5}$/, "Please enter a valid 5-digit zip code"),
   specialties: z.string().min(5, "Please list at least one specialty"),
   hourlyRate: z.string().regex(/^\d+$/, "Please enter a valid hourly rate"),
-  termsAccepted: z.literal(true, {
-    errorMap: () => ({ message: "You must accept the Terms of Service to continue" }),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "You must accept the Terms of Service to continue",
   }),
 });
 
