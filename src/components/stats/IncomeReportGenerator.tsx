@@ -5,12 +5,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateIncomeData, currentYear } from './utils/incomeDataUtils';
 import ReportControls from './ReportControls';
 import PrintableReport from './PrintableReport';
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const IncomeReportGenerator: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [reportType, setReportType] = useState<'monthly' | 'yearly'>('monthly');
+  const [printError, setPrintError] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   // Generate data based on selections
   const incomeData = generateIncomeData(selectedYear, reportType === 'monthly' ? selectedMonth : undefined);
@@ -18,47 +23,83 @@ const IncomeReportGenerator: React.FC = () => {
   
   const handlePrint = () => {
     const content = printRef.current;
-    if (!content) return;
-    
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow popups for this website');
+    if (!content) {
+      setPrintError("Could not find report content to print");
       return;
     }
     
-    const reportTitle = reportType === 'monthly' 
-      ? `Income Report - ${reportType === 'monthly' ? new Date(selectedYear, selectedMonth || 0).toLocaleString('default', { month: 'long' }) : ''} ${selectedYear}`
-      : `Yearly Income Report - ${selectedYear}`;
-    
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${reportTitle}</title>
-          <style>
-            body { font-family: sans-serif; padding: 20px; }
-            h1 { text-align: center; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f8f9fa; }
-            .total { font-weight: bold; text-align: right; margin-top: 20px; }
-            .footer { text-align: center; font-size: 12px; margin-top: 40px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <h1>${reportTitle}</h1>
-          ${content.innerHTML}
-          <div class="footer">
-            Generated on ${new Date().toLocaleDateString()} by Mobex
-          </div>
-        </body>
-      </html>
-    `);
-    
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
+    try {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        setPrintError("Please allow popups for this website to print reports");
+        toast({
+          title: "Print Error",
+          description: "Please allow popups for this website to print reports",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const reportTitle = reportType === 'monthly' 
+        ? `Income Report - ${reportType === 'monthly' ? new Date(selectedYear, selectedMonth || 0).toLocaleString('default', { month: 'long' }) : ''} ${selectedYear}`
+        : `Yearly Income Report - ${selectedYear}`;
+      
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${reportTitle}</title>
+            <style>
+              body { font-family: sans-serif; padding: 20px; }
+              h1 { text-align: center; margin-bottom: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f8f9fa; }
+              .total { font-weight: bold; text-align: right; margin-top: 20px; }
+              .footer { text-align: center; font-size: 12px; margin-top: 40px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <h1>${reportTitle}</h1>
+            ${content.innerHTML}
+            <div class="footer">
+              Generated on ${new Date().toLocaleDateString()} by Mobex
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Clear any previous errors
+      setPrintError(null);
+      
+      setTimeout(() => {
+        try {
+          printWindow.print();
+          toast({
+            title: "Success",
+            description: "Print dialog opened successfully",
+          });
+        } catch (err) {
+          console.error("Print error:", err);
+          setPrintError("Failed to open print dialog");
+          toast({
+            title: "Print Error",
+            description: "Failed to open print dialog",
+            variant: "destructive"
+          });
+        }
+      }, 250);
+    } catch (err) {
+      console.error("Window error:", err);
+      setPrintError("Your browser blocked the print window");
+      toast({
+        title: "Print Error",
+        description: "Your browser blocked the print window",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
@@ -68,6 +109,13 @@ const IncomeReportGenerator: React.FC = () => {
         <CardDescription>Generate and print income reports for your records</CardDescription>
       </CardHeader>
       <CardContent>
+        {printError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{printError}</AlertDescription>
+          </Alert>
+        )}
+        
         <Tabs value={reportType} onValueChange={(value) => setReportType(value as 'monthly' | 'yearly')}>
           <TabsList className="mb-4">
             <TabsTrigger value="monthly">Monthly Report</TabsTrigger>
