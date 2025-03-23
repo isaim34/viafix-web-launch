@@ -38,7 +38,7 @@ const IncomeChart: React.FC = () => {
   const data = generateMonthlyData(selectedYear);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex justify-end">
         <Select
           value={selectedYear.toString()}
@@ -57,9 +57,9 @@ const IncomeChart: React.FC = () => {
         </Select>
       </div>
       
-      <div className="h-[220px] w-full">
+      <div className="h-[180px] w-full">
         <ChartContainer config={config}>
-          <BarChart data={data} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+          <BarChart data={data} margin={{ top: 5, right: 15, left: 15, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis 
