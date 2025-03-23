@@ -44,15 +44,22 @@ const CustomerSigninForm = () => {
   const onSubmit = (data: CustomerFormValues) => {
     console.log('Customer signin data:', data);
     
+    // Extract username from email (for demo purposes)
+    const userName = data.email.split('@')[0];
+    const formattedName = userName
+      .split(/[._-]/)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+    
     // Simulate successful login - store auth info in localStorage for demo
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'customer');
     localStorage.setItem('userId', 'customer-123');
-    localStorage.setItem('userName', 'Current Customer');
+    localStorage.setItem('userName', formattedName);
     
     // Show success toast
     toast({
-      title: "Welcome back!",
+      title: `Welcome back, ${formattedName}!`,
       description: "You have successfully signed in.",
     });
     
