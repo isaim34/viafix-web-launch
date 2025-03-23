@@ -14,7 +14,6 @@ const IncomeReportGenerator: React.FC = () => {
   
   // Generate data based on selections
   const incomeData = generateIncomeData(selectedYear, reportType === 'monthly' ? selectedMonth : undefined);
-  
   const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
   
   const handlePrint = () => {
@@ -49,7 +48,7 @@ const IncomeReportGenerator: React.FC = () => {
           <h1>${reportTitle}</h1>
           ${content.innerHTML}
           <div class="footer">
-            Generated on ${new Date().toLocaleDateString()} by Mechanic Dashboard
+            Generated on ${new Date().toLocaleDateString()} by Mobex
           </div>
         </body>
       </html>
