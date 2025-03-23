@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatsCard } from '@/components/mechanic/StatsCard';
 import { DollarSign, Receipt, CalendarDays, Users, TrendingUp } from 'lucide-react';
-import IncomeChart from './IncomeChart';
 import IncomeReportGenerator from './IncomeReportGenerator';
 
 const StatsOverview: React.FC = () => {
@@ -44,16 +43,6 @@ const StatsOverview: React.FC = () => {
           color="bg-orange-500"
         />
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Income Overview</CardTitle>
-          <CardDescription>Track your earnings throughout the year</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <IncomeChart />
-        </CardContent>
-      </Card>
 
       <IncomeReportGenerator />
     </div>
