@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BasicProfileForm from './BasicProfileForm';
-import CertificationSection from '@/components/CertificationSection';
+import CertificationSection from '@/components/certifications/CertificationSection';
 import EducationSection from '@/components/EducationSection';
 import CompletedJobsTab from '@/components/CompletedJobsTab';
 import { BasicProfileFormValues } from '@/schemas/profileSchema';
