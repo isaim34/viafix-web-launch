@@ -62,6 +62,7 @@ export type MechanicDetail = {
   services: Service[];
   reviews: Review[];
   isFavorite?: boolean;
+  galleryImages?: string[];
 };
 
 export type FavoriteMechanic = {

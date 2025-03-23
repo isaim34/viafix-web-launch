@@ -7,6 +7,7 @@ import { MechanicProfileHeader } from '@/components/mechanic/MechanicProfileHead
 import { MechanicAbout } from '@/components/mechanic/MechanicAbout';
 import { MechanicServices } from '@/components/mechanic/MechanicServices';
 import { MechanicReviews } from '@/components/mechanic/MechanicReviews';
+import { MechanicGallery } from '@/components/mechanic/MechanicGallery';
 import { BookingCard } from '@/components/mechanic/BookingCard';
 import { mechanicsDetailedData } from '@/data/mechanicsData';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
@@ -53,6 +54,7 @@ const MechanicProfile = () => {
               isCustomerLoggedIn={isCustomerLoggedIn} 
             />
             <MechanicAbout about={mechanic.about} />
+            {mechanic.galleryImages && <MechanicGallery images={mechanic.galleryImages} />}
             <MechanicServices services={mechanic.services} />
             <MechanicReviews 
               reviews={mechanic.reviews} 
