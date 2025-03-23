@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -23,6 +23,17 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   const navigate = useNavigate();
   const { isLoggedIn, currentUserName, currentUserRole, currentUserId } = useCustomerAuth();
   
+  // Force component to update when authentication state changes
+  useEffect(() => {
+    const handleStorageEvent = () => {
+      // This will trigger a re-render when the storage-event is dispatched
+      // after login/logout operations
+    };
+    
+    window.addEventListener('storage-event', handleStorageEvent);
+    return () => window.removeEventListener('storage-event', handleStorageEvent);
+  }, []);
+  
   // Get customer profile image if available
   const profileImage = currentUserRole === 'customer' 
     ? localStorage.getItem(`customer-${currentUserId}-profileImage`) || ''
@@ -33,6 +44,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
     
     // Dispatch storage event to notify all components
     window.dispatchEvent(new Event('storage-event'));

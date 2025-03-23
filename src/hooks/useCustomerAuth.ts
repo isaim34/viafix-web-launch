@@ -8,6 +8,11 @@ export function useCustomerAuth() {
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
   
   useEffect(() => {
+    // Update username when auth state changes
+    if (auth.currentUserName) {
+      setUserName(auth.currentUserName);
+    }
+    
     // Ensure state is updated if localStorage changes
     const handleStorageChange = () => {
       setUserName(localStorage.getItem('userName') || 'Customer');
@@ -15,17 +20,19 @@ export function useCustomerAuth() {
     };
     
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('storage-event', handleStorageChange);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage-event', handleStorageChange);
     };
-  }, []);
+  }, [auth.currentUserName]);
   
   const updateUserName = useCallback((newName: string) => {
     localStorage.setItem('userName', newName);
     setUserName(newName);
     // Trigger a storage event for cross-tab updates
-    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new Event('storage-event'));
   }, []);
   
   return {
