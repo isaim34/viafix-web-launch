@@ -12,7 +12,7 @@ import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 
 const CustomerProfileEditor = () => {
   const { toast } = useToast();
-  const { currentUserName, currentUserId } = useCustomerAuth();
+  const { currentUserName, currentUserId, updateUserName } = useCustomerAuth();
   
   // Parse first and last name from currentUserName
   const nameParts = currentUserName.split(' ');
@@ -38,6 +38,9 @@ const CustomerProfileEditor = () => {
     const formattedName = `${data.firstName} ${data.lastName}`;
     localStorage.setItem('userName', formattedName);
     localStorage.setItem(`customer-${currentUserId}-profileImage`, data.profileImage || '');
+    
+    // Update the user name in the auth context
+    updateUserName(formattedName);
     
     toast({
       title: "Profile updated",

@@ -13,4 +13,5 @@ export interface MaintenanceRecord {
   description: string;
   mechanic: string;
   mechanicSignature: boolean;
+  mechanicNotes?: string[];
 }

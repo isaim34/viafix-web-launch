@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,12 +20,15 @@ import { maintenanceRecordSchema } from '@/schemas/maintenanceSchema';
 interface VehicleMaintenanceFormProps {
   onSave: (record: MaintenanceRecord) => void;
   onCancel: () => void;
+  initialData?: MaintenanceRecord;
 }
 
-const VehicleMaintenanceForm = ({ onSave, onCancel }: VehicleMaintenanceFormProps) => {
+const VehicleMaintenanceForm = ({ onSave, onCancel, initialData }: VehicleMaintenanceFormProps) => {
+  const isEditMode = !!initialData;
+  
   const form = useForm<MaintenanceRecord>({
     resolver: zodResolver(maintenanceRecordSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       date: new Date().toISOString().split('T')[0],
       vehicle: '',
       serviceType: '',
@@ -37,6 +39,16 @@ const VehicleMaintenanceForm = ({ onSave, onCancel }: VehicleMaintenanceFormProp
   });
 
   const onSubmit = (data: MaintenanceRecord) => {
+    // Preserve mechanicNotes if they exist in initialData
+    if (initialData?.mechanicNotes) {
+      data.mechanicNotes = initialData.mechanicNotes;
+    }
+    
+    // Make sure to keep the original ID when editing
+    if (isEditMode && initialData?.id) {
+      data.id = initialData.id;
+    }
+    
     onSave(data);
   };
 
@@ -160,7 +172,7 @@ const VehicleMaintenanceForm = ({ onSave, onCancel }: VehicleMaintenanceFormProp
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">Save Record</Button>
+          <Button type="submit">{isEditMode ? 'Update' : 'Save'} Record</Button>
         </div>
       </form>
     </Form>

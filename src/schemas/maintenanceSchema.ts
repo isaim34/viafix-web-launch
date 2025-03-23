@@ -9,6 +9,7 @@ export const maintenanceRecordSchema = z.object({
   description: z.string().min(10, "Please provide a detailed description"),
   mechanic: z.string().min(2, "Mechanic name is required"),
   mechanicSignature: z.boolean(),
+  mechanicNotes: z.array(z.string()).optional(),
 });
 
 export type MaintenanceRecordFormValues = z.infer<typeof maintenanceRecordSchema>;
