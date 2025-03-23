@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import ZipCodeInput from './ZipCodeInput';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const customerFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -24,6 +25,9 @@ const customerFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   zipCode: z.string().regex(/^\d{5}$/, "Please enter a valid 5-digit zip code"),
+  termsAccepted: z.literal(true, {
+    errorMap: () => ({ message: "You must accept the Terms of Service to continue" }),
+  }),
 });
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -39,6 +43,7 @@ const CustomerSignupForm = () => {
       email: '',
       password: '',
       zipCode: '',
+      termsAccepted: false,
     },
   });
 
@@ -126,6 +131,30 @@ const CustomerSignupForm = () => {
         <ZipCodeInput 
           control={form.control}
           description="Enter your zip code to find mechanics in your area"
+        />
+        
+        <FormField
+          control={form.control}
+          name="termsAccepted"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4 border">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  I agree to the <a href="/terms" className="text-primary underline">Terms of Service</a> and <a href="/privacy" className="text-primary underline">Privacy Policy</a>
+                </FormLabel>
+                <FormDescription>
+                  You must agree to our terms to create an account
+                </FormDescription>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
         />
 
         <Button type="submit" className="w-full">
