@@ -5,8 +5,9 @@ import { Button } from './Button';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { mechanicsDetailedData } from '@/data/mechanicsData';
 
-// Sample mechanic data
+// Sample mechanic data with gallery images from mechanicdDetailedData
 const mechanics = [
   {
     id: '1',
@@ -16,7 +17,8 @@ const mechanics = [
     rating: 4.8,
     reviewCount: 127,
     location: 'Los Angeles, CA',
-    hourlyRate: 85
+    hourlyRate: 85,
+    galleryImages: mechanicsDetailedData['1'].galleryImages
   },
   {
     id: '2',
@@ -26,7 +28,8 @@ const mechanics = [
     rating: 4.7,
     reviewCount: 94,
     location: 'Chicago, IL',
-    hourlyRate: 75
+    hourlyRate: 75,
+    galleryImages: mechanicsDetailedData['2'].galleryImages
   },
   {
     id: '3',

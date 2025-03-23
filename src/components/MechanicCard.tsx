@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, MapPin, Wrench } from 'lucide-react';
+import { Star, MapPin, Wrench, ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ interface MechanicCardProps {
   reviewCount: number;
   location: string;
   hourlyRate: number;
+  galleryImages?: string[];
   delay?: number;
 }
 
@@ -25,6 +26,7 @@ export const MechanicCard = ({
   reviewCount,
   location,
   hourlyRate,
+  galleryImages,
   delay = 0
 }: MechanicCardProps) => {
   return (
@@ -36,6 +38,24 @@ export const MechanicCard = ({
       className="glass-card overflow-hidden"
     >
       <Link to={`/mechanics/${id}`} className="block h-full">
+        {/* Gallery Preview */}
+        {galleryImages && galleryImages.length > 0 && (
+          <div className="relative h-48 overflow-hidden">
+            <img 
+              src={galleryImages[0]} 
+              alt={`${name}'s repair work`} 
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {galleryImages.length > 1 && (
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full px-2 py-1 text-xs font-medium flex items-center">
+                <ImageIcon className="w-3 h-3 mr-1" />
+                +{galleryImages.length - 1}
+              </div>
+            )}
+          </div>
+        )}
+        
         <div className="p-6">
           {/* Header with avatar and rating */}
           <div className="flex items-start justify-between mb-4">

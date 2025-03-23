@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -7,8 +6,8 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { Search, Filter, ChevronDown, MapPin } from 'lucide-react';
+import { mechanicsDetailedData } from '@/data/mechanicsData';
 
-// Sample mechanic data - expanded list
 const mechanicsData = [
   {
     id: '1',
@@ -18,7 +17,8 @@ const mechanicsData = [
     rating: 4.8,
     reviewCount: 127,
     location: 'Los Angeles, CA',
-    hourlyRate: 85
+    hourlyRate: 85,
+    galleryImages: mechanicsDetailedData['1'].galleryImages
   },
   {
     id: '2',
@@ -28,7 +28,8 @@ const mechanicsData = [
     rating: 4.7,
     reviewCount: 94,
     location: 'Chicago, IL',
-    hourlyRate: 75
+    hourlyRate: 75,
+    galleryImages: mechanicsDetailedData['2'].galleryImages
   },
   {
     id: '3',
@@ -82,15 +83,12 @@ const Mechanics = () => {
   const [zipCode, setZipCode] = useState(initialZipCode);
   const [filterOpen, setFilterOpen] = useState(false);
   
-  // Filter mechanics based on search term and zip code
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 
       mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mechanic.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase())) ||
       mechanic.location.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // If zip code is provided, filter by it (simple simulation)
-    // In a real app, this would use geolocation distance calculation
     const matchesZip = zipCode ? mechanic.location.includes(zipCode.substring(0, 2)) : true;
     
     return matchesSearch && matchesZip;
@@ -98,7 +96,6 @@ const Mechanics = () => {
   
   const handleZipCodeSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Update URL with zip code parameter
     navigate(`/mechanics?zipCode=${zipCode}`);
   };
 
@@ -117,7 +114,6 @@ const Mechanics = () => {
           </p>
         </motion.div>
         
-        {/* Zip Code Search */}
         <div className="mb-6">
           <form onSubmit={handleZipCodeSearch} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-grow max-w-xs">
@@ -139,7 +135,6 @@ const Mechanics = () => {
           </form>
         </div>
         
-        {/* Search and Filter */}
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -172,7 +167,6 @@ const Mechanics = () => {
               >
                 <div className="p-4">
                   <h4 className="font-medium mb-3">Specialties</h4>
-                  {/* Filter options would go here */}
                   <p className="text-sm text-gray-500">Filter functionality coming soon</p>
                 </div>
               </motion.div>
@@ -180,7 +174,6 @@ const Mechanics = () => {
           </div>
         </div>
         
-        {/* Results Count with zip code indication */}
         <p className="text-gray-500 mb-6">
           {zipCode ? 
             `Showing ${filteredMechanics.length} mechanics near ${zipCode}` : 
@@ -188,7 +181,6 @@ const Mechanics = () => {
           }
         </p>
         
-        {/* Mechanics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMechanics.map((mechanic, index) => (
             <MechanicCard 
@@ -199,7 +191,6 @@ const Mechanics = () => {
           ))}
         </div>
         
-        {/* No results message */}
         {filteredMechanics.length === 0 && (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium mb-2">No mechanics found</h3>
