@@ -9,6 +9,7 @@ import ProfileEditor from '@/components/ProfileEditor';
 import MechanicMailbox from '@/components/MechanicMailbox';
 import MechanicChat from '@/components/MechanicChat';
 import CompletedJobsTab from '@/components/CompletedJobsTab';
+import StatsOverview from '@/components/stats/StatsOverview';
 
 const MechanicDashboard = () => {
   return (
@@ -71,9 +72,7 @@ const MechanicDashboard = () => {
           </TabsContent>
           
           <TabsContent value="stats">
-            <div className="text-center py-20 text-muted-foreground">
-              Detailed statistics coming soon
-            </div>
+            <StatsOverview />
           </TabsContent>
           
           <TabsContent value="profile">

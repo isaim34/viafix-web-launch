@@ -1,5 +1,6 @@
 
 import { ReactNode } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StatsCardProps {
   title: string;
@@ -9,15 +10,17 @@ interface StatsCardProps {
 }
 
 export const StatsCard = ({ title, value, icon, color }: StatsCardProps) => (
-  <div className="bg-white rounded-lg border p-4">
-    <div className="flex items-center gap-3">
-      <div className={`rounded-full p-2 ${color}`}>
-        {icon}
+  <Card>
+    <CardContent className="p-4">
+      <div className="flex items-center gap-3">
+        <div className={`rounded-full p-2 ${color}`}>
+          {icon}
+        </div>
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+          <p className="text-2xl font-bold">{value}</p>
+        </div>
       </div>
-      <div>
-        <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-        <p className="text-2xl font-bold">{value}</p>
-      </div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 );
