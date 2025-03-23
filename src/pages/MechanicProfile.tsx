@@ -55,10 +55,10 @@ const MechanicProfile = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Profile */}
-          <div className="col-span-2">
+          <div className="col-span-1 lg:col-span-2 space-y-6">
             <MechanicProfileHeader 
               mechanic={mechanic} 
               isCustomerLoggedIn={isCustomerLoggedIn} 
@@ -73,18 +73,18 @@ const MechanicProfile = () => {
             />
             
             {/* Report Mechanic Card */}
-            <Card className="mt-8 border-muted">
-              <CardContent className="p-6">
+            <Card className="border-muted">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <h3 className="text-lg font-medium">Have an issue with this mechanic?</h3>
+                    <h3 className="text-base sm:text-lg font-medium">Have an issue with this mechanic?</h3>
                     <p className="text-sm text-muted-foreground">
                       If you've experienced unprofessional behavior or poor service, let us know.
                     </p>
                   </div>
                   <Button 
                     variant="outline" 
-                    className="text-destructive border-destructive hover:bg-destructive/10"
+                    className="text-destructive border-destructive hover:bg-destructive/10 w-full sm:w-auto"
                     icon={<Flag className="w-4 h-4" />}
                     onClick={handleReportMechanic}
                   >
@@ -97,17 +97,19 @@ const MechanicProfile = () => {
           
           {/* Right Column - Booking */}
           <div className="col-span-1">
-            <BookingCard 
-              mechanicId={mechanic.id}
-              mechanicName={mechanic.name}
-              hourlyRate={mechanic.hourlyRate}
-              responseTime={mechanic.responseTime}
-              isCustomerLoggedIn={isCustomerLoggedIn}
-              redirectTo={`/mechanics/${id}`}
-              redirectAction={null}
-              onBookService={handleBookService}
-              onContact={handleContact}
-            />
+            <div className="sticky top-20">
+              <BookingCard 
+                mechanicId={mechanic.id}
+                mechanicName={mechanic.name}
+                hourlyRate={mechanic.hourlyRate}
+                responseTime={mechanic.responseTime}
+                isCustomerLoggedIn={isCustomerLoggedIn}
+                redirectTo={`/mechanics/${id}`}
+                redirectAction={null}
+                onBookService={handleBookService}
+                onContact={handleContact}
+              />
+            </div>
           </div>
         </div>
       </div>

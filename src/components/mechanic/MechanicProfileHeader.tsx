@@ -18,13 +18,13 @@ interface MechanicProfileHeaderProps {
 export const MechanicProfileHeader = ({ mechanic, isCustomerLoggedIn }: MechanicProfileHeaderProps) => {
   return (
     <>
-      <Link to="/mechanics" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+      <Link to="/mechanics" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 text-sm">
+        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
         <span>Back to mechanics</span>
       </Link>
       
       <motion.div 
-        className="glass-card p-6 mb-8"
+        className="glass-card p-4 sm:p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -33,12 +33,12 @@ export const MechanicProfileHeader = ({ mechanic, isCustomerLoggedIn }: Mechanic
           <img 
             src={mechanic.avatar} 
             alt={mechanic.name} 
-            className="w-24 h-24 md:w-32 md:h-32 rounded-xl object-cover mb-4 md:mb-0 md:mr-6"
+            className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-xl object-cover mb-4 md:mb-0 md:mr-6"
           />
           <div className="flex-1">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold mr-3">{mechanic.name}</h1>
+            <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 mb-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold">{mechanic.name}</h1>
                 <div className="flex items-center bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
                   <Shield className="w-3 h-3 mr-1" />
                   Verified

@@ -23,20 +23,21 @@ export const ReportReasons: React.FC<ReportReasonsProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <h4 className="font-medium">Reason for reporting</h4>
+      <h4 className="font-medium text-base sm:text-lg">Reason for reporting</h4>
       <div className="grid gap-3">
         {reportReasons.map((reason) => (
-          <div key={reason.id} className="flex items-start space-x-2">
+          <div key={reason.id} className="flex items-start space-x-3">
             <Checkbox 
               id={reason.id} 
               checked={selectedReasons.includes(reason.id)}
               onCheckedChange={(checked) => 
                 onReasonChange(reason.id, checked === true)
               }
+              className="mt-0.5"
             />
             <label 
               htmlFor={reason.id} 
-              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               {reason.label}
             </label>

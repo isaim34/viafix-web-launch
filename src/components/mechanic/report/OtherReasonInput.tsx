@@ -13,14 +13,14 @@ export const OtherReasonInput: React.FC<OtherReasonInputProps> = ({
 }) => {
   return (
     <div className="mt-3">
-      <label htmlFor="other-reason" className="text-sm font-medium">
+      <label htmlFor="other-reason" className="text-sm font-medium block mb-1.5">
         Please specify other reason:
       </label>
       <Input
         id="other-reason"
         value={otherReasonText}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1"
+        className="w-full"
         placeholder="Describe the reason"
       />
     </div>
