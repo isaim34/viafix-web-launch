@@ -14,8 +14,8 @@ export const MechanicSpecialties = ({ specialties }: MechanicSpecialtiesProps) =
           key={index} 
           className="inline-flex items-center bg-blue-50 rounded-full px-2 sm:px-3 py-1 text-xs font-medium text-blue-700"
         >
-          <Wrench className="w-3 h-3 mr-1" />
-          {specialty}
+          <Wrench className="w-3 h-3 mr-1 flex-shrink-0" />
+          <span className="truncate max-w-[150px]">{specialty}</span>
         </span>
       ))}
     </div>

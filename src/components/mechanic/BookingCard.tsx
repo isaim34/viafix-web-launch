@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Smartphone, Shield, Clock, Lock } from 'lucide-react';
+import { MessageCircle, Smartphone, Shield, Clock, Lock, FileText } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ interface BookingCardProps {
   redirectAction: string | null;
   onBookService: () => void;
   onContact: () => void;
+  onCustomOffer?: () => void;
 }
 
 export const BookingCard = ({ 
@@ -27,7 +28,8 @@ export const BookingCard = ({
   redirectTo,
   redirectAction,
   onBookService,
-  onContact
+  onContact,
+  onCustomOffer
 }: BookingCardProps) => {
   const firstName = mechanicName.split(' ')[0];
   
@@ -76,6 +78,17 @@ export const BookingCard = ({
       >
         {isCustomerLoggedIn ? 'Book Service' : 'Sign In to Book'}
       </Button>
+      
+      {isCustomerLoggedIn && onCustomOffer && (
+        <Button 
+          variant="outline" 
+          className="w-full mb-3" 
+          icon={<FileText className="w-4 h-4" />} 
+          onClick={onCustomOffer}
+        >
+          Request Custom Offer
+        </Button>
+      )}
       
       <Button 
         variant="outline" 
