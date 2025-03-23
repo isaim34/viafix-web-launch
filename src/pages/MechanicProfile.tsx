@@ -12,7 +12,8 @@ import { BookingCard } from '@/components/mechanic/BookingCard';
 import { mechanicsDetailedData } from '@/data/mechanicsData';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { useMechanicChat } from '@/hooks/useMechanicChat';
-import { MechanicProfileActions } from '@/components/mechanic/MechanicProfileActions';
+import { useMechanicProfileActions } from '@/components/mechanic/MechanicProfileActions';
+import ReportMechanicDialog from '@/components/mechanic/ReportMechanicDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/Button';
 import { Flag } from 'lucide-react';
@@ -43,8 +44,9 @@ const MechanicProfile = () => {
     handleBookService, 
     handleContact, 
     handleReportMechanic,
-    ReportDialog
-  } = MechanicProfileActions({
+    isReportDialogOpen,
+    setIsReportDialogOpen
+  } = useMechanicProfileActions({
     mechanicId: mechanic.id,
     mechanicName: mechanic.name,
     isCustomerLoggedIn,
@@ -125,7 +127,12 @@ const MechanicProfile = () => {
       )}
       
       {/* Report Dialog */}
-      {ReportDialog}
+      <ReportMechanicDialog
+        mechanicId={mechanic.id}
+        mechanicName={mechanic.name}
+        isOpen={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
+      />
     </Layout>
   );
 };
