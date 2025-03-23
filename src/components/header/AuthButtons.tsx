@@ -47,12 +47,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         <div className="text-sm">
           {isMobile ? (
             <div className="pb-2">
-              <p className="font-medium">Welcome, {currentUserName}</p>
+              <p className="font-medium">Hello, {currentUserName}</p>
               <p className="text-muted-foreground capitalize">{currentUserRole}</p>
             </div>
           ) : (
             <p className="hidden md:block text-right mr-2">
-              Welcome, <span className="font-medium">{currentUserName}</span>
+              Hello, <span className="font-medium">{currentUserName}</span>
             </p>
           )}
         </div>
