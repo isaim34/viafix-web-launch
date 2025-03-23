@@ -16,6 +16,7 @@ export function useCustomerAuth() {
       const storedUserName = localStorage.getItem('userName');
       const storedUserId = localStorage.getItem('userId');
       
+      // Consider both customer and mechanic as valid logged-in users
       setIsCustomerLoggedIn(userLoggedIn && (userRole === 'customer' || userRole === 'mechanic'));
       if (storedUserName) setUserName(storedUserName);
       if (storedUserId) setUserId(storedUserId);
