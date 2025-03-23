@@ -14,6 +14,7 @@ import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
 import MechanicDashboard from "./pages/MechanicDashboard";
 import TwoFactorAuth from "./pages/TwoFactorAuth";
+import CustomerProfile from "./pages/CustomerProfile";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App: React.FC = () => {
               <Route path="/signin" element={<Signin />} />
               <Route path="/mechanic/dashboard" element={<MechanicDashboard />} />
               <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
+              <Route path="/customer/profile" element={<CustomerProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>

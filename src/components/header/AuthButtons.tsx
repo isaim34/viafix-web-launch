@@ -1,10 +1,19 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, LogOut } from 'lucide-react';
-import { Button } from '../Button';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { useCustomerAuth } from '@/hooks/useCustomerAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { LogOut, UserCircle, User } from 'lucide-react';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
@@ -12,84 +21,100 @@ interface AuthButtonsProps {
 
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
-  const { isLoggedIn, isMechanicLoggedIn, currentUserName, currentUserRole } = useAuth();
+  const { isLoggedIn, currentUserName, currentUserRole, currentUserId } = useCustomerAuth();
   
-  const baseClassName = isMobile ? "justify-start" : "";
-  
-  const getDashboardLink = () => {
-    if (isMechanicLoggedIn) {
-      return '/mechanic/dashboard';
-    }
-    return null;
-  };
-  
-  const handleSignOut = () => {
+  // Get customer profile image if available
+  const profileImage = currentUserRole === 'customer' 
+    ? localStorage.getItem(`customer-${currentUserId}-profileImage`) || ''
+    : '';
+
+  const handleLogout = () => {
     // Clear auth data
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
     
-    // Show success toast
     toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
+      title: "Logged out",
+      description: "You have been successfully logged out",
     });
     
-    // Redirect to home page
     navigate('/');
   };
 
   if (isLoggedIn) {
     return (
-      <>
-        <div className={`text-sm font-medium ${isMobile ? "py-2" : ""}`}>
-          Hello, {currentUserName}
-          {currentUserRole && <span className="ml-1 text-xs text-gray-500">({currentUserRole})</span>}
+      <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
+        <div className="text-sm">
+          {isMobile ? (
+            <div className="pb-2">
+              <p className="font-medium">Welcome, {currentUserName}</p>
+              <p className="text-muted-foreground capitalize">{currentUserRole}</p>
+            </div>
+          ) : (
+            <p className="hidden md:block text-right mr-2">
+              Welcome, <span className="font-medium">{currentUserName}</span>
+            </p>
+          )}
         </div>
         
-        {/* Dashboard link for mechanics */}
-        {getDashboardLink() && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={baseClassName}
-            onClick={() => navigate(getDashboardLink() || '/')}
-          >
-            Dashboard
-          </Button>
-        )}
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={baseClassName}
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={baseClassName}
-          onClick={() => navigate('/signin')}
-        >
-          <User className="h-4 w-4 mr-2" />
-          Sign In
-        </Button>
-        <Button 
-          size="sm" 
-          onClick={() => navigate('/signup')}
-        >
-          Sign Up
-        </Button>
-      </>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profileImage} alt={currentUserName} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {currentUserName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            {currentUserRole === 'customer' && (
+              <DropdownMenuItem asChild>
+                <Link to="/customer/profile" className="flex items-center cursor-pointer">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  <span>Your Profile</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
+            
+            {currentUserRole === 'mechanic' && (
+              <DropdownMenuItem asChild>
+                <Link to="/mechanic/dashboard" className="flex items-center cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </DropdownMenuItem>
+            )}
+            
+            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     );
   }
+
+  return (
+    <div className={isMobile ? "space-y-3" : "space-x-4"}>
+      <Button 
+        variant="ghost" 
+        className={isMobile ? "w-full justify-start" : ""} 
+        onClick={() => navigate('/signin')}
+      >
+        Sign in
+      </Button>
+      <Button 
+        className={isMobile ? "w-full justify-start" : ""} 
+        onClick={() => navigate('/signup')}
+      >
+        Sign up
+      </Button>
+    </div>
+  );
 };
