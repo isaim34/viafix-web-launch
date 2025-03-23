@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Send, AlertCircle } from 'lucide-react';
+import { Star, Send, AlertCircle, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MassMessageForm } from './MassMessageForm';
 import { FeaturedPlanCard } from './FeaturedPlanCard';
+import PaymentMethodsTab from './PaymentMethodsTab';
 
 // Sample pricing - in a real app, this would come from an API
 const FEATURED_DAILY_PRICE = 24.99;
@@ -69,6 +70,10 @@ const AdvertisingTab = () => {
           <TabsTrigger value="messaging" className="flex items-center gap-2">
             <Send className="h-4 w-4" />
             Mass Messaging
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Payment Methods
           </TabsTrigger>
         </TabsList>
         
@@ -192,6 +197,10 @@ const AdvertisingTab = () => {
               return false;
             }}
           />
+        </TabsContent>
+        
+        <TabsContent value="payment">
+          <PaymentMethodsTab />
         </TabsContent>
       </Tabs>
     </div>

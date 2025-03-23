@@ -47,6 +47,17 @@ export type Review = {
   text: string;
 };
 
+export type PaymentMethod = {
+  id: string;
+  type: 'card' | 'paypal' | 'bank';
+  last4?: string;
+  brand?: string;
+  expiryMonth?: number;
+  expiryYear?: number;
+  name?: string;
+  isDefault: boolean;
+};
+
 export type MechanicDetail = {
   id: string;
   name: string;
