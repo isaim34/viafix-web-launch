@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ZipCodeInput from './ZipCodeInput';
 import CertificationSection from './CertificationSection';
 import EducationSection from './EducationSection';
+import ProfilePictureUploader from './ProfilePictureUploader';
 
 // Schema for basic profile information
 const basicProfileSchema = z.object({
@@ -60,6 +61,10 @@ const ProfileEditor = () => {
     // In a real app, this would save to a database
   };
 
+  const handleProfileImageChange = (url: string) => {
+    form.setValue('profileImage', url);
+  };
+
   return (
     <div className="space-y-8">
       <Tabs defaultValue="basic" className="w-full">
@@ -67,12 +72,20 @@ const ProfileEditor = () => {
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="certifications">Certifications</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
+          <TabsTrigger value="completed-jobs">Completed Jobs</TabsTrigger>
         </TabsList>
         
         <TabsContent value="basic">
           <Card className="p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="flex justify-center mb-8">
+                  <ProfilePictureUploader
+                    initialImageUrl={form.getValues('profileImage')}
+                    onImageChange={handleProfileImageChange}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
@@ -244,6 +257,10 @@ const ProfileEditor = () => {
         
         <TabsContent value="education">
           <EducationSection />
+        </TabsContent>
+        
+        <TabsContent value="completed-jobs">
+          <CompletedJobsTab />
         </TabsContent>
       </Tabs>
     </div>

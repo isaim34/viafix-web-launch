@@ -3,11 +3,12 @@ import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { Inbox, Settings, BarChart3, Wrench, MessageCircle } from 'lucide-react';
+import { Inbox, Settings, BarChart3, Wrench, MessageCircle, CheckSquare } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
 import MechanicMailbox from '@/components/MechanicMailbox';
 import MechanicChat from '@/components/MechanicChat';
+import CompletedJobsTab from '@/components/CompletedJobsTab';
 
 const MechanicDashboard = () => {
   return (
@@ -31,6 +32,10 @@ const MechanicDashboard = () => {
               <Wrench className="h-4 w-4" />
               My Gigs
             </TabsTrigger>
+            <TabsTrigger value="completed-jobs" className="flex items-center gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Completed Jobs
+            </TabsTrigger>
             <TabsTrigger value="inbox" className="flex items-center gap-2">
               <Inbox className="h-4 w-4" />
               Inbox
@@ -51,6 +56,10 @@ const MechanicDashboard = () => {
           
           <TabsContent value="gigs">
             <GigManagement />
+          </TabsContent>
+          
+          <TabsContent value="completed-jobs">
+            <CompletedJobsTab />
           </TabsContent>
           
           <TabsContent value="inbox">
