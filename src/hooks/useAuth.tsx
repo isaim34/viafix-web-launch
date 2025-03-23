@@ -24,8 +24,12 @@ export function useAuth() {
     
     // Setup event listener for storage changes (for multi-tab support)
     window.addEventListener('storage', checkUserAuth);
+    // Also listen for custom storage events dispatched within the app
+    window.addEventListener('storage-event', checkUserAuth);
+    
     return () => {
       window.removeEventListener('storage', checkUserAuth);
+      window.removeEventListener('storage-event', checkUserAuth);
     };
   }, []);
 
