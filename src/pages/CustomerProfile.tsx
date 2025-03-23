@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { Card } from '@/components/ui/card';
@@ -13,22 +13,29 @@ const CustomerProfile = () => {
   const { isCustomerLoggedIn } = useCustomerAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [checkedAuth, setCheckedAuth] = useState(false);
   
   useEffect(() => {
-    // Check login status inside useEffect to avoid state updates during render
-    if (!isCustomerLoggedIn) {
+    // Check if user is logged in as a customer
+    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    const userRole = localStorage.getItem('userRole');
+    
+    const isCustomer = userLoggedIn && userRole === 'customer';
+    
+    if (!isCustomer) {
       toast({
         title: "Login Required",
         description: "You need to be logged in as a customer to view your profile",
         variant: "destructive"
       });
       navigate('/signin');
+    } else {
+      setCheckedAuth(true);
     }
-  }, [isCustomerLoggedIn, toast, navigate]);
+  }, [toast, navigate]);
 
-  // If not logged in, return null (don't render anything)
-  // This prevents any flicker of content before redirect
-  if (!isCustomerLoggedIn) {
+  // Show loading state while checking authentication
+  if (!checkedAuth) {
     return null;
   }
 
