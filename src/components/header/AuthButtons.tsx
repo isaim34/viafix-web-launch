@@ -32,6 +32,10 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     // Clear auth data
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    
+    // Dispatch storage event to notify all components
+    window.dispatchEvent(new Event('storage-event'));
     
     toast({
       title: "Logged out",

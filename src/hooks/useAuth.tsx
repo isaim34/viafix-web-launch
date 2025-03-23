@@ -18,6 +18,8 @@ export function useAuth() {
       setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
       setCurrentUserName(userName || '');
       setCurrentUserRole(userRole);
+      
+      console.log('Auth state checked:', { userLoggedIn, userRole, userName });
     };
     
     checkUserAuth();
