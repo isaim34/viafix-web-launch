@@ -1,7 +1,10 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import ReportMechanicDialog from './ReportMechanicDialog';
+import { Button } from '@/components/Button';
+import { MessageCircle, BookOpen, Flag } from 'lucide-react';
 
 interface MechanicProfileActionsProps {
   mechanicId: string;
@@ -31,8 +34,31 @@ export const MechanicProfileActions: React.FC<MechanicProfileActionsProps> = ({
 
   return (
     <>
-      <div className="mechanic-actions">
-        {/* Action buttons would go here */}
+      <div className="mechanic-actions flex flex-col gap-3 md:flex-row">
+        <Button 
+          className="w-full" 
+          onClick={handleBookService}
+          icon={<BookOpen className="w-4 h-4" />}
+        >
+          Book Service
+        </Button>
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          icon={<MessageCircle className="w-4 h-4" />} 
+          onClick={handleContact}
+        >
+          Contact
+        </Button>
+        <Button 
+          variant="outline"
+
+          className="w-full text-destructive border-destructive hover:bg-destructive/10" 
+          icon={<Flag className="w-4 h-4" />} 
+          onClick={handleReportMechanic}
+        >
+          Report
+        </Button>
       </div>
       <ReportMechanicDialog
         mechanicId={mechanicId}
