@@ -63,12 +63,9 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole');
   
-  // Don't show auth buttons on mechanic dashboard
-  if (location.pathname.includes('/mechanic/dashboard') && !userLoggedIn) {
-    return null;
-  }
-  
+  // Determine if we should show auth buttons
   if (userLoggedIn) {
+    // User is logged in, show profile section
     return (
       <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
         <div className="text-sm">
@@ -127,6 +124,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     );
   }
 
+  // Don't show auth buttons on mechanic dashboard if not logged in
+  if (location.pathname.includes('/mechanic/dashboard') && !userLoggedIn) {
+    return null;
+  }
+
+  // Not logged in, show login/signup buttons
   return (
     <div className={isMobile ? "space-y-3" : "space-x-4"}>
       <Button 
