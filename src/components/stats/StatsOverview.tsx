@@ -16,30 +16,30 @@ const StatsOverview: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-6 md:space-y-8">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
         <StatsCard
           title="Total Earnings"
           value={`$${statsData.totalEarnings.toLocaleString()}`}
-          icon={<DollarSign className="h-5 w-5 text-white" />}
+          icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5 text-white" />}
           color="bg-green-500"
         />
         <StatsCard
           title="Jobs Completed"
           value={statsData.jobsCompleted}
-          icon={<Receipt className="h-5 w-5 text-white" />}
+          icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-white" />}
           color="bg-blue-500"
         />
         <StatsCard
           title="Active Clients"
           value={statsData.activeClients}
-          icon={<Users className="h-5 w-5 text-white" />}
+          icon={<Users className="h-4 w-4 md:h-5 md:w-5 text-white" />}
           color="bg-purple-500"
         />
         <StatsCard
           title="Average Job Value"
           value={`$${statsData.averageJobValue.toFixed(2)}`}
-          icon={<TrendingUp className="h-5 w-5 text-white" />}
+          icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-white" />}
           color="bg-orange-500"
         />
       </div>

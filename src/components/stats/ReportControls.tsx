@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReportControlsProps {
   reportType: 'monthly' | 'yearly';
@@ -35,6 +36,7 @@ const ReportControls: React.FC<ReportControlsProps> = ({
   handlePrint
 }) => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const validateAndPrint = () => {
     if (reportType === 'monthly' && selectedMonth === null) {
@@ -56,13 +58,13 @@ const ReportControls: React.FC<ReportControlsProps> = ({
   };
   
   return (
-    <div className="mb-6 flex flex-wrap gap-4">
+    <div className="mb-4 md:mb-6 flex flex-wrap gap-2 md:gap-4">
       {reportType === 'monthly' && (
         <Select
           value={selectedMonth !== null ? selectedMonth.toString() : ''}
           onValueChange={(value) => setSelectedMonth(parseInt(value))}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full xs:w-[140px] md:w-[180px]">
             <SelectValue placeholder="Select Month" />
           </SelectTrigger>
           <SelectContent>
@@ -79,7 +81,7 @@ const ReportControls: React.FC<ReportControlsProps> = ({
         value={selectedYear.toString()}
         onValueChange={(value) => setSelectedYear(parseInt(value))}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full xs:w-[140px] md:w-[180px]">
           <SelectValue placeholder="Select Year" />
         </SelectTrigger>
         <SelectContent>
@@ -91,15 +93,16 @@ const ReportControls: React.FC<ReportControlsProps> = ({
         </SelectContent>
       </Select>
       
-      <div className="ml-auto flex flex-wrap gap-2">
+      <div className="w-full xs:w-auto xs:ml-auto flex flex-wrap gap-2 mt-2 xs:mt-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button 
               variant="outline" 
-              className="flex items-center gap-2"
+              className="w-full xs:w-auto flex items-center gap-2 text-xs md:text-sm"
+              size={isMobile ? "sm" : "default"}
             >
-              <Printer className="h-4 w-4" />
-              Print Report
+              <Printer className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              {isMobile ? "Print" : "Print Report"}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -117,11 +120,12 @@ const ReportControls: React.FC<ReportControlsProps> = ({
         </AlertDialog>
         <Button 
           variant="outline" 
-          className="flex items-center gap-2"
+          className="w-full xs:w-auto flex items-center gap-2 text-xs md:text-sm"
+          size={isMobile ? "sm" : "default"}
           onClick={handleDownload}
         >
-          <Download className="h-4 w-4" />
-          Download
+          <Download className="h-3.5 w-3.5 md:h-4 md:w-4" />
+          {isMobile ? "Download" : "Download"}
         </Button>
       </div>
     </div>
