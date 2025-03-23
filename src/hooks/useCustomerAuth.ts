@@ -6,17 +6,32 @@ export function useCustomerAuth() {
   const auth = useAuth();
   const [userName, setUserName] = useState(localStorage.getItem('userName') || 'Customer');
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
+  const [isCustomerLoggedIn, setIsCustomerLoggedIn] = useState(false);
   
   useEffect(() => {
-    // Update username when auth state changes
+    // Check auth status directly from localStorage
+    const checkAuth = () => {
+      const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+      const userRole = localStorage.getItem('userRole');
+      const storedUserName = localStorage.getItem('userName');
+      const storedUserId = localStorage.getItem('userId');
+      
+      setIsCustomerLoggedIn(userLoggedIn && (userRole === 'customer' || userRole === 'mechanic'));
+      if (storedUserName) setUserName(storedUserName);
+      if (storedUserId) setUserId(storedUserId);
+    };
+    
+    // Initial check
+    checkAuth();
+    
+    // Update when auth state changes
     if (auth.currentUserName) {
       setUserName(auth.currentUserName);
     }
     
     // Ensure state is updated if localStorage changes
     const handleStorageChange = () => {
-      setUserName(localStorage.getItem('userName') || 'Customer');
-      setUserId(localStorage.getItem('userId') || '');
+      checkAuth();
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -37,7 +52,7 @@ export function useCustomerAuth() {
   
   return {
     ...auth,
-    isCustomerLoggedIn: auth.isCustomerLoggedIn,
+    isCustomerLoggedIn: isCustomerLoggedIn,
     currentUserId: userId,
     currentUserName: userName,
     updateUserName,

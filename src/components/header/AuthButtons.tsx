@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
@@ -21,13 +21,15 @@ interface AuthButtonsProps {
 
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoggedIn, currentUserName, currentUserRole, currentUserId } = useCustomerAuth();
+  const [forceUpdate, setForceUpdate] = useState(0);
   
   // Force component to update when authentication state changes
   useEffect(() => {
     const handleStorageEvent = () => {
-      // This will trigger a re-render when the storage-event is dispatched
-      // after login/logout operations
+      // Force re-render when auth state changes
+      setForceUpdate(prev => prev + 1);
     };
     
     window.addEventListener('storage-event', handleStorageEvent);
@@ -57,7 +59,10 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     navigate('/');
   };
 
-  if (isLoggedIn) {
+  // Check if user is actually logged in by verifying localStorage directly
+  const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+  
+  if (userLoggedIn) {
     return (
       <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
         <div className="text-sm">
@@ -114,6 +119,11 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         </DropdownMenu>
       </div>
     );
+  }
+
+  // Don't show auth buttons on mechanic dashboard
+  if (location.pathname.includes('/mechanic/dashboard')) {
+    return null;
   }
 
   return (
