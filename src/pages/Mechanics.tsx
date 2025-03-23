@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
-import { MechanicCard } from '@/components/MechanicCard';
-import { Button } from '@/components/Button';
-import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
-import { Search, Filter, ChevronDown, MapPin } from 'lucide-react';
 import { mechanicsDetailedData } from '@/data/mechanicsData';
+import MechanicsHeader from '@/components/mechanics/MechanicsHeader';
+import MechanicsZipCodeSearch from '@/components/mechanics/MechanicsZipCodeSearch';
+import MechanicsSearch from '@/components/mechanics/MechanicsSearch';
+import MechanicsList from '@/components/mechanics/MechanicsList';
 
 const mechanicsData = [
   {
@@ -75,13 +74,11 @@ const mechanicsData = [
 
 const Mechanics = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const initialZipCode = queryParams.get('zipCode') || '';
   
   const [searchTerm, setSearchTerm] = useState('');
   const [zipCode, setZipCode] = useState(initialZipCode);
-  const [filterOpen, setFilterOpen] = useState(false);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 
@@ -93,110 +90,14 @@ const Mechanics = () => {
     
     return matchesSearch && matchesZip;
   });
-  
-  const handleZipCodeSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/mechanics?zipCode=${zipCode}`);
-  };
 
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold mb-4">Find Your Mechanic</h1>
-          <p className="text-gray-600 max-w-2xl">
-            Browse our network of skilled mechanics ready to help with your vehicle. Filter by specialty, location, or rating to find the perfect match.
-          </p>
-        </motion.div>
-        
-        <div className="mb-6">
-          <form onSubmit={handleZipCodeSearch} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-grow max-w-xs">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Enter zip code"
-                className="pl-10"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value.slice(0, 5))}
-                pattern="[0-9]*"
-                inputMode="numeric"
-                maxLength={5}
-              />
-            </div>
-            <Button type="submit" size="default">
-              Search by Zip Code
-            </Button>
-          </form>
-        </div>
-        
-        <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name, specialty, or location..."
-              className="pl-10 pr-4 py-3 w-full rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="relative">
-            <button 
-              onClick={() => setFilterOpen(!filterOpen)}
-              className="flex items-center gap-2 py-3 px-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Filter className="w-5 h-5" />
-              <span>Filters</span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {filterOpen && (
-              <motion.div 
-                className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-100 z-10"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="p-4">
-                  <h4 className="font-medium mb-3">Specialties</h4>
-                  <p className="text-sm text-gray-500">Filter functionality coming soon</p>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </div>
-        
-        <p className="text-gray-500 mb-6">
-          {zipCode ? 
-            `Showing ${filteredMechanics.length} mechanics near ${zipCode}` : 
-            `Showing ${filteredMechanics.length} mechanics`
-          }
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMechanics.map((mechanic, index) => (
-            <MechanicCard 
-              key={mechanic.id} 
-              {...mechanic} 
-              delay={0.05 * index}
-            />
-          ))}
-        </div>
-        
-        {filteredMechanics.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">No mechanics found</h3>
-            <p className="text-gray-500 mb-6">Try adjusting your search or zip code</p>
-          </div>
-        )}
+        <MechanicsHeader />
+        <MechanicsZipCodeSearch zipCode={zipCode} setZipCode={setZipCode} />
+        <MechanicsSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <MechanicsList mechanics={filteredMechanics} zipCode={zipCode} />
       </div>
     </Layout>
   );
