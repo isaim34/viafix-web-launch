@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import ZipCodeInput from '@/components/ZipCodeInput';
 import ProfilePictureUploader from '@/components/ProfilePictureUploader';
 import { basicProfileSchema, BasicProfileFormValues, sampleMechanicProfile } from '@/schemas/profileSchema';
+import NameFields from '@/components/common/NameFields';
 
 interface BasicProfileFormProps {
   onSubmit?: (data: BasicProfileFormValues) => void;
@@ -49,35 +50,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit }) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <NameFields control={form.control} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ZipCodeInput 
