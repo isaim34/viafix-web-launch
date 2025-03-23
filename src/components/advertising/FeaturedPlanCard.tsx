@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { Star, CreditCard, CheckCircle } from 'lucide-react';
+import { Star, CreditCard, CheckCircle, ShieldCheck } from 'lucide-react';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface FeaturedPlanCardProps {
   title: string;
@@ -25,11 +26,19 @@ export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
   onPurchase
 }) => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   
   const handlePurchase = () => {
     setShowPaymentDialog(true);
+  };
+  
+  const handleProceedToConfirmation = (paymentMethodId: string) => {
+    setSelectedPaymentMethodId(paymentMethodId);
+    setShowPaymentDialog(false);
+    setShowConfirmDialog(true);
   };
   
   const handleConfirmPayment = () => {
@@ -40,11 +49,16 @@ export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
       setIsComplete(true);
       // After showing success message, close dialog and call onPurchase
       setTimeout(() => {
-        setShowPaymentDialog(false);
+        setShowConfirmDialog(false);
         setIsComplete(false);
         onPurchase(days);
       }, 1500);
     }, 2000);
+  };
+  
+  const handleCancelConfirmation = () => {
+    setShowConfirmDialog(false);
+    setShowPaymentDialog(true);
   };
 
   return (
@@ -74,34 +88,86 @@ export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
         </CardFooter>
       </Card>
       
+      {/* Payment Method Selection Dialog */}
       <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {isComplete ? 'Payment Successful!' : 'Complete Your Purchase'}
-            </AlertDialogTitle>
+            <AlertDialogTitle>Select Payment Method</AlertDialogTitle>
             <AlertDialogDescription>
+              <p className="mb-4">{title} - ${price.toFixed(2)}</p>
+              <PaymentMethodSelector 
+                onSelectMethod={handleProceedToConfirmation}
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPaymentDialog(false)}
+            >
+              Cancel
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {isComplete ? 'Payment Successful!' : 'Confirm Your Purchase'}
+            </DialogTitle>
+            <DialogDescription>
               {isComplete ? (
                 <div className="flex flex-col items-center py-4">
                   <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
                   <p className="text-center">Your profile will be featured for {days} {days === 1 ? 'day' : 'days'}</p>
                 </div>
               ) : (
-                <>
-                  <p className="mb-4">{title} - ${price.toFixed(2)}</p>
-                  <PaymentMethodSelector />
-                </>
+                <div className="space-y-4 py-2">
+                  <div className="flex flex-col space-y-1 border-b pb-4">
+                    <span className="font-medium">{title}</span>
+                    <span className="text-sm text-muted-foreground">{description}</span>
+                    <span className="text-lg font-semibold mt-2">${price.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Payment Method ending in •••• 4242</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setShowConfirmDialog(false);
+                        setShowPaymentDialog(true);
+                      }}
+                    >
+                      Change
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-primary/5 p-4 rounded-md flex items-start gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium">Secure Transaction</p>
+                      <p className="text-muted-foreground">Your payment information is protected and this purchase is covered by our satisfaction guarantee.</p>
+                    </div>
+                  </div>
+                </div>
               )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           {!isComplete && (
-            <AlertDialogFooter>
+            <DialogFooter>
               <Button 
                 variant="outline" 
-                onClick={() => setShowPaymentDialog(false)}
+                onClick={handleCancelConfirmation}
                 disabled={isProcessing}
               >
-                Cancel
+                Back
               </Button>
               <Button 
                 onClick={handleConfirmPayment}
@@ -119,14 +185,15 @@ export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
                 ) : (
                   <>
                     <CreditCard className="h-4 w-4" />
-                    Pay ${price.toFixed(2)}
+                    Confirm Payment (${price.toFixed(2)})
                   </>
                 )}
               </Button>
-            </AlertDialogFooter>
+            </DialogFooter>
           )}
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
+

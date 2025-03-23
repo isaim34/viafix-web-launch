@@ -29,7 +29,11 @@ const samplePaymentMethods: PaymentMethod[] = [
   }
 ];
 
-export const PaymentMethodSelector: React.FC = () => {
+interface PaymentMethodSelectorProps {
+  onSelectMethod?: (id: string) => void;
+}
+
+export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ onSelectMethod }) => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(samplePaymentMethods);
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(
     paymentMethods.find(m => m.isDefault)?.id || null
@@ -49,6 +53,16 @@ export const PaymentMethodSelector: React.FC = () => {
     }
   };
   
+  const handleSelectMethod = (id: string) => {
+    setSelectedMethodId(id);
+  };
+  
+  const handleConfirmSelection = () => {
+    if (selectedMethodId && onSelectMethod) {
+      onSelectMethod(selectedMethodId);
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <div className="text-sm font-medium mb-2">Select Payment Method</div>
@@ -56,7 +70,7 @@ export const PaymentMethodSelector: React.FC = () => {
       {paymentMethods.length > 0 ? (
         <RadioGroup 
           value={selectedMethodId || undefined} 
-          onValueChange={setSelectedMethodId}
+          onValueChange={handleSelectMethod}
           className="space-y-2"
         >
           {paymentMethods.map((method) => (
@@ -99,16 +113,30 @@ export const PaymentMethodSelector: React.FC = () => {
           onCancel={() => setShowAddForm(false)} 
         />
       ) : (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full mt-2 flex items-center gap-2"
-          onClick={() => setShowAddForm(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Add Payment Method
-        </Button>
+        <div className="space-y-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full mt-2 flex items-center gap-2"
+            onClick={() => setShowAddForm(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Payment Method
+          </Button>
+          
+          {onSelectMethod && selectedMethodId && (
+            <Button 
+              variant="default"
+              size="sm"
+              className="w-full"
+              onClick={handleConfirmSelection}
+            >
+              Continue with Selected Method
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
 };
+
