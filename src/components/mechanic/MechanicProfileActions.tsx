@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import ReportMechanicDialog from './ReportMechanicDialog';
 
 interface MechanicProfileActionsProps {
   mechanicId: string;
@@ -18,6 +19,7 @@ export const MechanicProfileActions = ({
 }: MechanicProfileActionsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const handleBookService = () => {
     if (!isCustomerLoggedIn) {
@@ -68,8 +70,39 @@ export const MechanicProfileActions = ({
     onContact();
   };
 
+  const handleReportMechanic = () => {
+    if (!isCustomerLoggedIn) {
+      // Redirect to login if not logged in
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in as a customer to report mechanics.",
+        variant: "destructive",
+      });
+      
+      navigate('/signin', { 
+        state: { 
+          redirectTo: `/mechanics/${mechanicId}`,
+          action: 'report'
+        } 
+      });
+      return;
+    }
+    
+    // Open report dialog
+    setIsReportDialogOpen(true);
+  };
+
   return {
     handleBookService,
-    handleContact
+    handleContact,
+    handleReportMechanic,
+    ReportDialog: (
+      <ReportMechanicDialog
+        mechanicId={mechanicId}
+        mechanicName={mechanicName}
+        isOpen={isReportDialogOpen}
+        onOpenChange={setIsReportDialogOpen}
+      />
+    )
   };
 };

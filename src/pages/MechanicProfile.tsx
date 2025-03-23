@@ -13,6 +13,9 @@ import { mechanicsDetailedData } from '@/data/mechanicsData';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { useMechanicChat } from '@/hooks/useMechanicChat';
 import { MechanicProfileActions } from '@/components/mechanic/MechanicProfileActions';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/Button';
+import { Flag } from 'lucide-react';
 
 const MechanicProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +39,12 @@ const MechanicProfile = () => {
     currentUserName
   );
 
-  const { handleBookService, handleContact } = MechanicProfileActions({
+  const { 
+    handleBookService, 
+    handleContact, 
+    handleReportMechanic,
+    ReportDialog
+  } = MechanicProfileActions({
     mechanicId: mechanic.id,
     mechanicName: mechanic.name,
     isCustomerLoggedIn,
@@ -61,6 +69,28 @@ const MechanicProfile = () => {
               rating={mechanic.rating} 
               reviewCount={mechanic.reviewCount} 
             />
+            
+            {/* Report Mechanic Card */}
+            <Card className="mt-8 border-muted">
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="text-lg font-medium">Have an issue with this mechanic?</h3>
+                    <p className="text-sm text-muted-foreground">
+                      If you've experienced unprofessional behavior or poor service, let us know.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="text-destructive border-destructive hover:bg-destructive/10"
+                    icon={<Flag className="w-4 h-4" />}
+                    onClick={handleReportMechanic}
+                  >
+                    Report Mechanic
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
           {/* Right Column - Booking */}
@@ -93,6 +123,9 @@ const MechanicProfile = () => {
           onSendMessage={handleSendMessage}
         />
       )}
+      
+      {/* Report Dialog */}
+      {ReportDialog}
     </Layout>
   );
 };
