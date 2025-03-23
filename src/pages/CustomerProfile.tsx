@@ -26,7 +26,8 @@ const CustomerProfile = () => {
     }
   }, [isCustomerLoggedIn, toast, navigate]);
 
-  // If not logged in, render nothing while the useEffect handles the redirect
+  // If not logged in, return null (don't render anything)
+  // This prevents any flicker of content before redirect
   if (!isCustomerLoggedIn) {
     return null;
   }
