@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,8 +20,8 @@ import ZipCodeInput from './ZipCodeInput';
 import CertificationSection from './CertificationSection';
 import EducationSection from './EducationSection';
 import ProfilePictureUploader from './ProfilePictureUploader';
+import CompletedJobsTab from './CompletedJobsTab';
 
-// Schema for basic profile information
 const basicProfileSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
@@ -37,7 +36,6 @@ const basicProfileSchema = z.object({
 
 type BasicProfileFormValues = z.infer<typeof basicProfileSchema>;
 
-// Sample mechanic profile data 
 const sampleMechanicProfile = {
   firstName: 'Alex',
   lastName: 'Johnson',
