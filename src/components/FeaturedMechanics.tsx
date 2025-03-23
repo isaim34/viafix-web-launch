@@ -2,7 +2,7 @@
 import React from 'react';
 import { MechanicCard } from './MechanicCard';
 import { Button } from './Button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { mechanicsDetailedData } from '@/data/mechanicsData';
@@ -18,7 +18,9 @@ const mechanics = [
     reviewCount: 127,
     location: 'Los Angeles, CA',
     hourlyRate: 85,
-    galleryImages: mechanicsDetailedData['1'].galleryImages
+    galleryImages: mechanicsDetailedData['1'].galleryImages,
+    featured: true,
+    featuredUntil: '2023-12-31'
   },
   {
     id: '2',
@@ -29,7 +31,8 @@ const mechanics = [
     reviewCount: 94,
     location: 'Chicago, IL',
     hourlyRate: 75,
-    galleryImages: mechanicsDetailedData['2'].galleryImages
+    galleryImages: mechanicsDetailedData['2'].galleryImages,
+    featured: true
   },
   {
     id: '3',
@@ -48,15 +51,16 @@ export const FeaturedMechanics = () => {
     <section id="featured-mechanics" className="py-20">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="mb-12 text-center">
-          <motion.h2 
-            className="text-3xl font-bold mb-4"
+          <motion.div 
+            className="flex items-center justify-center gap-2 mb-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            Featured Mechanics
-          </motion.h2>
+            <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+            <h2 className="text-3xl font-bold">Featured Mechanics</h2>
+          </motion.div>
           <motion.p 
             className="text-gray-600 max-w-xl mx-auto"
             initial={{ opacity: 0, y: 20 }}

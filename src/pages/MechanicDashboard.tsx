@@ -3,13 +3,14 @@ import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { Inbox, Settings, BarChart3, Wrench, MessageCircle, CheckSquare } from 'lucide-react';
+import { Inbox, Settings, BarChart3, Wrench, MessageCircle, CheckSquare, Star } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
 import MechanicMailbox from '@/components/MechanicMailbox';
 import MechanicChat from '@/components/MechanicChat';
 import CompletedJobsTab from '@/components/CompletedJobsTab';
 import StatsOverview from '@/components/stats/StatsOverview';
+import AdvertisingTab from '@/components/advertising/AdvertisingTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const MechanicDashboard = () => {
@@ -48,6 +49,10 @@ const MechanicDashboard = () => {
               <MessageCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span className="hidden xs:inline">Chat</span>
             </TabsTrigger>
+            <TabsTrigger value="advertising" className="flex items-center gap-2 text-xs md:text-sm">
+              <Star className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Advertising</span>
+            </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2 text-xs md:text-sm">
               <BarChart3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span className="hidden xs:inline">Statistics</span>
@@ -72,6 +77,10 @@ const MechanicDashboard = () => {
           
           <TabsContent value="chat">
             <MechanicChat />
+          </TabsContent>
+          
+          <TabsContent value="advertising">
+            <AdvertisingTab />
           </TabsContent>
           
           <TabsContent value="stats">
