@@ -12,7 +12,7 @@ interface FeaturedPlanCardProps {
   days: number;
   recommended?: boolean;
   isSelected?: boolean;
-  onToggleSelect: () => void;
+  onSelect: () => void;
 }
 
 export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
@@ -22,15 +22,16 @@ export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
   days,
   recommended = false,
   isSelected = false,
-  onToggleSelect
+  onSelect
 }) => {
   return (
     <Card 
       className={`
         ${recommended ? 'border-primary shadow-sm hover:shadow-md' : 'border-dashed hover:border-primary/50'} 
-        ${isSelected ? 'ring-2 ring-primary/70 bg-primary/5' : ''}
-        transition-all
+        ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}
+        transition-all cursor-pointer
       `}
+      onClick={onSelect}
     >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
@@ -48,7 +49,10 @@ export const FeaturedPlanCard: React.FC<FeaturedPlanCardProps> = ({
         <Button 
           variant={isSelected ? "default" : (recommended ? "outline" : "secondary")}
           className="w-full flex items-center gap-2"
-          onClick={onToggleSelect}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
         >
           {isSelected ? (
             <>

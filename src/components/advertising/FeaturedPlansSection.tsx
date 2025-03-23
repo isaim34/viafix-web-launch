@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
@@ -22,40 +21,32 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
   featuredDailyPrice,
   onPurchaseFeatured
 }) => {
-  const [selectedPlans, setSelectedPlans] = useState<SelectedPlan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   
-  const handlePlanToggle = (plan: SelectedPlan) => {
-    setSelectedPlans(prev => {
-      // Check if this plan is already selected
-      const existingPlanIndex = prev.findIndex(p => p.days === plan.days);
-      
-      if (existingPlanIndex >= 0) {
-        // Remove the plan if it's already selected
-        return prev.filter(p => p.days !== plan.days);
-      } else {
-        // Add the plan if it's not selected
-        return [...prev, plan];
+  const handleSelectPlan = (plan: SelectedPlan) => {
+    setSelectedPlan(prev => {
+      // If this plan is already selected, toggle it off
+      if (prev?.days === plan.days) {
+        return null;
       }
+      // Otherwise, select this plan (replacing any previously selected plan)
+      return plan;
     });
   };
   
   const handleProceedToPayment = () => {
-    if (selectedPlans.length > 0) {
+    if (selectedPlan) {
       setShowPaymentDialog(true);
     }
   };
   
-  const totalAmount = selectedPlans.reduce((sum, plan) => sum + plan.price, 0);
-  
   const handleCompletePurchase = (paymentMethodId: string) => {
-    // Process each selected plan
-    selectedPlans.forEach(plan => {
-      onPurchaseFeatured(plan.days);
-    });
-    
-    setSelectedPlans([]);
-    setShowPaymentDialog(false);
+    if (selectedPlan) {
+      onPurchaseFeatured(selectedPlan.days);
+      setSelectedPlan(null);
+      setShowPaymentDialog(false);
+    }
   };
   
   return (
@@ -66,8 +57,8 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
           price={featuredDailyPrice}
           description="Get featured in the homepage for 24 hours"
           days={1}
-          isSelected={selectedPlans.some(p => p.days === 1)}
-          onToggleSelect={() => handlePlanToggle({
+          isSelected={selectedPlan?.days === 1}
+          onSelect={() => handleSelectPlan({
             days: 1,
             price: featuredDailyPrice,
             title: "1 Day Spotlight"
@@ -79,8 +70,8 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
           price={featuredDailyPrice * 7 * 0.9}
           description="Get featured in the homepage for 7 days (10% discount)"
           days={7}
-          isSelected={selectedPlans.some(p => p.days === 7)}
-          onToggleSelect={() => handlePlanToggle({
+          isSelected={selectedPlan?.days === 7}
+          onSelect={() => handleSelectPlan({
             days: 7,
             price: featuredDailyPrice * 7 * 0.9,
             title: "Weekly Spotlight"
@@ -93,8 +84,8 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
           price={featuredDailyPrice * 30 * 0.8}
           description="Get featured in the homepage for 30 days (20% discount)"
           days={30}
-          isSelected={selectedPlans.some(p => p.days === 30)}
-          onToggleSelect={() => handlePlanToggle({
+          isSelected={selectedPlan?.days === 30}
+          onSelect={() => handleSelectPlan({
             days: 30,
             price: featuredDailyPrice * 30 * 0.8,
             title: "Monthly Spotlight"
@@ -102,11 +93,11 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
         />
       </div>
       
-      {selectedPlans.length > 0 && (
+      {selectedPlan && (
         <div className="flex justify-between items-center p-4 bg-primary/5 rounded-lg border">
           <div>
-            <p className="font-medium">Selected plans: {selectedPlans.length}</p>
-            <p className="text-sm text-muted-foreground">Total: ${totalAmount.toFixed(2)}</p>
+            <p className="font-medium">Selected plan: {selectedPlan.title}</p>
+            <p className="text-sm text-muted-foreground">Total: ${selectedPlan.price.toFixed(2)}</p>
           </div>
           <Button onClick={handleProceedToPayment}>
             Proceed to Payment
@@ -156,24 +147,24 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
             <AlertDialogDescription>
               <div className="space-y-4">
                 <div className="border-b pb-4">
-                  <p className="font-medium">Selected Plans:</p>
-                  <ul className="mt-2 space-y-2">
-                    {selectedPlans.map((plan, index) => (
-                      <li key={index} className="flex justify-between text-sm">
-                        <span>{plan.title}</span>
-                        <span>${plan.price.toFixed(2)}</span>
-                      </li>
-                    ))}
-                    <li className="flex justify-between font-semibold pt-2 border-t">
-                      <span>Total</span>
-                      <span>${totalAmount.toFixed(2)}</span>
-                    </li>
-                  </ul>
+                  <p className="font-medium">Selected Plan:</p>
+                  {selectedPlan && (
+                    <div className="mt-2 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>{selectedPlan.title}</span>
+                        <span>${selectedPlan.price.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold pt-2 border-t">
+                        <span>Total</span>
+                        <span>${selectedPlan.price.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <PaymentMethodSelector 
                   onSelectMethod={handleCompletePurchase}
-                  confirmButtonText={`Pay $${totalAmount.toFixed(2)}`}
+                  confirmButtonText={selectedPlan ? `Pay $${selectedPlan.price.toFixed(2)}` : "Pay"}
                 />
               </div>
             </AlertDialogDescription>
