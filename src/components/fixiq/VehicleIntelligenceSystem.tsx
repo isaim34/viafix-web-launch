@@ -40,12 +40,12 @@ const VehicleIntelligenceSystem = ({
   
   return (
     <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center gap-3">
+      <CardHeader className="text-center">
+        <div className="flex flex-col items-center gap-4">
           <img 
             src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png"
             alt="FixIQ Logo"
-            className="h-10 w-auto"
+            className="h-16 w-auto"
           />
           <div>
             <CardTitle>Vehicle Intelligence System</CardTitle>

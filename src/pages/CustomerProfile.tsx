@@ -10,7 +10,7 @@ import VehicleIntelligenceSystem from '@/components/fixiq/VehicleIntelligenceSys
 import VINLookupTool from '@/components/customer/VINLookupTool';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Car, Shield, User } from 'lucide-react';
+import { Car, User } from 'lucide-react';
 
 const CustomerProfile = () => {
   const { isCustomerLoggedIn } = useCustomerAuth();
@@ -58,7 +58,11 @@ const CustomerProfile = () => {
               <span>Vehicle Maintenance</span>
             </TabsTrigger>
             <TabsTrigger value="fixiq" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
+              <img 
+                src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png" 
+                alt="FixIQ" 
+                className="h-4 w-auto" 
+              />
               <span>FixIQ Safety</span>
             </TabsTrigger>
           </TabsList>
