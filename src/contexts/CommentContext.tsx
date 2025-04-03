@@ -1,21 +1,26 @@
-import { useState } from 'react';
+
+import React, { createContext, useContext, useState } from 'react';
 import { toast } from 'sonner';
-import { Comment, Reply, CommentSortOption } from '@/types/comments';
+import { Comment, Reply, CommentSortOption, CommentContextType } from '@/types/comments';
 import { extractTaggedUsers, formatContentWithTags, formatDate } from '@/utils/commentUtils';
 
-interface UseCommentsProps {
+const CommentContext = createContext<CommentContextType | undefined>(undefined);
+
+interface CommentProviderProps {
+  children: React.ReactNode;
   postSlug: string;
   currentUserId: string | null;
   currentUserName: string | null;
   isLoggedIn: boolean;
 }
 
-export const useComments = ({ 
-  postSlug, 
-  currentUserId, 
+export const CommentProvider = ({ 
+  children, 
+  postSlug,
+  currentUserId,
   currentUserName,
-  isLoggedIn 
-}: UseCommentsProps) => {
+  isLoggedIn
+}: CommentProviderProps) => {
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
@@ -67,7 +72,7 @@ export const useComments = ({
         return 0;
     }
   });
-
+  
   const handleSubmitComment = () => {
     if (!newComment.trim()) return;
     
@@ -263,22 +268,12 @@ export const useComments = ({
     setEditingReplyId(null);
     setEditContent('');
   };
-  
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
 
   const isCommentOwner = (userId: string) => {
     return currentUserId === userId;
   };
 
-  return {
+  const value = {
     comments: sortedComments,
     commentCount: comments.length,
     newComment,
@@ -306,4 +301,18 @@ export const useComments = ({
     formatContentWithTags,
     isCommentOwner
   };
+
+  return (
+    <CommentContext.Provider value={value}>
+      {children}
+    </CommentContext.Provider>
+  );
+};
+
+export const useCommentContext = (): CommentContextType => {
+  const context = useContext(CommentContext);
+  if (context === undefined) {
+    throw new Error('useCommentContext must be used within a CommentProvider');
+  }
+  return context;
 };
