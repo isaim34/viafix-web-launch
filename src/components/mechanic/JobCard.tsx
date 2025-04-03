@@ -50,15 +50,12 @@ export const JobCard = ({ job }: JobCardProps) => {
               className="w-full mt-1 flex items-center gap-2 text-xs"
               onClick={() => setIsMaintenanceDialogOpen(true)}
             >
-              <FileText className="h-3.5 w-3.5" />
-              <div className="flex items-center gap-1">
-                <img 
-                  src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png" 
-                  alt="FixIQ" 
-                  className="h-3.5 w-auto mr-1" 
-                />
-                View Maintenance Record
-              </div>
+              <img 
+                src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png" 
+                alt="FixIQ" 
+                className="h-3.5 w-auto mr-1" 
+              />
+              View Maintenance Record
             </Button>
             
             {job.customerMaintenanceRecord && (
