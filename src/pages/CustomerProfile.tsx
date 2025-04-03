@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
@@ -19,7 +18,6 @@ const CustomerProfile = () => {
   const [checkedAuth, setCheckedAuth] = useState(false);
   
   useEffect(() => {
-    // Check if user is logged in as a customer
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
     const userRole = localStorage.getItem('userRole');
     
@@ -37,7 +35,6 @@ const CustomerProfile = () => {
     }
   }, [toast, navigate]);
 
-  // Show loading state while checking authentication
   if (!checkedAuth) {
     return null;
   }
@@ -61,7 +58,7 @@ const CustomerProfile = () => {
               <img 
                 src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png" 
                 alt="FixIQ" 
-                className="h-4 w-auto" 
+                className="h-4 w-4" 
               />
               <span>FixIQ Safety</span>
             </TabsTrigger>

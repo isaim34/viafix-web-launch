@@ -45,7 +45,7 @@ const VehicleIntelligenceSystem = ({
           <img 
             src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png"
             alt="FixIQ Logo"
-            className="h-32 w-auto mb-4"
+            className="h-40 w-auto mb-6"
           />
           <div>
             <CardTitle>Vehicle Intelligence System</CardTitle>
@@ -95,7 +95,7 @@ const VehicleIntelligenceSystem = ({
                   <img 
                     src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png" 
                     alt="FixIQ" 
-                    className="h-4 w-auto" 
+                    className="h-5 w-5" 
                   />
                   <span className="hidden sm:inline">Insights</span>
                 </TabsTrigger>
