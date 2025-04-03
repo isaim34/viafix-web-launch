@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wrench, AlertTriangle, FileText, Car } from "lucide-react";
+import { Wrench, AlertTriangle, FileText, Car, Shield } from "lucide-react";
 import { VehicleInfo } from '@/services/nhtsa';
 import useVehicleSafetyData from '@/hooks/useVehicleSafetyData';
 import VINInput from '@/components/customer/VINInput';
@@ -42,9 +42,11 @@ const VehicleIntelligenceSystem = ({
     <Card className="w-full shadow-sm">
       <CardHeader className="text-center pb-6">
         <div className="flex flex-col items-center py-6">
-          <div className="text-3xl font-bold mb-4">
-            FixIQ
-          </div>
+          <img 
+            src="/lovable-uploads/489f7032-b400-43c3-a86b-2f163b4ca524.png"
+            alt="FixIQ Logo"
+            className="h-16 w-auto mb-6"
+          />
           <div className="mt-2">
             <CardTitle className="text-3xl mb-2">Vehicle Intelligence System</CardTitle>
             <CardDescription className="text-lg max-w-2xl mx-auto">
