@@ -56,7 +56,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
       description: "You have been successfully logged out",
     });
     
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   // Check if user is actually logged in by verifying localStorage directly

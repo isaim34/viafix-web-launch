@@ -1,5 +1,5 @@
 
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -7,13 +7,25 @@ import { Home, ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname
     );
-  }, [location.pathname]);
+    
+    // Check if this is a mechanic dashboard route with incorrect formatting
+    if (location.pathname.includes('mechanic') && location.pathname.includes('dashboard')) {
+      console.log("Redirecting to correct mechanic dashboard route");
+      navigate('/mechanic-dashboard', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
+  const handleGoBack = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.history.back();
+  };
 
   return (
     <Layout>
@@ -34,15 +46,12 @@ const NotFound = () => {
               </Link>
             </Button>
             <Button 
-              asChild 
               variant="outline" 
               className="flex items-center gap-2"
-              onClick={() => window.history.back()}
+              onClick={handleGoBack}
             >
-              <Link to="#" onClick={(e) => { e.preventDefault(); window.history.back(); }}>
-                <ArrowLeft className="w-4 h-4" />
-                Go Back
-              </Link>
+              <ArrowLeft className="w-4 h-4" />
+              Go Back
             </Button>
           </div>
         </div>

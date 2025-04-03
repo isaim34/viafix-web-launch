@@ -39,14 +39,23 @@ const MechanicSigninForm = () => {
   const onSubmit = (data: MechanicFormValues) => {
     console.log('Mechanic signin data:', data);
     
+    // Store auth data in localStorage
+    localStorage.setItem('userLoggedIn', 'true');
+    localStorage.setItem('userRole', 'mechanic');
+    localStorage.setItem('userName', data.email.split('@')[0]);
+    localStorage.setItem('userId', Math.random().toString(36).substring(2, 9));
+    
+    // Dispatch storage event to notify all components
+    window.dispatchEvent(new Event('storage-event'));
+    
     // Simulate successful login
     toast({
       title: "Welcome back!",
       description: "You have successfully signed in.",
     });
     
-    // Navigate to mechanic dashboard with the correct route
-    navigate('/mechanic-dashboard');
+    // Navigate to mechanic dashboard with the correct route and replace option
+    navigate('/mechanic-dashboard', { replace: true });
   };
 
   return (
