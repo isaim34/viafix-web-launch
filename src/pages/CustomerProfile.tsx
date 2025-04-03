@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
@@ -41,22 +42,22 @@ const CustomerProfile = () => {
 
   return (
     <Layout>
-      <div className="container max-w-4xl py-10">
+      <div className="container py-10">
         <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
         
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-8">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsList className="mb-8 flex w-full max-w-md justify-between">
+            <TabsTrigger value="profile" className="flex items-center gap-2 px-4">
               <User className="h-4 w-4" />
               <span>Profile Information</span>
             </TabsTrigger>
-            <TabsTrigger value="maintenance" className="flex items-center gap-2">
+            <TabsTrigger value="maintenance" className="flex items-center gap-2 px-4">
               <Car className="h-4 w-4" />
               <span>Vehicle Maintenance</span>
             </TabsTrigger>
-            <TabsTrigger value="fixiq" className="flex items-center gap-2">
+            <TabsTrigger value="fixiq" className="flex items-center gap-2 px-4">
               <img 
-                src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png" 
+                src="/lovable-uploads/2cfc70ff-cf79-4d44-aff0-00bb60306f80.png" 
                 alt="FixIQ" 
                 className="h-4 w-4" 
               />
@@ -65,19 +66,19 @@ const CustomerProfile = () => {
           </TabsList>
           
           <TabsContent value="profile">
-            <Card className="p-6">
+            <Card className="p-8">
               <CustomerProfileEditor />
             </Card>
           </TabsContent>
           
           <TabsContent value="maintenance">
-            <Card className="p-6">
+            <Card className="p-8">
               <VehicleMaintenanceLog />
             </Card>
           </TabsContent>
           
           <TabsContent value="fixiq">
-            <Card className="p-6">
+            <Card className="p-8">
               <VINLookupTool />
             </Card>
           </TabsContent>

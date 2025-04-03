@@ -39,26 +39,26 @@ const VehicleIntelligenceSystem = ({
   };
   
   return (
-    <Card className="w-full">
-      <CardHeader className="text-center pb-0">
-        <div className="flex flex-col items-center">
+    <Card className="w-full shadow-sm">
+      <CardHeader className="text-center pb-6">
+        <div className="flex flex-col items-center py-6">
           <img 
-            src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png"
+            src="/lovable-uploads/2cfc70ff-cf79-4d44-aff0-00bb60306f80.png"
             alt="FixIQ Logo"
-            className="h-40 w-auto mb-6"
+            className="h-40 w-auto mb-10"
           />
-          <div>
-            <CardTitle>Vehicle Intelligence System</CardTitle>
-            <CardDescription>
+          <div className="mt-2">
+            <CardTitle className="text-3xl mb-2">Vehicle Intelligence System</CardTitle>
+            <CardDescription className="text-lg max-w-2xl mx-auto">
               Intelligent maintenance tracking and safety monitoring for your vehicle
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-8 pb-8">
         {!vehicleInfo && (
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-3">Vehicle Identification</h3>
+          <div className="mb-10 max-w-xl mx-auto">
+            <h3 className="text-xl font-medium mb-4">Vehicle Identification</h3>
             <VINInput 
               value={vin}
               onChange={(value) => {
@@ -70,15 +70,15 @@ const VehicleIntelligenceSystem = ({
         )}
         
         {vehicleInfo && (
-          <div className="space-y-6">
-            <div className="p-4 border rounded-md bg-muted/30">
-              <div className="flex items-center gap-3">
-                <Car className="h-5 w-5 text-primary" />
+          <div className="space-y-8">
+            <div className="p-6 border rounded-md bg-muted/30">
+              <div className="flex items-center gap-4">
+                <Car className="h-6 w-6 text-primary" />
                 <div>
-                  <h3 className="font-medium">
+                  <h3 className="text-xl font-medium">
                     {vehicleInfo.modelYear} {vehicleInfo.make} {vehicleInfo.model}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground">
                     {[
                       vehicleInfo.bodyClass, 
                       vehicleInfo.engineCylinders && `${vehicleInfo.engineCylinders} cylinder`, 
@@ -90,37 +90,37 @@ const VehicleIntelligenceSystem = ({
             </div>
             
             <Tabs defaultValue="insights" className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="insights" className="flex items-center gap-1">
+              <TabsList className="grid grid-cols-4 mb-6">
+                <TabsTrigger value="insights" className="flex items-center gap-2 py-3">
                   <img 
-                    src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png" 
+                    src="/lovable-uploads/2cfc70ff-cf79-4d44-aff0-00bb60306f80.png" 
                     alt="FixIQ" 
                     className="h-5 w-5" 
                   />
                   <span className="hidden sm:inline">Insights</span>
                 </TabsTrigger>
-                <TabsTrigger value="safety" className="flex items-center gap-1">
+                <TabsTrigger value="safety" className="flex items-center gap-2 py-3">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="hidden sm:inline">Safety Data</span>
                 </TabsTrigger>
-                <TabsTrigger value="maintenance" className="flex items-center gap-1">
+                <TabsTrigger value="maintenance" className="flex items-center gap-2 py-3">
                   <Wrench className="h-4 w-4" />
                   <span className="hidden sm:inline">Maintenance</span>
                 </TabsTrigger>
-                <TabsTrigger value="dealers" className="flex items-center gap-1">
+                <TabsTrigger value="dealers" className="flex items-center gap-2 py-3">
                   <FileText className="h-4 w-4" />
                   <span className="hidden sm:inline">Dealer Referrals</span>
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="insights">
+              <TabsContent value="insights" className="p-4">
                 <FixIQInsights 
                   vehicleInfo={vehicleInfo}
                   safetyData={safetyData}
                 />
               </TabsContent>
               
-              <TabsContent value="safety">
+              <TabsContent value="safety" className="p-4">
                 <VehicleSafetyData
                   recalls={safetyData.recalls}
                   complaints={safetyData.complaints}
@@ -130,14 +130,14 @@ const VehicleIntelligenceSystem = ({
                 />
               </TabsContent>
               
-              <TabsContent value="maintenance">
+              <TabsContent value="maintenance" className="p-4">
                 <MaintenanceLog 
                   vehicleInfo={vehicleInfo}
                   maintenanceRecords={maintenanceRecords}
                 />
               </TabsContent>
               
-              <TabsContent value="dealers">
+              <TabsContent value="dealers" className="p-4">
                 <DealerReferrals
                   vehicleInfo={vehicleInfo}
                   recalls={safetyData.recalls}
