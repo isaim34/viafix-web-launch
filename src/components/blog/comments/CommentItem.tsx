@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { User, Clock, ThumbsUp, Reply } from 'lucide-react';
+import { User, Clock, ThumbsUp, Reply, Edit, X, Check } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { ReplyItem } from './ReplyItem';
 import { ReplyForm } from './ReplyForm';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/Button';
 
 interface Reply {
   id: string;
@@ -39,6 +41,16 @@ interface CommentItemProps {
   formatContentWithTags: (content: string) => string;
   availableUsers: Array<{ id: string; name: string }>;
   onTagUser: (userId: string, userName: string) => void;
+  isEditing: boolean;
+  editContent: string;
+  setEditContent: (content: string) => void;
+  onEdit: (id: string) => void;
+  onSaveEdit: (id: string) => void;
+  onCancelEdit: () => void;
+  onEditReply: (commentId: string, replyId: string) => void;
+  editingReplyId: string | null;
+  onSaveReplyEdit: (commentId: string, replyId: string) => void;
+  isCommentOwner: (userId: string) => boolean;
 }
 
 export const CommentItem = ({
@@ -53,8 +65,20 @@ export const CommentItem = ({
   formatDate,
   formatContentWithTags,
   availableUsers,
-  onTagUser
+  onTagUser,
+  isEditing,
+  editContent,
+  setEditContent,
+  onEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onEditReply,
+  editingReplyId,
+  onSaveReplyEdit,
+  isCommentOwner
 }: CommentItemProps) => {
+  const canEdit = isCommentOwner(comment.userId);
+
   return (
     <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
       <div className="flex items-start space-x-3">
@@ -70,10 +94,41 @@ export const CommentItem = ({
               {formatDate(comment.timestamp)}
             </span>
           </div>
-          <p 
-            className="text-gray-700 mb-3"
-            dangerouslySetInnerHTML={{ __html: formatContentWithTags(comment.content) }}
-          />
+
+          {isEditing ? (
+            <div className="mb-3">
+              <Textarea 
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="mb-2"
+                placeholder="Edit your comment..."
+              />
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => onSaveEdit(comment.id)}
+                  icon={<Check className="h-4 w-4" />}
+                >
+                  Save
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onCancelEdit}
+                  icon={<X className="h-4 w-4" />}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p 
+              className="text-gray-700 mb-3"
+              dangerouslySetInnerHTML={{ __html: formatContentWithTags(comment.content) }}
+            />
+          )}
+          
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => onLikeComment(comment.id)}
@@ -89,6 +144,15 @@ export const CommentItem = ({
               <Reply className="h-4 w-4 mr-1" />
               Reply
             </button>
+            {canEdit && !isEditing && (
+              <button 
+                onClick={() => onEdit(comment.id)}
+                className="text-sm flex items-center text-gray-500 hover:text-primary transition-colors"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </button>
+            )}
           </div>
           
           {replyingTo === comment.id && (
@@ -112,6 +176,13 @@ export const CommentItem = ({
                   onLikeReply={onLikeReply}
                   formatDate={formatDate}
                   formatContentWithTags={formatContentWithTags}
+                  isEditing={editingReplyId === reply.id}
+                  editContent={editingReplyId === reply.id ? editContent : ''}
+                  setEditContent={setEditContent}
+                  onEdit={onEditReply}
+                  onSaveEdit={onSaveReplyEdit}
+                  onCancelEdit={onCancelEdit}
+                  isReplyOwner={isCommentOwner}
                 />
               ))}
             </div>

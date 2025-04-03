@@ -33,11 +33,14 @@ interface CommentSectionProps {
 }
 
 export const CommentSection = ({ postSlug }: CommentSectionProps) => {
-  const { isLoggedIn, currentUserName } = useCustomerAuth();
+  const { isLoggedIn, currentUserName, currentUserId } = useCustomerAuth();
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [sortOption, setSortOption] = useState<CommentSortOption>('newest');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
   
   const [availableUsers] = useState([
     { id: 'user1', name: 'Alex Johnson' },
@@ -112,7 +115,7 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
     
     const newCommentObj: Comment = {
       id: `${comments.length + 1}`,
-      userId: 'current-user',
+      userId: currentUserId || 'current-user',
       userName: currentUserName || 'Anonymous User',
       content: newComment,
       timestamp: new Date(),
@@ -149,7 +152,7 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
             ...comment.replies,
             {
               id: `${comment.id}-${comment.replies.length + 1}`,
-              userId: 'current-user',
+              userId: currentUserId || 'current-user',
               userName: currentUserName || 'Anonymous User',
               content: replyContent,
               timestamp: new Date(),
@@ -218,6 +221,83 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
     
     setComments(updatedComments);
   };
+
+  const handleEditComment = (commentId: string) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+      setEditingCommentId(commentId);
+      setEditContent(comment.content);
+    }
+  };
+
+  const handleEditReply = (commentId: string, replyId: string) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+      const reply = comment.replies.find(r => r.id === replyId);
+      if (reply) {
+        setEditingReplyId(replyId);
+        setEditContent(reply.content);
+      }
+    }
+  };
+
+  const handleSaveCommentEdit = (commentId: string) => {
+    if (!editContent.trim()) return;
+    
+    const taggedUsers = extractTaggedUsers(editContent);
+    
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          content: editContent,
+          taggedUsers: taggedUsers.length > 0 ? taggedUsers : undefined
+        };
+      }
+      return comment;
+    });
+    
+    setComments(updatedComments);
+    setEditingCommentId(null);
+    setEditContent('');
+    toast("Comment updated successfully");
+  };
+
+  const handleSaveReplyEdit = (commentId: string, replyId: string) => {
+    if (!editContent.trim()) return;
+    
+    const taggedUsers = extractTaggedUsers(editContent);
+    
+    const updatedComments = comments.map(comment => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          replies: comment.replies.map(reply => {
+            if (reply.id === replyId) {
+              return {
+                ...reply,
+                content: editContent,
+                taggedUsers: taggedUsers.length > 0 ? taggedUsers : undefined
+              };
+            }
+            return reply;
+          })
+        };
+      }
+      return comment;
+    });
+    
+    setComments(updatedComments);
+    setEditingReplyId(null);
+    setEditContent('');
+    toast("Reply updated successfully");
+  };
+
+  const cancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingReplyId(null);
+    setEditContent('');
+  };
   
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -232,6 +312,10 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
   const handleTagUser = (userId: string, userName: string) => {
     // This function gets passed down to child components
     // and handles the tagging of users in comments and replies
+  };
+
+  const isCommentOwner = (userId: string) => {
+    return currentUserId === userId;
   };
   
   return (
@@ -272,6 +356,16 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
             formatContentWithTags={formatContentWithTags}
             availableUsers={availableUsers}
             onTagUser={handleTagUser}
+            isEditing={editingCommentId === comment.id}
+            editContent={editingCommentId === comment.id ? editContent : ''}
+            setEditContent={setEditContent}
+            onEdit={handleEditComment}
+            onSaveEdit={handleSaveCommentEdit}
+            onCancelEdit={cancelEdit}
+            onEditReply={handleEditReply}
+            editingReplyId={editingReplyId}
+            onSaveReplyEdit={handleSaveReplyEdit}
+            isCommentOwner={isCommentOwner}
           />
         ))}
       </div>
