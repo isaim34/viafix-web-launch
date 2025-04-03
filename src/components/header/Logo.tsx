@@ -11,7 +11,7 @@ export const Logo: React.FC = () => {
         whileTap={{ scale: 0.95 }}
       >
         <img 
-          src="/lovable-uploads/8c83d7f4-0ce4-49c7-90a2-92a24cd5e29a.png" 
+          src="/lovable-uploads/b991d0cd-8d45-457b-a5c9-db342ae34022.png" 
           alt="ViaFix Logo" 
           className="h-10 w-auto" 
         />
