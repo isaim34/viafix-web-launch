@@ -127,13 +127,20 @@ const FixIQInsights = ({ vehicleInfo, safetyData }: FixIQInsightsProps) => {
   
   return (
     <div className="space-y-6">
-      <Alert className={riskLevel.color}>
-        <Shield className="h-4 w-4" />
-        <AlertTitle>Risk Level: {riskLevel.label}</AlertTitle>
-        <AlertDescription>
-          {riskLevel.description}
-        </AlertDescription>
-      </Alert>
+      <div className="flex items-center justify-between">
+        <Alert className={riskLevel.color}>
+          <Shield className="h-4 w-4" />
+          <AlertTitle>Risk Level: {riskLevel.label}</AlertTitle>
+          <AlertDescription>
+            {riskLevel.description}
+          </AlertDescription>
+        </Alert>
+        
+        <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-medium border border-blue-200">
+          <Info className="h-3 w-3" />
+          <span>Analysis powered by FixIQ & NHTSA data</span>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className={recallCount > 0 ? "border-red-300" : ""}>

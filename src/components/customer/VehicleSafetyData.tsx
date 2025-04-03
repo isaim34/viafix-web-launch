@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Search } from 'lucide-react';
+import { AlertCircle, Search, Info } from 'lucide-react';
 import { Recall, Complaint, Investigation } from '@/types/customer';
 import SafetyDataTabs from './safety/SafetyDataTabs';
 
@@ -84,12 +84,21 @@ export const VehicleSafetyData = ({
   }
   
   return (
-    <SafetyDataTabs
-      recalls={recalls}
-      complaints={complaints}
-      investigations={investigations}
-      onExternalLink={handleExternalLink}
-    />
+    <div>
+      <div className="mb-4">
+        <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-2 py-1 rounded-md text-xs font-medium border border-amber-200">
+          <Info className="h-3 w-3" />
+          <span>Data sourced from the NHTSA (National Highway Traffic Safety Administration) database</span>
+        </div>
+      </div>
+      
+      <SafetyDataTabs
+        recalls={recalls}
+        complaints={complaints}
+        investigations={investigations}
+        onExternalLink={handleExternalLink}
+      />
+    </div>
   );
 };
 
