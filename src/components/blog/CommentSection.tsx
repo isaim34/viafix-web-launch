@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { toast } from 'sonner';
 import { CommentForm } from './comments/CommentForm';
 import { CommentItem } from './comments/CommentItem';
 import { EmptyComments } from './comments/EmptyComments';
+import { CommentFilter, CommentSortOption } from './comments/CommentFilter';
 
 type Reply = {
   id: string;
@@ -35,6 +37,7 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [sortOption, setSortOption] = useState<CommentSortOption>('newest');
   
   const [availableUsers] = useState([
     { id: 'user1', name: 'Alex Johnson' },
@@ -73,6 +76,20 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
       replies: []
     }
   ]);
+
+  // Sort comments based on selected filter
+  const sortedComments = [...comments].sort((a, b) => {
+    switch (sortOption) {
+      case 'newest':
+        return b.timestamp.getTime() - a.timestamp.getTime();
+      case 'oldest':
+        return a.timestamp.getTime() - b.timestamp.getTime();
+      case 'popular':
+        return b.likes - a.likes;
+      default:
+        return 0;
+    }
+  });
 
   const extractTaggedUsers = (content: string): string[] => {
     const matches = content.match(/@(\w+\s\w+)/g) || [];
@@ -232,8 +249,15 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
         />
       </div>
       
+      {comments.length > 0 && (
+        <CommentFilter 
+          currentFilter={sortOption} 
+          onFilterChange={setSortOption} 
+        />
+      )}
+      
       <div className="space-y-6">
-        {comments.map(comment => (
+        {sortedComments.map(comment => (
           <CommentItem
             key={comment.id}
             comment={comment}
