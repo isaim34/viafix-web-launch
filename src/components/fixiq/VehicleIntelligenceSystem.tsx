@@ -43,7 +43,7 @@ const VehicleIntelligenceSystem = ({
       <CardHeader className="text-center pb-0">
         <div className="flex flex-col items-center">
           <img 
-            src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png"
+            src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png"
             alt="FixIQ Logo"
             className="h-32 w-auto mb-4"
           />
@@ -93,7 +93,7 @@ const VehicleIntelligenceSystem = ({
               <TabsList className="grid grid-cols-4 mb-4">
                 <TabsTrigger value="insights" className="flex items-center gap-1">
                   <img 
-                    src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png" 
+                    src="/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png" 
                     alt="FixIQ" 
                     className="h-4 w-auto" 
                   />
