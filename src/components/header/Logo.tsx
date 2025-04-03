@@ -11,9 +11,9 @@ export const Logo: React.FC = () => {
         whileTap={{ scale: 0.95 }}
       >
         <img 
-          src="/lovable-uploads/b991d0cd-8d45-457b-a5c9-db342ae34022.png" 
+          src="/lovable-uploads/e3e5d8f9-ed10-4030-8f80-f4d6d309c6e4.png" 
           alt="ViaFix Logo" 
-          className="h-10 w-auto" 
+          className="h-12 w-auto" 
         />
       </motion.div>
     </Link>
