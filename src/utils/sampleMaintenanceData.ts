@@ -38,3 +38,6 @@ export function getSampleRecords(): MaintenanceRecord[] {
     }
   ];
 }
+
+// Add the exported array that VehicleMaintenanceLog.tsx is trying to import
+export const sampleMaintenanceRecords = getSampleRecords();

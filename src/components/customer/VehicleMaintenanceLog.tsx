@@ -118,7 +118,7 @@ const VehicleMaintenanceLog = () => {
               <MaintenanceRecordTable
                 records={filteredRecords}
                 onEdit={setEditingRecord}
-                onDelete={handleDelete}
+                onDeleteRecord={handleDelete}
               />
             )}
           </div>

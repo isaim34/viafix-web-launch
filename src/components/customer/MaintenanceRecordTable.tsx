@@ -16,16 +16,18 @@ import { MaintenanceRecord } from '@/types/customer';
 
 interface MaintenanceRecordTableProps {
   records: MaintenanceRecord[];
-  isMechanic: boolean;
-  onViewRecord: (record: MaintenanceRecord) => void;
+  isMechanic?: boolean;
+  onViewRecord?: (record: MaintenanceRecord) => void;
   onDeleteRecord: (id: string) => void;
+  onEdit?: (record: MaintenanceRecord) => void;
 }
 
 const MaintenanceRecordTable = ({ 
   records, 
-  isMechanic, 
+  isMechanic = false, 
   onViewRecord, 
-  onDeleteRecord 
+  onDeleteRecord,
+  onEdit
 }: MaintenanceRecordTableProps) => {
   
   const hasRecalls = (record: MaintenanceRecord) => {
@@ -85,14 +87,26 @@ const MaintenanceRecordTable = ({
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => onViewRecord(record)}
-                    title="View Details"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                  {onViewRecord && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => onViewRecord(record)}
+                      title="View Details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onEdit && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => onEdit(record)}
+                      title="Edit Record"
+                    >
+                      <Wrench className="h-4 w-4" />
+                    </Button>
+                  )}
                   {!isMechanic && (
                     <Button 
                       variant="ghost" 
