@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import GigCard from './GigCard';
 import GigForm from './GigForm';
+import { toast } from 'sonner';
 
 // Sample data for demonstration
 const sampleGigs = [
@@ -32,24 +33,74 @@ const GigManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingGig, setEditingGig] = useState<typeof sampleGigs[0] | null>(null);
 
-  const handleCreateGig = (newGig: Omit<typeof sampleGigs[0], 'id' | 'status'>) => {
-    const gigToAdd = {
-      ...newGig,
-      id: Date.now().toString(),
-      status: 'active'
-    };
-    
-    setGigs([...gigs, gigToAdd]);
-    setIsCreating(false);
+  const handleCreateGig = async (newGig: any) => {
+    try {
+      // Handle file upload if image is a File object
+      let imageUrl = newGig.image;
+      
+      if (newGig.image instanceof File) {
+        imageUrl = await uploadImage(newGig.image);
+      }
+      
+      const gigToAdd = {
+        ...newGig,
+        image: imageUrl,
+        id: Date.now().toString(),
+        status: 'active'
+      };
+      
+      setGigs([...gigs, gigToAdd]);
+      setIsCreating(false);
+      toast.success('Gig created successfully');
+    } catch (error) {
+      console.error('Error creating gig:', error);
+      toast.error('Failed to create gig. Please try again.');
+    }
   };
 
-  const handleEditGig = (updatedGig: typeof sampleGigs[0]) => {
-    setGigs(gigs.map(gig => gig.id === updatedGig.id ? updatedGig : gig));
-    setEditingGig(null);
+  const handleEditGig = async (updatedGig: any) => {
+    try {
+      // Handle file upload if image is a File object
+      let imageUrl = updatedGig.image;
+      
+      if (updatedGig.image instanceof File) {
+        imageUrl = await uploadImage(updatedGig.image);
+      }
+      
+      const finalUpdatedGig = {
+        ...updatedGig,
+        image: imageUrl
+      };
+      
+      setGigs(gigs.map(gig => gig.id === updatedGig.id ? finalUpdatedGig : gig));
+      setEditingGig(null);
+      toast.success('Gig updated successfully');
+    } catch (error) {
+      console.error('Error updating gig:', error);
+      toast.error('Failed to update gig. Please try again.');
+    }
   };
 
   const handleDeleteGig = (id: string) => {
     setGigs(gigs.filter(gig => gig.id !== id));
+    toast.success('Gig deleted successfully');
+  };
+
+  // Mock function to simulate image upload
+  // In a real app, this would upload to a server or cloud storage
+  const uploadImage = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      // Simulate API delay
+      setTimeout(() => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // This returns a data URL representing the image
+          // In a real app, you'd return the URL from your server/storage
+          resolve(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }, 500);
+    });
   };
 
   return (

@@ -35,31 +35,31 @@ const MechanicDashboard = () => {
           <TabsList className="mb-6 md:mb-8 flex flex-wrap gap-1 md:gap-0">
             <TabsTrigger value="gigs" className="flex items-center gap-2 text-xs md:text-sm">
               <Wrench className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">My Gigs</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>My Gigs</span>
             </TabsTrigger>
             <TabsTrigger value="completed-jobs" className="flex items-center gap-2 text-xs md:text-sm">
               <CheckSquare className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Completed</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>Completed</span>
             </TabsTrigger>
             <TabsTrigger value="inbox" className="flex items-center gap-2 text-xs md:text-sm">
               <Inbox className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Inbox</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>Inbox</span>
             </TabsTrigger>
             <TabsTrigger value="chat" className="flex items-center gap-2 text-xs md:text-sm">
               <MessageCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Chat</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>Chat</span>
             </TabsTrigger>
             <TabsTrigger value="advertising" className="flex items-center gap-2 text-xs md:text-sm">
               <Star className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Advertising</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>Advertising</span>
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2 text-xs md:text-sm">
               <BarChart3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Statistics</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>Statistics</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2 text-xs md:text-sm">
               <Settings className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Profile</span>
+              <span className={isMobile ? "hidden xs:inline" : ""}>Profile</span>
             </TabsTrigger>
           </TabsList>
           
