@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Car, AlertCircle, Check, ExternalLink } from 'lucide-react';
-import { decodeVin, VehicleInfo } from '@/services/nhtsaService';
+import { decodeVin, VehicleInfo } from '@/services/nhtsa';
 import VehicleSafetyData from './VehicleSafetyData';
 import useVehicleSafetyData from '@/hooks/useVehicleSafetyData';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { 
   VehicleInfo, 
   fetchAllNHTSAData, 
   NHTSAData 
-} from '@/services/nhtsaService';
+} from '@/services/nhtsa';
 
 export const useVehicleSafetyData = (vin?: string, vehicleInfo?: VehicleInfo | null) => {
   const [data, setData] = useState<NHTSAData>({
