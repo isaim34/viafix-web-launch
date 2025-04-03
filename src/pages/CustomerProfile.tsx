@@ -56,11 +56,7 @@ const CustomerProfile = () => {
               <span>Vehicle Maintenance</span>
             </TabsTrigger>
             <TabsTrigger value="fixiq" className="flex items-center gap-2 px-4">
-              <img 
-                src="/lovable-uploads/2cfc70ff-cf79-4d44-aff0-00bb60306f80.png" 
-                alt="FixIQ" 
-                className="h-4 w-4" 
-              />
+              <Car className="h-4 w-4" />
               <span>FixIQ Safety</span>
             </TabsTrigger>
           </TabsList>
