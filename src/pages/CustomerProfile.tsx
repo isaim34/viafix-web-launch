@@ -46,16 +46,16 @@ const CustomerProfile = () => {
         <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
         
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-8 flex w-full max-w-md justify-between">
-            <TabsTrigger value="profile" className="flex-1 flex items-center justify-center gap-2 px-4">
+          <TabsList className="mb-8 grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="profile" className="flex items-center justify-center gap-2">
               <User className="h-4 w-4" />
               <span>Profile Information</span>
             </TabsTrigger>
-            <TabsTrigger value="maintenance" className="flex-1 flex items-center justify-center gap-2 px-4">
+            <TabsTrigger value="maintenance" className="flex items-center justify-center gap-2">
               <Car className="h-4 w-4" />
               <span>Vehicle Maintenance</span>
             </TabsTrigger>
-            <TabsTrigger value="fixiq" className="flex-1 flex items-center justify-center gap-2 px-4">
+            <TabsTrigger value="fixiq" className="flex items-center justify-center gap-2">
               <Shield className="h-4 w-4" />
               <span>FixIQ Safety</span>
             </TabsTrigger>

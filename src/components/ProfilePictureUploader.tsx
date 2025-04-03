@@ -2,8 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Camera, Upload } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProfilePictureUploaderProps {
@@ -16,35 +15,8 @@ const ProfilePictureUploader = ({
   onImageChange
 }: ProfilePictureUploaderProps) => {
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
-  const [inputUrl, setInputUrl] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleUrlSubmit = () => {
-    if (!inputUrl) {
-      setIsEditing(false);
-      return;
-    }
-
-    // Basic URL validation
-    try {
-      new URL(inputUrl);
-      setImageUrl(inputUrl);
-      onImageChange(inputUrl);
-      setIsEditing(false);
-      toast({
-        title: "Profile picture updated",
-        description: "Your profile picture has been updated successfully",
-      });
-    } catch (e) {
-      toast({
-        title: "Invalid URL",
-        description: "Please enter a valid image URL",
-        variant: "destructive"
-      });
-    }
-  };
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -97,46 +69,14 @@ const ProfilePictureUploader = ({
         />
       </div>
       
-      {isEditing ? (
-        <div className="flex w-full max-w-xs gap-2">
-          <Input
-            placeholder="Image URL"
-            value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
-            className="text-sm"
-          />
-          <Button onClick={handleUrlSubmit} size="sm">
-            Save
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsEditing(false)}
-          >
-            Cancel
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex items-center gap-2"
-            onClick={triggerFileInput}
-          >
-            <Upload className="h-4 w-4" />
-            Upload Photo
-          </Button>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="flex items-center gap-2"
-            onClick={() => setIsEditing(true)}
-          >
-            Enter Image URL
-          </Button>
-        </div>
-      )}
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="flex items-center gap-2"
+        onClick={triggerFileInput}
+      >
+        Upload Photo
+      </Button>
     </div>
   );
 };

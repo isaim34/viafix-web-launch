@@ -32,7 +32,7 @@ const CustomerProfileEditor = () => {
     },
   });
 
-  const onSubmit = (data: CustomerProfileFormValues) => {
+  const onSubmit = async (data: CustomerProfileFormValues) => {
     setIsSaving(true);
     
     try {
@@ -62,7 +62,10 @@ const CustomerProfileEditor = () => {
   };
 
   const handleProfileImageChange = (url: string) => {
-    form.setValue('profileImage', url);
+    form.setValue('profileImage', url, { 
+      shouldValidate: true,
+      shouldDirty: true 
+    });
   };
 
   return (
