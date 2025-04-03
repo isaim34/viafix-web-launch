@@ -41,13 +41,22 @@ const VehicleIntelligenceSystem = ({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          FixIQ Vehicle Intelligence System
-        </CardTitle>
-        <CardDescription>
-          Intelligent maintenance tracking and safety monitoring for your vehicle
-        </CardDescription>
+        <div className="flex items-center gap-3">
+          <img 
+            src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png"
+            alt="FixIQ Logo"
+            className="h-10 w-auto"
+          />
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Vehicle Intelligence System
+            </CardTitle>
+            <CardDescription>
+              Intelligent maintenance tracking and safety monitoring for your vehicle
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {!vehicleInfo && (

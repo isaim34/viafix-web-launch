@@ -27,10 +27,19 @@ export const MaintenanceRecordDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>FixIQ Maintenance Record</DialogTitle>
-          <DialogDescription>
-            Service details documented in customer's FixIQ maintenance log
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png" 
+              alt="FixIQ Logo" 
+              className="h-8 w-auto" 
+            />
+            <div>
+              <DialogTitle>Maintenance Record</DialogTitle>
+              <DialogDescription>
+                Service details documented in customer's FixIQ maintenance log
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
