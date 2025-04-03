@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ const ProfilePictureUploader = ({
   const [inputUrl, setInputUrl] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUrlSubmit = () => {
     if (!inputUrl) {
@@ -45,6 +46,32 @@ const ProfilePictureUploader = ({
     }
   };
 
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show preview of the selected image
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        const dataUrl = event.target.result as string;
+        setImageUrl(dataUrl);
+        onImageChange(dataUrl);
+        toast({
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully",
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
@@ -57,10 +84,17 @@ const ProfilePictureUploader = ({
         <Button 
           size="icon" 
           className="absolute bottom-0 right-0 rounded-full w-8 h-8"
-          onClick={() => setIsEditing(true)}
+          onClick={triggerFileInput}
         >
           <Camera className="h-4 w-4" />
         </Button>
+        <input 
+          type="file" 
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+        />
       </div>
       
       {isEditing ? (
@@ -83,15 +117,25 @@ const ProfilePictureUploader = ({
           </Button>
         </div>
       ) : (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-2"
-          onClick={() => setIsEditing(true)}
-        >
-          <Upload className="h-4 w-4" />
-          Change Picture
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-2"
+            onClick={triggerFileInput}
+          >
+            <Upload className="h-4 w-4" />
+            Upload Photo
+          </Button>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="flex items-center gap-2"
+            onClick={() => setIsEditing(true)}
+          >
+            Enter Image URL
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CustomerProfileFormValues, customerProfileSchema } from '@/schemas/customerProfileSchema';
@@ -13,6 +13,7 @@ import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 const CustomerProfileEditor = () => {
   const { toast } = useToast();
   const { currentUserName, currentUserId, updateUserName } = useCustomerAuth();
+  const [isSaving, setIsSaving] = useState(false);
   
   // Parse first and last name from currentUserName
   const nameParts = currentUserName.split(' ');
@@ -32,20 +33,32 @@ const CustomerProfileEditor = () => {
   });
 
   const onSubmit = (data: CustomerProfileFormValues) => {
-    console.log('Updated customer profile data:', data);
+    setIsSaving(true);
     
-    // Store the updated profile in localStorage
-    const formattedName = `${data.firstName} ${data.lastName}`;
-    localStorage.setItem('userName', formattedName);
-    localStorage.setItem(`customer-${currentUserId}-profileImage`, data.profileImage || '');
-    
-    // Update the user name in the auth context
-    updateUserName(formattedName);
-    
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been successfully updated",
-    });
+    try {
+      console.log('Updated customer profile data:', data);
+      
+      // Store the updated profile in localStorage
+      const formattedName = `${data.firstName} ${data.lastName}`;
+      localStorage.setItem('userName', formattedName);
+      localStorage.setItem(`customer-${currentUserId}-profileImage`, data.profileImage || '');
+      
+      // Update the user name in the auth context
+      updateUserName(formattedName);
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating profile",
+        description: "There was an error updating your profile. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleProfileImageChange = (url: string) => {
@@ -64,7 +77,15 @@ const CustomerProfileEditor = () => {
 
         <NameFields control={form.control} />
         
-        <Button type="submit">Save Changes</Button>
+        <div className="flex justify-center mt-8">
+          <Button 
+            type="submit" 
+            disabled={isSaving}
+            className="px-8"
+          >
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </form>
     </Form>
   );
