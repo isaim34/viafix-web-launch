@@ -1,13 +1,12 @@
-
-import React, { useState } from 'react';
-import { User, Clock, MessageCircle, ThumbsUp, Reply } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { User, Clock, MessageCircle, ThumbsUp, Reply, AtSign } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/Button';
 import { Textarea } from '@/components/ui/textarea';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { toast } from 'sonner';
+import { UserTagSelector } from './UserTagSelector';
 
-// Types for our comments
 type Comment = {
   id: string;
   userId: string;
@@ -16,6 +15,7 @@ type Comment = {
   timestamp: Date;
   likes: number;
   replies: Reply[];
+  taggedUsers?: string[];
 };
 
 type Reply = {
@@ -25,6 +25,7 @@ type Reply = {
   content: string;
   timestamp: Date;
   likes: number;
+  taggedUsers?: string[];
 };
 
 interface CommentSectionProps {
@@ -36,8 +37,20 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [showTagSelector, setShowTagSelector] = useState(false);
+  const [tagSelectorPosition, setTagSelectorPosition] = useState({ top: 0, left: 0 });
+  const [currentInputField, setCurrentInputField] = useState<'comment' | 'reply'>('comment');
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
   
-  // In a real app, these would come from a database
+  const [availableUsers] = useState([
+    { id: 'user1', name: 'Alex Johnson' },
+    { id: 'user2', name: 'Sarah Thompson' },
+    { id: 'user3', name: 'Michael Davis' },
+    { id: 'user4', name: 'Emma Wilson' },
+    { id: 'user5', name: 'David Clark' },
+  ]);
+  
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
@@ -68,6 +81,94 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
     }
   ]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>, type: 'comment' | 'reply') => {
+    const text = e.target.value;
+    type === 'comment' ? setNewComment(text) : setReplyContent(text);
+    
+    const caretPosition = e.target.selectionStart || 0;
+    const textUpToCaret = text.substring(0, caretPosition);
+    const lastAtSymbolIndex = textUpToCaret.lastIndexOf('@');
+    
+    if (lastAtSymbolIndex !== -1 && 
+        (lastAtSymbolIndex === 0 || text[lastAtSymbolIndex - 1] === ' ') && 
+        caretPosition > lastAtSymbolIndex) {
+      
+      const input = type === 'comment' ? commentInputRef.current : replyInputRef.current;
+      if (input) {
+        const rect = input.getBoundingClientRect();
+        setTagSelectorPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left
+        });
+      }
+      
+      setCurrentInputField(type);
+      setShowTagSelector(true);
+    } else {
+      setShowTagSelector(false);
+    }
+  };
+  
+  const handleTagUser = (userId: string, userName: string) => {
+    const currentText = currentInputField === 'comment' ? newComment : replyContent;
+    let updatedText = currentText;
+    
+    const lastAtSymbolIndex = updatedText.lastIndexOf('@');
+    if (lastAtSymbolIndex !== -1) {
+      const input = currentInputField === 'comment' ? commentInputRef.current : replyInputRef.current;
+      const caretPosition = input?.selectionStart || updatedText.length;
+      const textBeforeTag = updatedText.substring(0, lastAtSymbolIndex);
+      const textAfterTag = updatedText.substring(caretPosition);
+      
+      updatedText = `${textBeforeTag}@${userName} ${textAfterTag}`;
+      
+      if (currentInputField === 'comment') {
+        setNewComment(updatedText);
+      } else {
+        setReplyContent(updatedText);
+      }
+    }
+    
+    setShowTagSelector(false);
+    
+    setTimeout(() => {
+      const input = currentInputField === 'comment' ? commentInputRef.current : replyInputRef.current;
+      if (input) {
+        input.focus();
+        const newCursorPosition = lastAtSymbolIndex + userName.length + 2;
+        input.setSelectionRange(newCursorPosition, newCursorPosition);
+      }
+    }, 0);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showTagSelector &&
+        commentInputRef.current &&
+        !commentInputRef.current.contains(event.target as Node) &&
+        replyInputRef.current &&
+        !replyInputRef.current.contains(event.target as Node)
+      ) {
+        setShowTagSelector(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTagSelector]);
+
+  const extractTaggedUsers = (content: string): string[] => {
+    const matches = content.match(/@(\w+\s\w+)/g) || [];
+    return matches.map(match => match.substring(1).trim());
+  };
+
+  const formatContentWithTags = (content: string) => {
+    return content.replace(/@(\w+\s\w+)/g, '<span class="text-primary font-medium">@$1</span>');
+  };
+  
   const handleSubmitComment = () => {
     if (!newComment.trim()) return;
     
@@ -76,19 +177,27 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
       return;
     }
     
+    const taggedUsers = extractTaggedUsers(newComment);
+    
     const newCommentObj: Comment = {
       id: `${comments.length + 1}`,
-      userId: 'current-user', // In a real app, this would be the actual user ID
+      userId: 'current-user',
       userName: currentUserName || 'Anonymous User',
       content: newComment,
       timestamp: new Date(),
       likes: 0,
-      replies: []
+      replies: [],
+      taggedUsers: taggedUsers.length > 0 ? taggedUsers : undefined
     };
     
     setComments([...comments, newCommentObj]);
     setNewComment('');
-    toast("Comment posted successfully");
+    
+    if (taggedUsers.length > 0) {
+      toast(`${taggedUsers.length} user(s) have been tagged in your comment`);
+    } else {
+      toast("Comment posted successfully");
+    }
   };
   
   const handleSubmitReply = (commentId: string) => {
@@ -99,6 +208,8 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
       return;
     }
     
+    const taggedUsers = extractTaggedUsers(replyContent);
+    
     const updatedComments = comments.map(comment => {
       if (comment.id === commentId) {
         return {
@@ -107,11 +218,12 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
             ...comment.replies,
             {
               id: `${comment.id}-${comment.replies.length + 1}`,
-              userId: 'current-user', // In a real app, this would be the actual user ID
+              userId: 'current-user',
               userName: currentUserName || 'Anonymous User',
               content: replyContent,
               timestamp: new Date(),
-              likes: 0
+              likes: 0,
+              taggedUsers: taggedUsers.length > 0 ? taggedUsers : undefined
             }
           ]
         };
@@ -122,7 +234,12 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
     setComments(updatedComments);
     setReplyContent('');
     setReplyingTo(null);
-    toast("Reply posted successfully");
+    
+    if (taggedUsers.length > 0) {
+      toast(`${taggedUsers.length} user(s) have been tagged in your reply`);
+    } else {
+      toast("Reply posted successfully");
+    }
   };
   
   const handleLikeComment = (commentId: string) => {
@@ -182,18 +299,43 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
   };
   
   return (
-    <div className="mt-12">
+    <div className="mt-12 relative">
       <h2 className="text-2xl font-bold mb-6">Comments ({comments.length})</h2>
       
-      {/* New comment form */}
       <div className="mb-8 bg-gray-50 p-4 rounded-lg">
         <h3 className="text-lg font-medium mb-3">Join the conversation</h3>
-        <Textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Share your thoughts..."
-          className="mb-3"
-        />
+        <div className="relative">
+          <Textarea
+            ref={commentInputRef}
+            value={newComment}
+            onChange={(e) => handleInputChange(e, 'comment')}
+            placeholder="Share your thoughts... Use @ to tag other users"
+            className="mb-3"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              commentInputRef.current?.focus();
+              const currentValue = newComment;
+              const newValue = currentValue + '@';
+              setNewComment(newValue);
+              setCurrentInputField('comment');
+              
+              if (commentInputRef.current) {
+                const rect = commentInputRef.current.getBoundingClientRect();
+                setTagSelectorPosition({
+                  top: rect.bottom + window.scrollY,
+                  left: rect.left
+                });
+                setShowTagSelector(true);
+              }
+            }}
+            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+            title="Tag a user"
+          >
+            <AtSign size={16} />
+          </button>
+        </div>
         <div className="flex justify-end">
           <Button 
             onClick={handleSubmitComment}
@@ -204,7 +346,14 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
         </div>
       </div>
       
-      {/* Comments list */}
+      {showTagSelector && (
+        <UserTagSelector
+          users={availableUsers}
+          position={tagSelectorPosition}
+          onSelectUser={handleTagUser}
+        />
+      )}
+      
       <div className="space-y-6">
         {comments.map(comment => (
           <div key={comment.id} className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
@@ -221,7 +370,10 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
                     {formatDate(comment.timestamp)}
                   </span>
                 </div>
-                <p className="text-gray-700 mb-3">{comment.content}</p>
+                <p 
+                  className="text-gray-700 mb-3"
+                  dangerouslySetInnerHTML={{ __html: formatContentWithTags(comment.content) }}
+                />
                 <div className="flex items-center space-x-4">
                   <button 
                     onClick={() => handleLikeComment(comment.id)}
@@ -239,15 +391,40 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
                   </button>
                 </div>
                 
-                {/* Reply form */}
                 {replyingTo === comment.id && (
                   <div className="mt-4 pl-4 border-l-2 border-gray-100">
-                    <Textarea
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      placeholder="Write your reply..."
-                      className="mb-3"
-                    />
+                    <div className="relative">
+                      <Textarea
+                        ref={replyInputRef}
+                        value={replyContent}
+                        onChange={(e) => handleInputChange(e, 'reply')}
+                        placeholder="Write your reply... Use @ to tag other users"
+                        className="mb-3"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          replyInputRef.current?.focus();
+                          const currentValue = replyContent;
+                          const newValue = currentValue + '@';
+                          setReplyContent(newValue);
+                          setCurrentInputField('reply');
+                          
+                          if (replyInputRef.current) {
+                            const rect = replyInputRef.current.getBoundingClientRect();
+                            setTagSelectorPosition({
+                              top: rect.bottom + window.scrollY,
+                              left: rect.left
+                            });
+                            setShowTagSelector(true);
+                          }
+                        }}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        title="Tag a user"
+                      >
+                        <AtSign size={16} />
+                      </button>
+                    </div>
                     <div className="flex justify-end space-x-2">
                       <Button 
                         variant="ghost" 
@@ -265,7 +442,6 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
                   </div>
                 )}
                 
-                {/* Replies */}
                 {comment.replies.length > 0 && (
                   <div className="mt-4 pl-6 space-y-4 border-l border-gray-100">
                     {comment.replies.map(reply => (
@@ -283,7 +459,10 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
                                 {formatDate(reply.timestamp)}
                               </span>
                             </div>
-                            <p className="text-gray-700 mb-2">{reply.content}</p>
+                            <p 
+                              className="text-gray-700 mb-2"
+                              dangerouslySetInnerHTML={{ __html: formatContentWithTags(reply.content) }}
+                            />
                             <button 
                               onClick={() => handleLikeReply(comment.id, reply.id)}
                               className="text-xs flex items-center text-gray-500 hover:text-primary transition-colors"
