@@ -4,7 +4,7 @@ import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { CommentForm } from './comments/CommentForm';
 import { CommentFilter } from './comments/CommentFilter';
 import { CommentList } from './comments/CommentList';
-import { CommentProvider } from '@/contexts/CommentContext';
+import { CommentProvider, useCommentContext } from '@/contexts/CommentContext';
 import { User } from '@/types/comments';
 
 interface CommentSectionProps {
@@ -47,6 +47,7 @@ interface CommentsContentProps {
 }
 
 const CommentsContent = ({ availableUsers, onTagUser }: CommentsContentProps) => {
+  // Now useCommentContext is properly imported and can be used here
   const {
     comments,
     commentCount,
