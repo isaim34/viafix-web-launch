@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, FileText, Calendar, User } from 'lucide-react';
+import { ArrowRight, FileText, Calendar, User, ShieldCheck } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import blogPosts from '@/data/blogPosts';
@@ -90,12 +90,13 @@ export const BlogSection = () => {
           ))}
         </div>
 
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
+            className="flex flex-col sm:flex-row justify-center gap-4"
           >
             <Link to="/blog">
               <Button 
@@ -104,6 +105,16 @@ export const BlogSection = () => {
                 icon={<FileText className="w-4 h-4" />}
               >
                 View All Austin Auto Repair Articles
+              </Button>
+            </Link>
+            
+            <Link to="/vehicle-safety-check">
+              <Button 
+                variant="default" 
+                size="lg"
+                icon={<ShieldCheck className="w-4 h-4" />}
+              >
+                Check Your Vehicle Safety
               </Button>
             </Link>
           </motion.div>
