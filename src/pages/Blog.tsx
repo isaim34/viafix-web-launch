@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calendar, User } from 'lucide-react';
+import { ArrowRight, Calendar, User, Search } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Helmet } from 'react-helmet-async';
 import blogPosts from '@/data/blogPosts';
@@ -20,7 +20,21 @@ const blogPostsArray = Object.entries(blogPosts).map(([slug, post]) => ({
   category: post.category
 }));
 
+// Get unique categories from blog posts
+const categories = ['All', ...new Set(blogPostsArray.map(post => post.category))];
+
 const Blog = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Filter blog posts based on search term and category
+  const filteredPosts = blogPostsArray.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <Layout>
       <Helmet>
@@ -31,7 +45,7 @@ const Blog = () => {
       </Helmet>
       
       <div className="container mx-auto px-4 sm:px-6 py-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -44,49 +58,92 @@ const Blog = () => {
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {blogPostsArray.map((post, index) => (
-              <motion.article
-                key={post.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 * (index % 3) }}
-              >
-                <Link to={`/blog/${post.slug}`} className="flex flex-col h-full">
-                  <div className="w-full relative">
-                    <AspectRatio ratio={16 / 9} className="bg-gray-100">
-                      <img 
-                        src={post.image} 
-                        alt={`${post.title} - Auto repair in Austin, TX`} 
-                        className="w-full h-full object-cover"
-                      />
-                    </AspectRatio>
-                    <div className="absolute top-4 left-4 bg-primary text-white text-xs px-3 py-1 rounded-full">
-                      {post.category}
-                    </div>
-                  </div>
-                  <div className="p-6 flex-grow flex flex-col">
-                    <div className="flex items-center text-sm text-gray-500 mb-3">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      <span>{post.date}</span>
-                      <span className="mx-2">•</span>
-                      <User className="w-4 h-4 mr-1" />
-                      <span>{post.author}</span>
-                    </div>
-                    <h2 className="text-xl font-medium mb-3 hover:text-primary transition-colors">
-                      {post.title}
-                    </h2>
-                    <p className="text-gray-600 text-sm mb-4 flex-grow">
-                      {post.excerpt}
-                    </p>
-                    <div className="flex items-center text-primary font-medium text-sm mt-auto">
-                      Read more <ArrowRight className="ml-1 w-4 h-4" />
-                    </div>
-                  </div>
-                </Link>
-              </motion.article>
-            ))}
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search articles..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                {categories.map(category => (
+                  <button
+                    key={category}
+                    className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
+                      selectedCategory === category 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {filteredPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No articles match your search criteria. Try adjusting your filters.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {filteredPosts.map((post, index) => (
+                  <motion.article
+                    key={post.id}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow h-full"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 * (index % 3) }}
+                  >
+                    <Link to={`/blog/${post.slug}`} className="flex flex-col h-full">
+                      <div className="w-full relative">
+                        <AspectRatio ratio={16 / 9} className="bg-gray-100">
+                          <img 
+                            src={post.image} 
+                            alt={`${post.title} - Auto repair in Austin, TX`} 
+                            className="w-full h-full object-cover"
+                          />
+                        </AspectRatio>
+                        <div className="absolute top-4 left-4 bg-primary text-white text-xs px-3 py-1 rounded-full">
+                          {post.category}
+                        </div>
+                      </div>
+                      <div className="p-6 flex-grow flex flex-col">
+                        <div className="flex items-center text-sm text-gray-500 mb-3">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          <span>{post.date}</span>
+                          <span className="mx-2">•</span>
+                          <User className="w-4 h-4 mr-1" />
+                          <span>{post.author}</span>
+                        </div>
+                        <h2 className="text-xl font-medium mb-3 hover:text-primary transition-colors">
+                          {post.title}
+                        </h2>
+                        <p className="text-gray-600 text-sm mb-4 flex-grow">
+                          {post.excerpt.length > 150 ? `${post.excerpt.substring(0, 150)}...` : post.excerpt}
+                        </p>
+                        <div className="flex items-center text-primary font-medium text-sm mt-auto">
+                          Read more <ArrowRight className="ml-1 w-4 h-4" />
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.article>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="text-center mt-8">
+            <p className="text-gray-600">Looking for more auto repair information?</p>
+            <Link to="/" className="text-primary hover:underline font-medium inline-flex items-center mt-2">
+              Find a mechanic near you <ArrowRight className="ml-1 w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>
