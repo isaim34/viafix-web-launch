@@ -11,7 +11,7 @@ const blogPosts = [
   {
     id: 1,
     title: 'Why Independent Mechanics Choose ViaFix in Austin',
-    excerpt: 'Discover why ASE-certified mechanics across Austin are joining the ViaFix platform for flexible gig-based work opportunities and how it's revolutionizing auto repair services in Texas.',
+    excerpt: "Discover why ASE-certified mechanics across Austin are joining the ViaFix platform for flexible gig-based work opportunities and how it's revolutionizing auto repair services in Texas.",
     image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
     slug: 'why-independent-mechanics-choose-viafix',
     date: 'April 2, 2025',
@@ -40,7 +40,7 @@ const blogPosts = [
   },
   {
     id: 4,
-    title: 'The Rise of Mobile Mechanics in Austin's Gig Economy',
+    title: "The Rise of Mobile Mechanics in Austin's Gig Economy",
     excerpt: 'How the gig economy is transforming auto repair services in Austin, with mobile mechanics leading the change for convenient, on-demand vehicle repairs.',
     image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
     slug: 'rise-of-mobile-mechanics-austin-gig-economy',
@@ -61,7 +61,7 @@ const blogPosts = [
   {
     id: 6,
     title: 'Seasonal Car Maintenance Tips for Austin Drivers',
-    excerpt: 'Essential maintenance tasks to keep your vehicle running smoothly through Austin's hot summers and mild winters. Preventative care from mobile mechanics.',
+    excerpt: "Essential maintenance tasks to keep your vehicle running smoothly through Austin's hot summers and mild winters. Preventative care from mobile mechanics.",
     image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
     slug: 'seasonal-car-maintenance-austin-drivers',
     date: 'March 1, 2025',
