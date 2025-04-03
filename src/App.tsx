@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import Mechanics from './pages/Mechanics';
 import MechanicProfile from './pages/MechanicProfile';
@@ -25,6 +25,7 @@ function App() {
           <Route path="/mechanics" element={<Mechanics />} />
           <Route path="/mechanics/:id" element={<MechanicProfile />} />
           <Route path="/profile" element={<CustomerProfile />} />
+          <Route path="/customer/profile" element={<Navigate to="/profile" replace />} />
           <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
