@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Calendar, User, Tag, ChevronLeft, Share2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { Helmet } from 'react-helmet-async';
+import { CommentSection } from '@/components/blog/CommentSection';
 
 const blogPosts = {
   'why-independent-mechanics-choose-viafix': {
@@ -216,6 +217,9 @@ const BlogPost = () => {
               className="prose max-w-none"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
+            
+            {/* Comment section */}
+            <CommentSection postSlug={slug || ''} />
             
             <div className="mt-8 pt-8 border-t">
               <div className="flex flex-wrap gap-2 mb-8">
