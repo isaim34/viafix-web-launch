@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -6,6 +7,7 @@ import MechanicsHeader from '@/components/mechanics/MechanicsHeader';
 import MechanicsZipCodeSearch from '@/components/mechanics/MechanicsZipCodeSearch';
 import MechanicsSearch from '@/components/mechanics/MechanicsSearch';
 import MechanicsList from '@/components/mechanics/MechanicsList';
+import { Helmet } from 'react-helmet-async';
 
 const mechanicsData = [
   {
@@ -15,7 +17,7 @@ const mechanicsData = [
     specialties: ['Engine Repair', 'Diagnostics'],
     rating: 4.8,
     reviewCount: 127,
-    location: 'Los Angeles, CA',
+    location: 'Austin, TX',
     hourlyRate: 85,
     galleryImages: mechanicsDetailedData['1'].galleryImages
   },
@@ -26,7 +28,7 @@ const mechanicsData = [
     specialties: ['Electrical Systems', 'AC Repair'],
     rating: 4.7,
     reviewCount: 94,
-    location: 'Chicago, IL',
+    location: 'Austin, TX',
     hourlyRate: 75,
     galleryImages: mechanicsDetailedData['2'].galleryImages
   },
@@ -47,7 +49,7 @@ const mechanicsData = [
     specialties: ['Oil Changes', 'Tune-ups', 'Filters'],
     rating: 4.6,
     reviewCount: 78,
-    location: 'Miami, FL',
+    location: 'Austin, TX',
     hourlyRate: 65
   },
   {
@@ -57,7 +59,7 @@ const mechanicsData = [
     specialties: ['Suspension', 'Steering', 'Alignment'],
     rating: 4.8,
     reviewCount: 112,
-    location: 'Seattle, WA',
+    location: 'Austin, TX',
     hourlyRate: 80
   },
   {
@@ -67,7 +69,7 @@ const mechanicsData = [
     specialties: ['Diesel Engines', 'Performance Tuning'],
     rating: 4.9,
     reviewCount: 203,
-    location: 'Dallas, TX',
+    location: 'Austin, TX',
     hourlyRate: 95
   }
 ];
@@ -91,8 +93,67 @@ const Mechanics = () => {
     return matchesSearch && matchesZip;
   });
 
+  const pageTitle = zipCode 
+    ? `Find Mobile Mechanics in ${zipCode} | Austin, TX | ViaFix`
+    : `Top-Rated Mobile Mechanics in Austin, TX | ViaFix`;
+
+  const pageDescription = zipCode
+    ? `Connect with ASE-certified mobile mechanics in ${zipCode}. Browse profiles, read reviews, and book gig-based auto repair services in Austin, TX.`
+    : `Find skilled ASE-certified mobile mechanics in Austin, TX. ViaFix connects you with top-rated professionals for on-demand auto repair services at your location.`;
+
   return (
     <Layout>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta name="keywords" content="mobile mechanics Austin, ASE-certified mechanics, on-demand auto repair, gig-based mechanics, auto repair services Austin TX" />
+        <link rel="canonical" href={`https://tryviafix.com/mechanics${zipCode ? `?zipCode=${zipCode}` : ''}`} />
+        
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "ItemList",
+              "itemListElement": [
+                ${filteredMechanics.map((mechanic, index) => `
+                  {
+                    "@type": "ListItem",
+                    "position": ${index + 1},
+                    "item": {
+                      "@type": "Service",
+                      "name": "${mechanic.name} - Mobile Mechanic",
+                      "description": "${mechanic.specialties.join(', ')} specialist in Austin, TX",
+                      "provider": {
+                        "@type": "Person",
+                        "name": "${mechanic.name}",
+                        "image": "${mechanic.avatar}",
+                        "areaServed": "Austin, TX"
+                      },
+                      "aggregateRating": {
+                        "@type": "AggregateRating",
+                        "ratingValue": "${mechanic.rating}",
+                        "reviewCount": "${mechanic.reviewCount}"
+                      },
+                      "offers": {
+                        "@type": "Offer",
+                        "price": "${mechanic.hourlyRate}",
+                        "priceCurrency": "USD",
+                        "priceSpecification": {
+                          "@type": "PriceSpecification",
+                          "price": "${mechanic.hourlyRate}",
+                          "priceCurrency": "USD",
+                          "unitText": "HOUR"
+                        }
+                      }
+                    }
+                  }
+                `).join(',')}
+              ]
+            }
+          `}
+        </script>
+      </Helmet>
+
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <MechanicsHeader />
         <MechanicsZipCodeSearch zipCode={zipCode} setZipCode={setZipCode} />

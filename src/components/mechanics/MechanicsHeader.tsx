@@ -10,9 +10,9 @@ const MechanicsHeader = () => {
       transition={{ duration: 0.5 }}
       className="mb-8"
     >
-      <h1 className="text-3xl font-bold mb-4">Find Your Mechanic</h1>
+      <h1 className="text-3xl font-bold mb-4">Mobile Auto Mechanics in Austin, TX</h1>
       <p className="text-gray-600 max-w-2xl">
-        Browse our network of skilled mechanics ready to help with your vehicle. Filter by specialty, location, or rating to find the perfect match.
+        Browse our network of ASE-certified mobile mechanics in Austin ready to help with your vehicle repairs. Filter by specialty, location, or rating to find the perfect match for your auto repair needs.
       </p>
     </motion.div>
   );

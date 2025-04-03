@@ -16,7 +16,7 @@ const mechanics = [
     specialties: ['Engine Repair', 'Diagnostics'],
     rating: 4.8,
     reviewCount: 127,
-    location: 'Los Angeles, CA',
+    location: 'Austin, TX',
     hourlyRate: 85,
     galleryImages: mechanicsDetailedData['1'].galleryImages,
     featured: true,
@@ -29,7 +29,7 @@ const mechanics = [
     specialties: ['Electrical Systems', 'AC Repair'],
     rating: 4.7,
     reviewCount: 94,
-    location: 'Chicago, IL',
+    location: 'Austin, TX',
     hourlyRate: 75,
     galleryImages: mechanicsDetailedData['2'].galleryImages,
     featured: true
@@ -59,7 +59,7 @@ export const FeaturedMechanics = () => {
             transition={{ duration: 0.5 }}
           >
             <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-            <h2 className="text-3xl font-bold">Featured Mechanics</h2>
+            <h2 className="text-3xl font-bold">Austin's Top Mobile Mechanics</h2>
           </motion.div>
           <motion.p 
             className="text-gray-600 max-w-xl mx-auto"
@@ -68,7 +68,7 @@ export const FeaturedMechanics = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Connect with our top-rated mechanics with specialized skills and exceptional service. Each professional is verified and ready to help with your vehicle needs.
+            Connect with our top-rated ASE-certified mechanics in Austin with specialized skills and exceptional service. Each professional is verified and ready to help with your vehicle needs anywhere in Austin, TX.
           </motion.p>
         </div>
         
@@ -95,7 +95,7 @@ export const FeaturedMechanics = () => {
                 size="lg"
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                View All Mechanics
+                Browse All Austin Mobile Mechanics
               </Button>
             </Link>
           </motion.div>

@@ -1,3 +1,13 @@
+
+# ViaFix Robots.txt
+# Allow all crawlers full access
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://tryviafix.com/sitemap.xml
+
+# Specific bot directives
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +20,6 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Prevent crawling of certain areas if needed
+# Disallow: /admin/
+# Disallow: /private/

@@ -59,7 +59,7 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            Revolutionary Vehicle Services Platform
+            Austin's Premier Gig-Based Auto Repair Platform
           </motion.div>
           
           {/* Heading */}
@@ -69,8 +69,8 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            Expert Mechanics, <br/>
-            <span className="text-primary">On Demand</span>
+            ASE-Certified Mechanics, <br/>
+            <span className="text-primary">On Demand in Austin</span>
           </motion.h1>
           
           {/* Description */}
@@ -80,7 +80,7 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            Connect with skilled mobile mechanics who come to you. Get transparent pricing, verified professionals, and the convenience of repairs wherever your vehicle is located.
+            ViaFix connects you with skilled mobile mechanics who come to your Austin location. Get transparent pricing, ASE-certified professionals, and the convenience of repairs wherever your vehicle is located throughout Austin, TX.
           </motion.p>
           
           {/* CTA Buttons */}
@@ -95,14 +95,14 @@ export const HeroSection = () => {
               icon={<Search className="w-4 h-4" />}
               onClick={() => setIsSearchDialogOpen(true)}
             >
-              Find a Mechanic
+              Find an Austin Mechanic Now
             </Button>
             <Button 
               variant="outline" 
               size="lg"
               icon={<Wrench className="w-4 h-4" />}
             >
-              Join as a Mechanic
+              Join as an Independent Mechanic
             </Button>
           </motion.div>
           
@@ -156,7 +156,7 @@ export const HeroSection = () => {
               ease: "easeInOut"
             }}
           >
-            <span className="text-sm mb-2">Learn More</span>
+            <span className="text-sm mb-2">Discover Austin's Mobile Mechanics</span>
             <ChevronDown className="w-5 h-5" />
           </motion.button>
         </div>
