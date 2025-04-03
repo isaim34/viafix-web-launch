@@ -23,7 +23,7 @@ export const Layout = ({ children }: LayoutProps) => {
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500">
-              © {new Date().getFullYear()} Mobex. All rights reserved.
+              © {new Date().getFullYear()} ViaFix. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-500 hover:text-gray-700 transition-colors">
