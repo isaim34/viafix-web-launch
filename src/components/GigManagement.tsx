@@ -44,7 +44,8 @@ const GigManagement = () => {
       
       const gigToAdd = {
         ...newGig,
-        image: imageUrl,
+        // Use placeholder image if no image is provided
+        image: imageUrl || 'https://images.unsplash.com/photo-1599256879960-6ead7c9d1ae4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
         id: Date.now().toString(),
         status: 'active'
       };
@@ -69,7 +70,7 @@ const GigManagement = () => {
       
       const finalUpdatedGig = {
         ...updatedGig,
-        image: imageUrl
+        image: imageUrl || updatedGig.image // Keep existing image if no new one
       };
       
       setGigs(gigs.map(gig => gig.id === updatedGig.id ? finalUpdatedGig : gig));

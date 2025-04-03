@@ -19,12 +19,16 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Image, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Updated schema to make image truly optional
 const gigSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   price: z.coerce.number().min(1, "Price must be at least $1"),
   duration: z.string().min(1, "Duration is required"),
-  image: z.instanceof(File).optional().or(z.string().url("Please upload an image or provide a valid image URL")),
+  image: z.union([
+    z.instanceof(File).optional(),
+    z.string().optional()
+  ]).optional(),
 });
 
 type GigFormValues = z.infer<typeof gigSchema>;
@@ -66,7 +70,7 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: File) => void) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: any) => void) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
@@ -95,7 +99,7 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
     }
   };
 
-  const clearImage = (onChange: (value: string) => void) => {
+  const clearImage = (onChange: (value: any) => void) => {
     setPreviewImage(null);
     onChange('');
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
@@ -193,7 +197,7 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
               name="image"
               render={({ field: { value, onChange, ...field } }) => (
                 <FormItem>
-                  <FormLabel>Image <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>Image <span className="text-muted-foreground">(optional)</span></FormLabel>
                   
                   {previewImage ? (
                     <div className="relative border rounded-md overflow-hidden aspect-video">
@@ -214,7 +218,10 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
                     </div>
                   ) : (
                     <FormControl>
-                      <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-md">
+                      <div 
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-md cursor-pointer"
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                      >
                         <div className="flex flex-col items-center justify-center gap-1 text-center">
                           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                             <Upload className="h-5 w-5 text-primary" />
@@ -239,7 +246,7 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
                     </FormControl>
                   )}
                   <FormDescription>
-                    Use a high-quality image that represents your service
+                    Optional: Use a high-quality image that represents your service
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
