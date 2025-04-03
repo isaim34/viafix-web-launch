@@ -1,25 +1,19 @@
 
 import React, { useState } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Plus, Wrench, Car, Calendar, X, FileText, Eye, ShieldAlert } from 'lucide-react';
+import { Plus, ShieldAlert } from 'lucide-react';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { MaintenanceRecord } from '@/types/customer';
 import VehicleMaintenanceForm from './VehicleMaintenanceForm';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import VehicleSafetyData from './VehicleSafetyData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getSampleRecords } from '@/utils/sampleMaintenanceData';
+import MaintenanceRecordTable from './MaintenanceRecordTable';
+import EmptyMaintenanceState from './EmptyMaintenanceState';
+import MaintenanceRecordDetails from './MaintenanceRecordDetails';
 
 const VehicleMaintenanceLog = () => {
   const { currentUserId } = useCustomerAuth();
@@ -103,92 +97,17 @@ const VehicleMaintenanceLog = () => {
       ) : null}
       
       {records.length > 0 ? (
-        <ScrollArea className="h-[400px] rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Vehicle</TableHead>
-                <TableHead>Service Type</TableHead>
-                <TableHead>Mechanic</TableHead>
-                <TableHead>Safety</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {record.date}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Car className="h-4 w-4 text-muted-foreground" />
-                      {record.vehicle}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Wrench className="h-4 w-4 text-muted-foreground" />
-                      <Badge variant="outline">{record.serviceType}</Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>{record.mechanic}</TableCell>
-                  <TableCell>
-                    {hasRecalls(record) ? (
-                      <Badge variant="destructive" className="flex items-center gap-1">
-                        <ShieldAlert className="h-3 w-3" />
-                        Recalls
-                      </Badge>
-                    ) : record.vin ? (
-                      <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
-                        Checked
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-gray-500">
-                        No VIN
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => {
-                          setViewRecord(record);
-                          setActiveTab("details");
-                        }}
-                        title="View Details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {!isMechanic && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteRecord(record.id!)}
-                          title="Delete Record"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+        <MaintenanceRecordTable 
+          records={records} 
+          isMechanic={isMechanic} 
+          onViewRecord={(record) => {
+            setViewRecord(record);
+            setActiveTab("details");
+          }}
+          onDeleteRecord={deleteRecord}
+        />
       ) : (
-        <div className="text-center py-8 text-muted-foreground border rounded-md">
-          <Wrench className="mx-auto h-12 w-12 mb-4 text-muted-foreground/70" />
-          <h3 className="text-lg font-medium mb-2">No maintenance records</h3>
-          <p>Start tracking your vehicle maintenance by adding a record.</p>
-        </div>
+        <EmptyMaintenanceState />
       )}
 
       {/* Record Viewing/Editing Dialog */}
@@ -231,63 +150,12 @@ const VehicleMaintenanceLog = () => {
                 </TabsList>
                 
                 <TabsContent value="details">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">Date</h4>
-                        <p>{viewRecord.date}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">Vehicle</h4>
-                        <p>{viewRecord.vehicle}</p>
-                      </div>
-                      {viewRecord.vin && (
-                        <div className="col-span-2">
-                          <h4 className="text-sm font-semibold text-muted-foreground">VIN</h4>
-                          <p className="font-mono">{viewRecord.vin}</p>
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">Service Type</h4>
-                        <p>{viewRecord.serviceType}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">Mechanic</h4>
-                        <p>{viewRecord.mechanic}</p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-semibold text-muted-foreground">Description</h4>
-                      <p className="mt-1 whitespace-pre-wrap">{viewRecord.description}</p>
-                    </div>
-                    
-                    {viewRecord.mechanicNotes && viewRecord.mechanicNotes.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">Mechanic Notes</h4>
-                        <div className="mt-2 space-y-2">
-                          {viewRecord.mechanicNotes.map((note, index) => (
-                            <div key={index} className="bg-muted p-3 rounded-md">
-                              <p className="whitespace-pre-wrap">{note}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-end gap-2">
-                      {isMechanic ? (
-                        <MechanicNoteForm 
-                          record={viewRecord} 
-                          onAddNote={(note) => addMechanicNote(viewRecord, note)} 
-                        />
-                      ) : (
-                        <Button onClick={() => setEditMode(true)}>
-                          Edit Record
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                  <MaintenanceRecordDetails 
+                    record={viewRecord}
+                    isMechanic={isMechanic}
+                    onEdit={() => setEditMode(true)}
+                    onAddNote={(note) => addMechanicNote(viewRecord, note)}
+                  />
                 </TabsContent>
                 
                 {viewRecord.vin && (
@@ -332,74 +200,5 @@ const VehicleMaintenanceLog = () => {
     </div>
   );
 };
-
-const MechanicNoteForm = ({ record, onAddNote }: { 
-  record: MaintenanceRecord, 
-  onAddNote: (note: string) => void 
-}) => {
-  const [note, setNote] = useState('');
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (note.trim()) {
-      onAddNote(note);
-      setNote('');
-    }
-  };
-  
-  return (
-    <form onSubmit={handleSubmit} className="mt-4 w-full">
-      <h4 className="text-sm font-semibold mb-2">Add Mechanic Note</h4>
-      <textarea
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        className="w-full min-h-[100px] p-2 border rounded-md mb-2"
-        placeholder="Add notes about this maintenance record (visible to the customer)"
-      />
-      <Button type="submit" disabled={!note.trim()} className="w-full">
-        <FileText className="mr-2 h-4 w-4" />
-        Add Note
-      </Button>
-    </form>
-  );
-};
-
-function getSampleRecords(): MaintenanceRecord[] {
-  return [
-    {
-      id: '1',
-      date: '2023-10-15',
-      vehicle: '2018 Toyota Camry',
-      vin: '4T1B11HK1KU123456',
-      serviceType: 'Oil Change',
-      description: 'Regular oil change with full synthetic oil. Replaced oil filter.',
-      mechanic: 'Alex Johnson',
-      mechanicSignature: true,
-      nhtsaData: {
-        recalls: [{
-          id: "recall-1",
-          campNo: "18V123000",
-          component: "Forward Collision Avoidance",
-          summary: "The forward collision avoidance system may not detect objects properly.",
-          consequence: "Increased risk of crash if the driver relies on the system.",
-          remedy: "Dealer will update the software free of charge.",
-          notes: "Contact your Toyota dealer as soon as possible.",
-          reportedDate: "2023-01-15"
-        }],
-        complaints: [],
-        investigations: []
-      }
-    },
-    {
-      id: '2',
-      date: '2023-08-22',
-      vehicle: '2018 Toyota Camry',
-      serviceType: 'Brake Replacement',
-      description: 'Replaced front brake pads and rotors. Inspected rear brakes - still good condition.',
-      mechanic: 'Sarah Williams',
-      mechanicSignature: true
-    }
-  ];
-}
 
 export default VehicleMaintenanceLog;
