@@ -43,7 +43,7 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
       id: '1',
       userId: 'user1',
       userName: 'Alex Johnson',
-      content: 'Great article! I've been using ViaFix for my auto repair needs for the past 6 months, and the service has been consistently excellent.',
+      content: "Great article! I've been using ViaFix for my auto repair needs for the past 6 months, and the service has been consistently excellent.",
       timestamp: new Date(2025, 3, 3, 14, 30),
       likes: 5,
       replies: [
@@ -51,7 +51,7 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
           id: '1-1',
           userId: 'user2',
           userName: 'Sarah Thompson',
-          content: 'I agree! The mechanics are always professional and know what they're doing.',
+          content: "I agree! The mechanics are always professional and know what they're doing.",
           timestamp: new Date(2025, 3, 3, 15, 15),
           likes: 2,
         }
@@ -61,7 +61,7 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
       id: '2',
       userId: 'user3',
       userName: 'Michael Davis',
-      content: 'I'm considering becoming a mechanic on ViaFix. Does anyone know how the onboarding process works?',
+      content: "I'm considering becoming a mechanic on ViaFix. Does anyone know how the onboarding process works?",
       timestamp: new Date(2025, 3, 2, 10, 45),
       likes: 3,
       replies: []
