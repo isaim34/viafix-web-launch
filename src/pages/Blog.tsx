@@ -6,69 +6,19 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Calendar, User } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Helmet } from 'react-helmet-async';
+import blogPosts from '@/data/blogPosts';
 
-const blogPosts = [
-  {
-    id: 1,
-    title: 'Why Independent Mechanics Choose ViaFix in Austin',
-    excerpt: "Discover why ASE-certified mechanics across Austin are joining the ViaFix platform for flexible gig-based work opportunities and how it's revolutionizing auto repair services in Texas.",
-    image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
-    slug: 'why-independent-mechanics-choose-viafix',
-    date: 'April 2, 2025',
-    author: 'Michael Rodriguez',
-    category: 'Mechanic Insights'
-  },
-  {
-    id: 2,
-    title: 'Top 5 Auto Repair Services in Austin, TX',
-    excerpt: 'From engine diagnostics to brake repairs, these are the most requested mobile mechanic services in the Austin area. Learn what vehicle issues Austin residents commonly face.',
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
-    slug: 'top-auto-repair-services-austin',
-    date: 'March 28, 2025',
-    author: 'Sarah Johnson',
-    category: 'Auto Repair Tips'
-  },
-  {
-    id: 3,
-    title: 'How ViaFix Ensures Quality Auto Repairs in Austin',
-    excerpt: 'Learn about our rigorous vetting process for mechanics and how we maintain high standards for all mobile repairs in Austin. Quality service is our priority.',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
-    slug: 'how-viafix-ensures-quality-repairs',
-    date: 'March 21, 2025',
-    author: 'David Chen',
-    category: 'Quality Assurance'
-  },
-  {
-    id: 4,
-    title: "The Rise of Mobile Mechanics in Austin's Gig Economy",
-    excerpt: 'How the gig economy is transforming auto repair services in Austin, with mobile mechanics leading the change for convenient, on-demand vehicle repairs.',
-    image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
-    slug: 'rise-of-mobile-mechanics-austin-gig-economy',
-    date: 'March 15, 2025',
-    author: 'Lisa Wang',
-    category: 'Industry Trends'
-  },
-  {
-    id: 5,
-    title: 'Benefits of ASE Certification for Austin Auto Mechanics',
-    excerpt: 'Why ASE certification matters for mechanics and customers alike. Discover how certified professionals on ViaFix provide superior auto repair services in Austin.',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
-    slug: 'benefits-ase-certification-austin-mechanics',
-    date: 'March 8, 2025',
-    author: 'James Wilson',
-    category: 'Professional Development'
-  },
-  {
-    id: 6,
-    title: 'Seasonal Car Maintenance Tips for Austin Drivers',
-    excerpt: "Essential maintenance tasks to keep your vehicle running smoothly through Austin's hot summers and mild winters. Preventative care from mobile mechanics.",
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
-    slug: 'seasonal-car-maintenance-austin-drivers',
-    date: 'March 1, 2025',
-    author: 'Emily Rodriguez',
-    category: 'Maintenance Tips'
-  }
-];
+// Convert the blog posts object to an array for easier rendering
+const blogPostsArray = Object.entries(blogPosts).map(([slug, post]) => ({
+  id: slug,
+  title: post.title,
+  excerpt: post.metaDescription,
+  image: post.image,
+  slug: slug,
+  date: post.date,
+  author: post.author,
+  category: post.category
+}));
 
 const Blog = () => {
   return (
@@ -95,7 +45,7 @@ const Blog = () => {
           </motion.div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {blogPosts.map((post, index) => (
+            {blogPostsArray.map((post, index) => (
               <motion.article
                 key={post.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"

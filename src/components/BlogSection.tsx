@@ -5,36 +5,18 @@ import { motion } from 'framer-motion';
 import { ArrowRight, FileText } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import blogPosts from '@/data/blogPosts';
 
-const blogPosts = [
-  {
-    id: 1,
-    title: 'Why Independent Mechanics Choose ViaFix in Austin',
-    excerpt: 'Discover why ASE-certified mechanics across Austin are joining the ViaFix platform for flexible gig-based work opportunities.',
-    image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-    slug: 'why-independent-mechanics-choose-viafix',
-    date: 'April 2, 2025',
-    author: 'Michael Rodriguez'
-  },
-  {
-    id: 2,
-    title: 'Top 5 Auto Repair Services in Austin, TX',
-    excerpt: 'From engine diagnostics to brake repairs, these are the most requested mobile mechanic services in the Austin area.',
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-    slug: 'top-auto-repair-services-austin',
-    date: 'March 28, 2025',
-    author: 'Sarah Johnson'
-  },
-  {
-    id: 3,
-    title: 'How ViaFix Ensures Quality Auto Repairs in Austin',
-    excerpt: 'Learn about our rigorous vetting process for mechanics and how we maintain high standards for all mobile repairs.',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-    slug: 'how-viafix-ensures-quality-repairs',
-    date: 'March 21, 2025',
-    author: 'David Chen'
-  }
-];
+// Create an array of the first 3 blog posts for the home page section
+const featuredBlogPosts = Object.entries(blogPosts).slice(0, 3).map(([slug, post]) => ({
+  id: slug,
+  title: post.title,
+  excerpt: post.metaDescription,
+  image: post.image,
+  slug: slug,
+  date: post.date,
+  author: post.author
+}));
 
 export const BlogSection = () => {
   return (
@@ -55,7 +37,7 @@ export const BlogSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {blogPosts.map((post, index) => (
+          {featuredBlogPosts.map((post, index) => (
             <motion.article
               key={post.id}
               className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
