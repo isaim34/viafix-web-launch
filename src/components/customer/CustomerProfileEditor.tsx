@@ -51,6 +51,7 @@ const CustomerProfileEditor = () => {
         description: "Your profile has been successfully updated",
       });
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
         title: "Error updating profile",
         description: "There was an error updating your profile. Please try again.",
@@ -83,7 +84,7 @@ const CustomerProfileEditor = () => {
         <div className="flex justify-center mt-8">
           <Button 
             type="submit" 
-            disabled={isSaving}
+            disabled={isSaving || !form.formState.isDirty}
             className="px-8"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}

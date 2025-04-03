@@ -42,6 +42,9 @@ const ProfilePictureUploader = ({
       }
     };
     reader.readAsDataURL(file);
+    
+    // Clear the input value so the same file can be selected again if needed
+    e.target.value = '';
   };
 
   return (
