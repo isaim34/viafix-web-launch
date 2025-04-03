@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -104,9 +103,17 @@ const VINInput = ({ value, onChange, onVehicleInfoChange }: VINInputProps) => {
         </Button>
         
         {vehicleInfo && (
-          <span className="text-sm text-muted-foreground">
-            {vehicleInfo.modelYear} {vehicleInfo.make} {vehicleInfo.model}
-          </span>
+          <div className="text-sm space-y-1">
+            <p className="font-medium text-foreground">
+              {vehicleInfo.modelYear} {vehicleInfo.make} {vehicleInfo.model}
+              {vehicleInfo.trim && ` ${vehicleInfo.trim}`}
+            </p>
+            {(vehicleInfo.bodyClass || vehicleInfo.driveType) && (
+              <p className="text-muted-foreground">
+                {[vehicleInfo.bodyClass, vehicleInfo.driveType].filter(Boolean).join(' • ')}
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>

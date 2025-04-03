@@ -55,8 +55,29 @@ const VehicleMaintenanceForm = ({ onSave, onCancel, initialData }: VehicleMainte
     setVehicleInfo(info);
     
     if (info) {
-      // Update vehicle field with decoded info
-      form.setValue('vehicle', `${info.modelYear} ${info.make} ${info.model}`);
+      // Update vehicle field with detailed info
+      const vehicleDetails = [
+        info.modelYear,
+        info.make,
+        info.model,
+        info.trim,
+        info.bodyClass
+      ].filter(Boolean).join(' ');
+      
+      form.setValue('vehicle', vehicleDetails);
+      
+      // Add additional details to the description if available
+      const additionalDetails = [
+        info.engineCylinders && `${info.engineCylinders} cylinder engine`,
+        info.displacement && `${info.displacement}L`,
+        info.driveType,
+        info.transmissionStyle,
+        info.fuelType && `${info.fuelType} fuel`
+      ].filter(Boolean);
+      
+      if (additionalDetails.length > 0) {
+        form.setValue('description', `Vehicle specifications:\n${additionalDetails.join('\n')}\n\n${form.getValues('description')}`);
+      }
     }
   };
 

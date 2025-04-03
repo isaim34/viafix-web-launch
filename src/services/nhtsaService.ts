@@ -1,10 +1,18 @@
-
 import { toast } from "@/hooks/use-toast";
 
 export interface VehicleInfo {
   make: string;
   model: string;
   modelYear: string;
+  bodyClass?: string;
+  engineCylinders?: string;
+  driveType?: string;
+  vehicleType?: string;
+  fuelType?: string;
+  doors?: string;
+  trim?: string;
+  displacement?: string;
+  transmissionStyle?: string;
 }
 
 export interface Recall {
@@ -44,40 +52,48 @@ export interface NHTSAData {
   error: string | null;
 }
 
-// Decode VIN to extract vehicle information
 export const decodeVin = async (vin: string): Promise<VehicleInfo | null> => {
   try {
-    const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`);
+    const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`);
     const data = await response.json();
     
     if (!response.ok) {
       throw new Error(data.message || 'Failed to decode VIN');
     }
     
-    // Extract relevant vehicle info from the response
-    const results = data.Results;
-    const makeItem = results.find((item: any) => item.Variable === 'Make');
-    const modelItem = results.find((item: any) => item.Variable === 'Model');
-    const yearItem = results.find((item: any) => item.Variable === 'Model Year');
+    // Extract first result from the array
+    const result = data.Results?.[0];
+    if (!result) {
+      throw new Error('No decode results found');
+    }
     
-    const make = makeItem?.Value;
-    const model = modelItem?.Value;
-    const modelYear = yearItem?.Value;
+    // Map the detailed vehicle information
+    const vehicleInfo: VehicleInfo = {
+      make: result.Make,
+      model: result.Model,
+      modelYear: result.ModelYear,
+      bodyClass: result.BodyClass,
+      engineCylinders: result.EngineCylinders,
+      driveType: result.DriveType,
+      vehicleType: result.VehicleType,
+      fuelType: result.FuelTypePrimary,
+      doors: result.Doors,
+      trim: result.Trim,
+      displacement: result.DisplacementL,
+      transmissionStyle: result.TransmissionStyle
+    };
     
-    if (!make || !model || !modelYear) {
+    // Validate required fields
+    if (!vehicleInfo.make || !vehicleInfo.model || !vehicleInfo.modelYear) {
       toast({
-        title: "VIN Decoding Issue",
+        title: "Incomplete VIN Data",
         description: "Could not extract complete vehicle information from the VIN",
         variant: "destructive"
       });
       return null;
     }
     
-    return {
-      make,
-      model,
-      modelYear
-    };
+    return vehicleInfo;
   } catch (error) {
     console.error('Error decoding VIN:', error);
     toast({
@@ -89,7 +105,6 @@ export const decodeVin = async (vin: string): Promise<VehicleInfo | null> => {
   }
 };
 
-// Fetch recalls for a specific vehicle
 export const fetchRecalls = async (vehicleInfo: VehicleInfo): Promise<Recall[]> => {
   try {
     const { make, model, modelYear } = vehicleInfo;
@@ -118,7 +133,6 @@ export const fetchRecalls = async (vehicleInfo: VehicleInfo): Promise<Recall[]> 
   }
 };
 
-// Fetch complaints for a specific vehicle
 export const fetchComplaints = async (vehicleInfo: VehicleInfo): Promise<Complaint[]> => {
   try {
     const { make, model, modelYear } = vehicleInfo;
@@ -145,7 +159,6 @@ export const fetchComplaints = async (vehicleInfo: VehicleInfo): Promise<Complai
   }
 };
 
-// Fetch safety investigations for a specific vehicle
 export const fetchInvestigations = async (vehicleInfo: VehicleInfo): Promise<Investigation[]> => {
   try {
     const { make, model, modelYear } = vehicleInfo;
@@ -172,7 +185,6 @@ export const fetchInvestigations = async (vehicleInfo: VehicleInfo): Promise<Inv
   }
 };
 
-// Fetch all NHTSA data for a vehicle
 export const fetchAllNHTSAData = async (vehicleInfo: VehicleInfo): Promise<NHTSAData> => {
   try {
     const [recalls, complaints, investigations] = await Promise.all([
