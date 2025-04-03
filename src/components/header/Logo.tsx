@@ -9,11 +9,13 @@ export const Logo: React.FC = () => {
       <motion.div 
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="bg-primary rounded-full p-2"
       >
-        <span className="text-lg font-bold text-primary-foreground">VF</span>
+        <img 
+          src="/lovable-uploads/8c83d7f4-0ce4-49c7-90a2-92a24cd5e29a.png" 
+          alt="ViaFix Logo" 
+          className="h-10 w-auto" 
+        />
       </motion.div>
-      <span className="font-medium text-lg">ViaFix</span>
     </Link>
   );
 };
