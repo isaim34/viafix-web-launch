@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { PlusCircle, ImageIcon, X, Camera, Calendar } from 'lucide-react';
+import { PlusCircle, ImageIcon, X, Camera, Calendar, FileText, Clipboard, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,10 +12,14 @@ import {
   DialogTitle, 
   DialogDescription,
   DialogFooter,
-  DialogClose
+  DialogClose,
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { MaintenanceRecord } from '@/types/customer';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 export interface CompletedJob {
   id: string;
@@ -25,6 +29,7 @@ export interface CompletedJob {
   completionDate: string;
   imageUrls: string[];
   customerName?: string;
+  customerMaintenanceRecord?: MaintenanceRecord;
 }
 
 interface CompletedJobsProps {
@@ -43,6 +48,7 @@ export const CompletedJobs = ({ jobs = [], mechanicId }: CompletedJobsProps) => 
     imageUrls: [],
   });
   const [imageUrl, setImageUrl] = useState('');
+  const [showMaintenanceRecord, setShowMaintenanceRecord] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleAddImage = () => {
@@ -175,6 +181,75 @@ export const CompletedJobs = ({ jobs = [], mechanicId }: CompletedJobsProps) => 
                       <span>Customer: {job.customerName}</span>
                     )}
                   </div>
+                  
+                  {job.customerMaintenanceRecord && (
+                    <div className="mt-3 pt-3 border-t">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full mt-1 flex items-center gap-2 text-xs"
+                          >
+                            <FileText className="h-3.5 w-3.5" />
+                            View Customer Maintenance Record
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px]">
+                          <DialogHeader>
+                            <DialogTitle>FixIQ Maintenance Record</DialogTitle>
+                            <DialogDescription>
+                              Service details documented in customer's FixIQ maintenance log
+                            </DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="space-y-4 py-4">
+                            <div className="bg-muted/30 p-3 rounded-md border">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  <CheckCircle className="h-3 w-3 mr-1" /> Signed Off
+                                </Badge>
+                                <span className="text-sm text-muted-foreground">
+                                  {format(new Date(job.customerMaintenanceRecord.date), 'MMM d, yyyy')}
+                                </span>
+                              </div>
+                              <h3 className="font-medium mb-1">{job.customerMaintenanceRecord.vehicle}</h3>
+                              <p className="text-sm text-muted-foreground mb-1">
+                                {job.customerMaintenanceRecord.serviceType}
+                              </p>
+                              {job.customerMaintenanceRecord.vin && (
+                                <p className="text-xs text-muted-foreground mb-3">
+                                  VIN: {job.customerMaintenanceRecord.vin}
+                                </p>
+                              )}
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">Service Description</h4>
+                              <p className="text-sm p-3 bg-muted/20 rounded-md">
+                                {job.customerMaintenanceRecord.description}
+                              </p>
+                            </div>
+                            
+                            {job.customerMaintenanceRecord.mechanicNotes && 
+                             job.customerMaintenanceRecord.mechanicNotes.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium mb-2">Your Notes</h4>
+                                <ul className="space-y-2">
+                                  {job.customerMaintenanceRecord.mechanicNotes.map((note, index) => (
+                                    <li key={index} className="text-sm flex gap-2">
+                                      <Clipboard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                      <span>{note}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

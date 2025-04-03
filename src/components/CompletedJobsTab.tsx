@@ -3,6 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { CompletedJobs } from '@/components/mechanic/CompletedJobs';
 import { useAuth } from '@/hooks/useAuth';
+import { MaintenanceRecord } from '@/types/customer';
 
 // Sample completed job data (in a real app, this would come from a database)
 const sampleCompletedJobs = [
@@ -16,7 +17,18 @@ const sampleCompletedJobs = [
       'https://images.unsplash.com/photo-1596455607563-ad6193f76b17?q=80&w=1000&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=1000&auto=format&fit=crop'
     ],
-    customerName: 'John D.'
+    customerName: 'John D.',
+    customerMaintenanceRecord: {
+      id: 'maint-1',
+      date: '2023-06-15',
+      vehicle: '2015 Honda Accord',
+      vin: 'JH4KA7670MC033114',
+      serviceType: 'Timing Belt Replacement',
+      description: 'Replaced timing belt and water pump. Also changed coolant and checked accessory belts.',
+      mechanic: 'James Wilson',
+      mechanicSignature: true,
+      mechanicNotes: ['Customer reported occasional squeaking noise', 'Recommended coolant flush next service']
+    }
   },
   {
     id: '2',
@@ -29,7 +41,18 @@ const sampleCompletedJobs = [
       'https://images.unsplash.com/photo-1592053104090-a3be784b5329?q=80&w=1000&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1000&auto=format&fit=crop'
     ],
-    customerName: 'Sarah M.'
+    customerName: 'Sarah M.',
+    customerMaintenanceRecord: {
+      id: 'maint-2',
+      date: '2023-07-22',
+      vehicle: '2018 Toyota Camry',
+      vin: '4T1BF1FK7CU513879',
+      serviceType: 'Brake System Replacement',
+      description: 'Replaced front and rear brake pads, rotors, and calipers. Flushed brake fluid and bled system.',
+      mechanic: 'James Wilson',
+      mechanicSignature: true,
+      mechanicNotes: ['Customer reported vibration when braking', 'All brake components were significantly worn']
+    }
   }
 ];
 
