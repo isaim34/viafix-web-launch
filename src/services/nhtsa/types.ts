@@ -1,5 +1,6 @@
 
 export interface VehicleInfo {
+  vin?: string;
   make: string;
   model: string;
   modelYear: string;
@@ -49,4 +50,11 @@ export interface NHTSAData {
   investigations: Investigation[];
   isLoading: boolean;
   error: string | null;
+}
+
+export interface FixIQJobDecision {
+  isServiceable: boolean;
+  requiresDealerRepair: boolean;
+  reasonCode: string;
+  message: string;
 }

@@ -19,6 +19,7 @@ export const decodeVin = async (vin: string): Promise<VehicleInfo | null> => {
     
     // Map the detailed vehicle information
     const vehicleInfo: VehicleInfo = {
+      vin: vin, // Store the original VIN
       make: result.Make,
       model: result.Model,
       modelYear: result.ModelYear,

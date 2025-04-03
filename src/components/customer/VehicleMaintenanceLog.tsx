@@ -1,202 +1,137 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, ShieldAlert } from 'lucide-react';
-import { useCustomerAuth } from '@/hooks/useCustomerAuth';
+import { PlusCircle } from 'lucide-react';
 import { MaintenanceRecord } from '@/types/customer';
-import VehicleMaintenanceForm from './VehicleMaintenanceForm';
-import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import VehicleSafetyData from './VehicleSafetyData';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getSampleRecords } from '@/utils/sampleMaintenanceData';
 import MaintenanceRecordTable from './MaintenanceRecordTable';
 import EmptyMaintenanceState from './EmptyMaintenanceState';
-import MaintenanceRecordDetails from './MaintenanceRecordDetails';
+import VehicleMaintenanceForm from './VehicleMaintenanceForm';
+import VehicleIntelligenceSystem from '../fixiq/VehicleIntelligenceSystem';
+import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+
+// Import sample data (in a real app, this would come from an API)
+import { sampleMaintenanceRecords } from '@/utils/sampleMaintenanceData';
 
 const VehicleMaintenanceLog = () => {
-  const { currentUserId } = useCustomerAuth();
+  const [records, setRecords] = useState<MaintenanceRecord[]>(sampleMaintenanceRecords);
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<MaintenanceRecord | null>(null);
+  const [selectedVin, setSelectedVin] = useState<string>('');
   const { toast } = useToast();
-  const [showForm, setShowForm] = useState(false);
-  const [viewRecord, setViewRecord] = useState<MaintenanceRecord | null>(null);
-  const [editMode, setEditMode] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("details");
-  const userRole = localStorage.getItem('userRole');
-  const isMechanic = userRole === 'mechanic';
   
-  const [records, setRecords] = useState<MaintenanceRecord[]>(() => {
-    // Load maintenance records from localStorage
-    const savedRecords = localStorage.getItem(`customer-${currentUserId}-maintenance`);
-    return savedRecords ? JSON.parse(savedRecords) : getSampleRecords();
-  });
-
-  const saveRecord = (record: MaintenanceRecord) => {
-    const newRecords = [...records, { ...record, id: Date.now().toString() }];
-    setRecords(newRecords);
-    localStorage.setItem(`customer-${currentUserId}-maintenance`, JSON.stringify(newRecords));
-    setShowForm(false);
-    toast({
-      title: "Maintenance record added",
-      description: "Your vehicle maintenance record has been saved",
-    });
+  const handleSaveRecord = (record: MaintenanceRecord) => {
+    if (record.id) {
+      // Update existing record
+      setRecords(records.map(r => r.id === record.id ? record : r));
+      setEditingRecord(null);
+      toast({
+        title: "Record updated",
+        description: "The maintenance record has been updated",
+      });
+    } else {
+      // Add new record with a generated ID
+      const newRecord = {
+        ...record,
+        id: Date.now().toString(),
+      };
+      setRecords([...records, newRecord]);
+      setIsAdding(false);
+      toast({
+        title: "Record added",
+        description: "A new maintenance record has been added",
+      });
+      
+      // If this is the first record with a VIN, set it as the selected VIN
+      if (record.vin && !selectedVin) {
+        setSelectedVin(record.vin);
+      }
+    }
   };
-
-  const updateRecord = (record: MaintenanceRecord) => {
-    const newRecords = records.map(r => r.id === record.id ? record : r);
-    setRecords(newRecords);
-    localStorage.setItem(`customer-${currentUserId}-maintenance`, JSON.stringify(newRecords));
-    setViewRecord(null);
-    setEditMode(false);
-    toast({
-      title: "Record updated",
-      description: "The maintenance record has been updated",
-    });
-  };
-
-  const deleteRecord = (id: string) => {
-    const newRecords = records.filter(record => record.id !== id);
-    setRecords(newRecords);
-    localStorage.setItem(`customer-${currentUserId}-maintenance`, JSON.stringify(newRecords));
+  
+  const handleDelete = (id: string) => {
+    setRecords(records.filter(record => record.id !== id));
     toast({
       title: "Record deleted",
-      description: "The maintenance record has been removed",
+      description: "The maintenance record has been deleted",
     });
   };
-
-  const addMechanicNote = (record: MaintenanceRecord, note: string) => {
-    const updatedRecord = {
-      ...record,
-      mechanicNotes: record.mechanicNotes ? [...record.mechanicNotes, note] : [note]
-    };
-    updateRecord(updatedRecord);
-  };
-
-  const hasRecalls = (record: MaintenanceRecord) => {
-    return record.nhtsaData?.recalls && record.nhtsaData.recalls.length > 0;
-  };
-
+  
+  // Get records for the selected VIN
+  const filteredRecords = selectedVin 
+    ? records.filter(record => record.vin === selectedVin)
+    : records;
+  
+  // Get all unique VINs from records
+  const vehicleVins = [...new Set(records.filter(r => r.vin).map(r => r.vin as string))];
+  
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Vehicle Maintenance Log</h2>
-        {!isMechanic && (
-          <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Record
-          </Button>
-        )}
-      </div>
-      
-      {showForm && !isMechanic ? (
-        <Card>
-          <CardContent className="pt-6">
-            <VehicleMaintenanceForm onSave={saveRecord} onCancel={() => setShowForm(false)} />
-          </CardContent>
-        </Card>
-      ) : null}
-      
-      {records.length > 0 ? (
-        <MaintenanceRecordTable 
-          records={records} 
-          isMechanic={isMechanic} 
-          onViewRecord={(record) => {
-            setViewRecord(record);
-            setActiveTab("details");
-          }}
-          onDeleteRecord={deleteRecord}
-        />
-      ) : (
-        <EmptyMaintenanceState />
-      )}
-
-      {/* Record Viewing/Editing Dialog */}
-      <Dialog open={!!viewRecord} onOpenChange={(open) => {
-        if (!open) {
-          setViewRecord(null);
-          setEditMode(false);
-        }
-      }}>
-        {viewRecord && (
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editMode ? "Edit Maintenance Record" : "Maintenance Record Details"}
-              </DialogTitle>
-            </DialogHeader>
+      <Tabs defaultValue="maintenance" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="maintenance">Maintenance Log</TabsTrigger>
+          <TabsTrigger value="fixiq">FixIQ Dashboard</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="maintenance">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Vehicle Maintenance Records</h2>
+              <Button 
+                onClick={() => {
+                  setIsAdding(true);
+                  setEditingRecord(null);
+                }}
+                disabled={isAdding || !!editingRecord}
+                className="flex items-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Add Record
+              </Button>
+            </div>
             
-            {editMode ? (
-              <VehicleMaintenanceForm 
-                onSave={updateRecord} 
-                onCancel={() => setEditMode(false)}
-                initialData={viewRecord}
-              />
-            ) : (
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="details">Record Details</TabsTrigger>
-                  
-                  {viewRecord.vin && (
-                    <TabsTrigger value="safety" className="relative">
-                      Safety Data
-                      {hasRecalls(viewRecord) && (
-                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                        </span>
-                      )}
-                    </TabsTrigger>
-                  )}
-                </TabsList>
-                
-                <TabsContent value="details">
-                  <MaintenanceRecordDetails 
-                    record={viewRecord}
-                    isMechanic={isMechanic}
-                    onEdit={() => setEditMode(true)}
-                    onAddNote={(note) => addMechanicNote(viewRecord, note)}
-                  />
-                </TabsContent>
-                
-                {viewRecord.vin && (
-                  <TabsContent value="safety">
-                    <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground">
-                        This data is provided by the National Highway Traffic Safety Administration (NHTSA) 
-                        based on the vehicle's VIN. It includes important safety information like recalls, 
-                        complaints, and investigations.
-                      </p>
-                      
-                      {viewRecord.nhtsaData ? (
-                        <VehicleSafetyData
-                          recalls={viewRecord.nhtsaData.recalls || []}
-                          complaints={viewRecord.nhtsaData.complaints || []}
-                          investigations={viewRecord.nhtsaData.investigations || []}
-                        />
-                      ) : (
-                        <div className="text-center py-6 bg-gray-50 rounded-lg">
-                          <p>No safety data available for this vehicle.</p>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="mt-4"
-                            onClick={() => {
-                              setEditMode(true);
-                              setActiveTab("details");
-                            }}
-                          >
-                            Edit record to fetch safety data
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-                )}
-              </Tabs>
+            {isAdding && (
+              <Card className="p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Add Maintenance Record</h3>
+                <VehicleMaintenanceForm
+                  onSave={handleSaveRecord}
+                  onCancel={() => setIsAdding(false)}
+                />
+              </Card>
             )}
-          </DialogContent>
-        )}
-      </Dialog>
+            
+            {editingRecord && (
+              <Card className="p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Edit Maintenance Record</h3>
+                <VehicleMaintenanceForm
+                  initialData={editingRecord}
+                  onSave={handleSaveRecord}
+                  onCancel={() => setEditingRecord(null)}
+                />
+              </Card>
+            )}
+            
+            {records.length === 0 && !isAdding ? (
+              <EmptyMaintenanceState onAddClick={() => setIsAdding(true)} />
+            ) : (
+              <MaintenanceRecordTable
+                records={filteredRecords}
+                onEdit={setEditingRecord}
+                onDelete={handleDelete}
+              />
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="fixiq">
+          <VehicleIntelligenceSystem 
+            vin={selectedVin}
+            onVinChange={setSelectedVin}
+            maintenanceRecords={filteredRecords}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

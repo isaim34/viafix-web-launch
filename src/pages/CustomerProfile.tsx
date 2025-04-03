@@ -6,8 +6,11 @@ import { Card } from '@/components/ui/card';
 import CustomerProfileEditor from '@/components/customer/CustomerProfileEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VehicleMaintenanceLog from '@/components/customer/VehicleMaintenanceLog';
+import VehicleIntelligenceSystem from '@/components/fixiq/VehicleIntelligenceSystem';
+import VINLookupTool from '@/components/customer/VINLookupTool';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { Car, Shield, User } from 'lucide-react';
 
 const CustomerProfile = () => {
   const { isCustomerLoggedIn } = useCustomerAuth();
@@ -46,8 +49,18 @@ const CustomerProfile = () => {
         
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="mb-8">
-            <TabsTrigger value="profile">Profile Information</TabsTrigger>
-            <TabsTrigger value="maintenance">Vehicle Maintenance Log</TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>Profile Information</span>
+            </TabsTrigger>
+            <TabsTrigger value="maintenance" className="flex items-center gap-2">
+              <Car className="h-4 w-4" />
+              <span>Vehicle Maintenance</span>
+            </TabsTrigger>
+            <TabsTrigger value="fixiq" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>FixIQ Safety</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
@@ -59,6 +72,12 @@ const CustomerProfile = () => {
           <TabsContent value="maintenance">
             <Card className="p-6">
               <VehicleMaintenanceLog />
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="fixiq">
+            <Card className="p-6">
+              <VINLookupTool />
             </Card>
           </TabsContent>
         </Tabs>
