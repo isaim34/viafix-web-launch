@@ -45,8 +45,8 @@ const MechanicSigninForm = () => {
       description: "You have successfully signed in.",
     });
     
-    // Navigate to mechanic dashboard
-    navigate('/mechanic/dashboard');
+    // Navigate to mechanic dashboard with the correct route
+    navigate('/mechanic-dashboard');
   };
 
   return (

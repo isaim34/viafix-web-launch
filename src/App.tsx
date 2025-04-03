@@ -27,6 +27,7 @@ function App() {
           <Route path="/profile" element={<CustomerProfile />} />
           <Route path="/customer/profile" element={<Navigate to="/profile" replace />} />
           <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+          <Route path="/mechanic/dashboard" element={<Navigate to="/mechanic-dashboard" replace />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/two-factor-auth" element={<TwoFactorAuth />} />

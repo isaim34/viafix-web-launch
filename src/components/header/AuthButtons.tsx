@@ -99,7 +99,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
             
             {userRole === 'customer' && (
               <DropdownMenuItem asChild>
-                <Link to="/customer/profile" className="flex items-center cursor-pointer">
+                <Link to="/profile" className="flex items-center cursor-pointer">
                   <UserCircle className="mr-2 h-4 w-4" />
                   <span>Your Profile</span>
                 </Link>
@@ -108,7 +108,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
             
             {userRole === 'mechanic' && (
               <DropdownMenuItem asChild>
-                <Link to="/mechanic/dashboard" className="flex items-center cursor-pointer">
+                <Link to="/mechanic-dashboard" className="flex items-center cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   <span>Dashboard</span>
                 </Link>
@@ -126,7 +126,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   }
 
   // Don't show auth buttons on mechanic dashboard if not logged in
-  if (location.pathname.includes('/mechanic/dashboard') && !userLoggedIn) {
+  if (location.pathname.includes('/mechanic-dashboard') && !userLoggedIn) {
     return null;
   }
 
