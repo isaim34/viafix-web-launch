@@ -12,6 +12,7 @@ import NotFound from './pages/NotFound';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import VehicleSafetyCheck from './pages/VehicleSafetyCheck';
+import HowItWorks from './pages/HowItWorks';
 import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
 import './App.css';
@@ -27,10 +28,13 @@ function App() {
           <Route path="/profile" element={<CustomerProfile />} />
           <Route path="/customer/profile" element={<Navigate to="/profile" replace />} />
           
+          {/* How It Works page */}
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          
           {/* Mechanic Dashboard Routes - Handle all possible variations */}
           <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
-          <Route path="/mechanic/dashboard" element={<Navigate to="/mechanic-dashboard" replace />} />
           <Route path="/mechanic-dashboard/*" element={<MechanicDashboard />} />
+          <Route path="/mechanic/dashboard" element={<Navigate to="/mechanic-dashboard" replace />} />
           <Route path="/mechanic/dashboard/*" element={<Navigate to="/mechanic-dashboard" replace />} />
           
           <Route path="/signin" element={<Signin />} />

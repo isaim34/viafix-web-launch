@@ -1,62 +1,34 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { NavLink } from 'react-router-dom';
 
-interface NavigationProps {
-  isMobile?: boolean;
-}
-
-export const Navigation: React.FC<NavigationProps> = ({ isMobile = false }) => {
-  const location = useLocation();
-  
-  const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Mechanics', path: '/mechanics' },
-    { name: 'How It Works', path: '/how-it-works' },
-  ];
-
-  if (isMobile) {
-    return (
-      <>
-        {navItems.map((item, index) => (
-          <motion.div
-            key={item.name}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Link
-              to={item.path}
-              className={`block text-sm font-medium py-2 ${
-                location.pathname === item.path 
-                  ? 'text-primary' 
-                  : 'text-gray-700'
-              }`}
-            >
-              {item.name}
-            </Link>
-          </motion.div>
-        ))}
-      </>
-    );
-  }
-
+export const Navigation = () => {
   return (
     <nav className="hidden md:flex items-center space-x-8">
-      {navItems.map((item) => (
-        <Link
-          key={item.name}
-          to={item.path}
-          className={`text-sm font-medium transition-colors hover:text-primary ${
-            location.pathname === item.path 
-              ? 'text-primary' 
-              : 'text-gray-700'
-          }`}
-        >
-          {item.name}
-        </Link>
-      ))}
+      <NavLink 
+        to="/"
+        className={({ isActive }) => `text-sm font-medium transition-colors ${
+          isActive ? 'text-primary' : 'text-foreground hover:text-primary'
+        }`}
+      >
+        Home
+      </NavLink>
+      <NavLink 
+        to="/mechanics"
+        className={({ isActive }) => `text-sm font-medium transition-colors ${
+          isActive ? 'text-primary' : 'text-foreground hover:text-primary'
+        }`}
+      >
+        Mechanics
+      </NavLink>
+      <NavLink 
+        to="/how-it-works"
+        className={({ isActive }) => `text-sm font-medium transition-colors ${
+          isActive ? 'text-primary' : 'text-foreground hover:text-primary'
+        }`}
+      >
+        How It Works
+      </NavLink>
     </nav>
   );
 };

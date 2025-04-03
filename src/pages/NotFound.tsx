@@ -15,11 +15,45 @@ const NotFound = () => {
       location.pathname
     );
     
-    // Check if this is a mechanic dashboard route with incorrect formatting
-    if (location.pathname.includes('mechanic') && location.pathname.includes('dashboard')) {
+    const path = location.pathname.toLowerCase();
+    
+    // Handle mechanic dashboard routes
+    if (path.includes('mechanic') && path.includes('dashboard')) {
       console.log("Redirecting to correct mechanic dashboard route");
       navigate('/mechanic-dashboard', { replace: true });
+      return;
     }
+    
+    // Handle how it works variations
+    if (path.includes('how') && path.includes('work')) {
+      console.log("Redirecting to correct how it works route");
+      navigate('/how-it-works', { replace: true });
+      return;
+    }
+    
+    // Handle different casing or missing hyphens in routes
+    const routeMap = {
+      '/howitworks': '/how-it-works',
+      '/how_it_works': '/how-it-works',
+      '/mechanicdashboard': '/mechanic-dashboard',
+      '/mechanic_dashboard': '/mechanic-dashboard',
+      '/vehicle-safety': '/vehicle-safety-check',
+      '/vehiclesafetycheck': '/vehicle-safety-check'
+    };
+    
+    // Check for potential matches removing special characters
+    const normalizedPath = path.replace(/[-_]/g, '');
+    
+    for (const [incorrectPath, correctPath] of Object.entries(routeMap)) {
+      const normalizedIncorrect = incorrectPath.replace(/[-_]/g, '').toLowerCase();
+      
+      if (normalizedPath === normalizedIncorrect) {
+        console.log(`Redirecting from ${path} to correct route: ${correctPath}`);
+        navigate(correctPath, { replace: true });
+        return;
+      }
+    }
+    
   }, [location.pathname, navigate]);
 
   const handleGoBack = (e: React.MouseEvent) => {
