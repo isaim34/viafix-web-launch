@@ -19,9 +19,9 @@ export const BlogPostHeader = ({ post, slug }: BlogPostHeaderProps) => {
         className="w-full h-[400px] relative bg-cover bg-center"
         style={{ backgroundImage: `url(${post.image})` }}
       >
-        <div className="absolute inset-0 bg-black/50 flex items-end">
-          <div className="container mx-auto px-4 sm:px-6 py-12">
-            <div className="max-w-3xl">
+        <div className="absolute inset-0 bg-black/50">
+          <div className="container mx-auto px-4 sm:px-6 h-full flex items-end">
+            <div className="max-w-3xl py-12">
               <div className="bg-primary text-white text-sm px-3 py-1 rounded-full inline-block mb-4">
                 {post.category}
               </div>
@@ -41,15 +41,17 @@ export const BlogPostHeader = ({ post, slug }: BlogPostHeaderProps) => {
       </div>
       
       {/* Navigation buttons */}
-      <div className="flex justify-between items-center mb-8">
-        <Link to="/blog">
-          <Button variant="ghost" size="sm" icon={<ChevronLeft className="w-4 h-4" />}>
-            Back to Blog
+      <div className="container mx-auto px-4 sm:px-6 mt-6 mb-2">
+        <div className="max-w-3xl mx-auto flex justify-between items-center">
+          <Link to="/blog">
+            <Button variant="ghost" size="sm" icon={<ChevronLeft className="w-4 h-4" />}>
+              Back to Blog
+            </Button>
+          </Link>
+          <Button variant="ghost" size="sm" icon={<Share2 className="w-4 h-4" />}>
+            Share
           </Button>
-        </Link>
-        <Button variant="ghost" size="sm" icon={<Share2 className="w-4 h-4" />}>
-          Share
-        </Button>
+        </div>
       </div>
     </>
   );

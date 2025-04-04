@@ -9,6 +9,7 @@ import { BlogPostHeader } from '@/components/blog/BlogPostHeader';
 import { BlogPostContent } from '@/components/blog/BlogPostContent';
 import { BlogPostFooter } from '@/components/blog/BlogPostFooter';
 import { BlogPostSEO } from '@/components/blog/BlogPostSEO';
+import { Card } from '@/components/ui/card';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -41,11 +42,15 @@ const BlogPost = () => {
         {/* Content section */}
         <div className="container mx-auto px-4 sm:px-6 py-12">
           <div className="max-w-3xl mx-auto">
-            {/* Main Content */}
-            <BlogPostContent content={post.content} />
+            <Card className="p-8 shadow-md">
+              {/* Main Content */}
+              <BlogPostContent content={post.content} />
+            </Card>
             
             {/* Comment section */}
-            <CommentSection postSlug={slug || ''} />
+            <div className="mt-8">
+              <CommentSection postSlug={slug || ''} />
+            </div>
             
             {/* Tags and Related Articles */}
             <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPosts} />
