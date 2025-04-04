@@ -14,6 +14,7 @@ import BlogPost from './pages/BlogPost';
 import VehicleSafetyCheck from './pages/VehicleSafetyCheck';
 import HowItWorks from './pages/HowItWorks';
 import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
 import './App.css';
@@ -34,6 +35,9 @@ function App() {
           
           {/* Terms of Service Page */}
           <Route path="/terms" element={<Terms />} />
+          
+          {/* Privacy Policy Page */}
+          <Route path="/privacy" element={<Privacy />} />
           
           {/* Mechanic Dashboard Routes - Handle all possible variations */}
           <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
