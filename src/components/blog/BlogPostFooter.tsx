@@ -3,6 +3,7 @@ import React from 'react';
 import { Tag, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/ui/card';
 import { BlogPost, BlogPostsCollection } from '@/data/blogPosts';
 
 interface BlogPostFooterProps {
@@ -28,36 +29,39 @@ export const BlogPostFooter = ({ post, slug, blogPosts }: BlogPostFooterProps) =
         ))}
       </div>
       
-      <h3 className="text-xl font-bold mb-4">Related Articles</h3>
+      <h3 className="text-xl font-bold mb-4 text-left">Related Articles</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(blogPosts)
           .filter(([key]) => key !== slug)
           .slice(0, 2)
           .map(([key, relatedPost]) => (
-            <Link 
-              key={key} 
-              to={`/blog/${key}`}
-              className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <h4 className="font-medium mb-2 hover:text-primary">{relatedPost.title}</h4>
-              <div className="flex items-center text-sm text-gray-500">
-                <Calendar className="w-3 h-3 mr-1" />
-                <span>{relatedPost.date}</span>
-              </div>
-            </Link>
+            <Card key={key} className="hover:shadow-md transition-shadow">
+              <Link 
+                to={`/blog/${key}`}
+                className="p-4 block hover:bg-gray-50 transition-colors"
+              >
+                <h4 className="font-medium mb-2 hover:text-primary text-left">{relatedPost.title}</h4>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="w-3 h-3 mr-1" />
+                  <span>{relatedPost.date}</span>
+                </div>
+              </Link>
+            </Card>
           ))}
       </div>
       
-      <div className="mt-12 p-8 bg-gray-50 rounded-xl text-center">
-        <h3 className="text-xl font-bold mb-2">Need Auto Repair Services in Austin?</h3>
-        <p className="text-gray-600 mb-4">
-          Connect with ASE-certified mobile mechanics who come to your location.
-        </p>
-        <Link to="/">
-          <Button size="lg">
-            Find a Mechanic Now
-          </Button>
-        </Link>
+      <div className="mt-12">
+        <Card className="p-8 bg-gray-50 text-center">
+          <h3 className="text-xl font-bold mb-2">Need Auto Repair Services in Austin?</h3>
+          <p className="text-gray-600 mb-4">
+            Connect with ASE-certified mobile mechanics who come to your location.
+          </p>
+          <Link to="/">
+            <Button size="lg">
+              Find a Mechanic Now
+            </Button>
+          </Link>
+        </Card>
       </div>
     </div>
   );

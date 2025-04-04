@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, FileText, Calendar, User, ShieldCheck, Tag } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Card } from '@/components/ui/card';
 import blogPosts from '@/data/blogPosts';
 
 // Create an array of the featured blog posts for the home page section
@@ -48,47 +49,48 @@ export const BlogSection = () => {
           {featuredBlogPosts.map((post, index) => (
             <motion.article
               key={post.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-full"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 * index }}
             >
-              <Link to={`/blog/${post.slug}`} className="block h-full flex flex-col">
-                <div className="w-full relative">
-                  <AspectRatio ratio={16 / 9} className="bg-gray-100">
-                    <img 
-                      src={post.image} 
-                      alt={`${post.title} - Auto repair in Austin, TX`} 
-                      className="w-full h-full object-cover"
-                    />
-                  </AspectRatio>
-                </div>
-                <div className="p-6 flex-grow flex flex-col">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
-                      <Tag className="w-3 h-3 mr-1" />
-                      {post.category}
-                    </span>
+              <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
+                <Link to={`/blog/${post.slug}`} className="block h-full flex flex-col">
+                  <div className="w-full relative">
+                    <AspectRatio ratio={16 / 9} className="bg-gray-100">
+                      <img 
+                        src={post.image} 
+                        alt={`${post.title} - Auto repair in Austin, TX`} 
+                        className="w-full h-full object-cover"
+                      />
+                    </AspectRatio>
                   </div>
-                  <div className="flex items-center text-sm text-gray-500 mb-2">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    <span>{post.date}</span>
-                    <span className="mx-2">•</span>
-                    <User className="w-3 h-3 mr-1" />
-                    <span>{post.author}</span>
+                  <div className="p-6 flex-grow flex flex-col">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
+                        <Tag className="w-3 h-3 mr-1" />
+                        {post.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      <span>{post.date}</span>
+                      <span className="mx-2">•</span>
+                      <User className="w-3 h-3 mr-1" />
+                      <span>{post.author}</span>
+                    </div>
+                    <h3 className="text-xl font-medium mb-2 hover:text-primary transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 flex-grow text-left">
+                      {post.excerpt.length > 120 ? `${post.excerpt.substring(0, 120)}...` : post.excerpt}
+                    </p>
+                    <div className="flex items-center text-primary font-medium text-sm mt-auto">
+                      Read more <ArrowRight className="ml-1 w-4 h-4" />
+                    </div>
                   </div>
-                  <h3 className="text-xl font-medium mb-2 hover:text-primary transition-colors">
-                    {post.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4 flex-grow">
-                    {post.excerpt.length > 120 ? `${post.excerpt.substring(0, 120)}...` : post.excerpt}
-                  </p>
-                  <div className="flex items-center text-primary font-medium text-sm mt-auto">
-                    Read more <ArrowRight className="ml-1 w-4 h-4" />
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </Card>
             </motion.article>
           ))}
         </div>
