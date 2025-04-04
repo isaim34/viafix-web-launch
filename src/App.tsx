@@ -13,6 +13,7 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import VehicleSafetyCheck from './pages/VehicleSafetyCheck';
 import HowItWorks from './pages/HowItWorks';
+import Terms from './pages/Terms';
 import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
 import './App.css';
@@ -30,6 +31,9 @@ function App() {
           
           {/* How It Works page */}
           <Route path="/how-it-works" element={<HowItWorks />} />
+          
+          {/* Terms of Service Page */}
+          <Route path="/terms" element={<Terms />} />
           
           {/* Mechanic Dashboard Routes - Handle all possible variations */}
           <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
