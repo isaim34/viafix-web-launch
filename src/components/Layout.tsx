@@ -2,6 +2,7 @@
 import React from 'react';
 import { Header } from './Header';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,15 +27,15 @@ export const Layout = ({ children }: LayoutProps) => {
               © {new Date().getFullYear()} ViaFix. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-500 hover:text-gray-700 transition-colors">
+              <Link to="/privacy" className="text-gray-500 hover:text-gray-700 transition-colors">
                 Privacy
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-700 transition-colors">
+              </Link>
+              <Link to="/terms" className="text-gray-500 hover:text-gray-700 transition-colors">
                 Terms
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-700 transition-colors">
+              </Link>
+              <Link to="/support" className="text-gray-500 hover:text-gray-700 transition-colors">
                 Support
-              </a>
+              </Link>
             </div>
           </div>
         </div>
