@@ -16,7 +16,10 @@ export const BlogPostContent = ({ content }: BlogPostContentProps) => {
     .replace(/<h3>(.*?)<\/h3>/g, '<h3 class="text-left">$1</h3>')
     .replace(/<h4>(.*?)<\/h4>/g, '<h4 class="text-left">$1</h4>')
     // Make paragraphs left-aligned
-    .replace(/<p style="text-align: center;">(.*?)<\/p>/g, '<p>$1</p>');
+    .replace(/<p style="text-align: center;">(.*?)<\/p>/g, '<p>$1</p>')
+    // Ensure ViaFix is properly written
+    .replace(/via-?fix/gi, 'ViaFix')
+    .replace(/Via-?Fix/g, 'ViaFix');
 
   return (
     <div 
