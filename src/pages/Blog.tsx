@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calendar, User, Search } from 'lucide-react';
+import { ArrowRight, Calendar, User, Search, Tag } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Helmet } from 'react-helmet-async';
 import blogPosts from '@/data/blogPosts';
@@ -110,11 +110,14 @@ const Blog = () => {
                             className="w-full h-full object-cover"
                           />
                         </AspectRatio>
-                        <div className="absolute top-4 left-4 bg-primary text-white text-xs px-3 py-1 rounded-full">
-                          {post.category}
-                        </div>
                       </div>
                       <div className="p-6 flex-grow flex flex-col">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
+                            <Tag className="w-3 h-3 mr-1" />
+                            {post.category}
+                          </span>
+                        </div>
                         <div className="flex items-center text-sm text-gray-500 mb-3">
                           <Calendar className="w-4 h-4 mr-1" />
                           <span>{post.date}</span>

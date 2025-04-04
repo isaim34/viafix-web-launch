@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, FileText, Calendar, User, ShieldCheck } from 'lucide-react';
+import { ArrowRight, FileText, Calendar, User, ShieldCheck, Tag } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import blogPosts from '@/data/blogPosts';
@@ -63,11 +63,14 @@ export const BlogSection = () => {
                       className="w-full h-full object-cover"
                     />
                   </AspectRatio>
-                  <div className="absolute top-4 left-4 bg-primary text-white text-xs px-3 py-1 rounded-full">
-                    {post.category}
-                  </div>
                 </div>
                 <div className="p-6 flex-grow flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
+                      <Tag className="w-3 h-3 mr-1" />
+                      {post.category}
+                    </span>
+                  </div>
                   <div className="flex items-center text-sm text-gray-500 mb-2">
                     <Calendar className="w-3 h-3 mr-1" />
                     <span>{post.date}</span>
