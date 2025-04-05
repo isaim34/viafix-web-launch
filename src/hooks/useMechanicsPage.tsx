@@ -45,21 +45,18 @@ export const useMechanicsPage = () => {
     }
   }, [locationData]);
   
-  // Simplify loading state logic to prevent flickering
+  // Simplified loading state - will stay true once loading starts until data is available
   useEffect(() => {
     if (isLoading) {
       setIsStableLoading(true);
-    } else if (!isLoading && locationData) {
-      // When we have data, immediately turn off loading
-      setIsStableLoading(false);
-    } else if (!isLoading && !locationData && debouncedZipCode) {
-      // Small delay for error cases to prevent sudden transitions
+    } else if (!isLoading) {
+      // Delay turning off loading state slightly to prevent flicker
       const timer = setTimeout(() => {
         setIsStableLoading(false);
-      }, 300);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isLoading, locationData, debouncedZipCode]);
+  }, [isLoading]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 

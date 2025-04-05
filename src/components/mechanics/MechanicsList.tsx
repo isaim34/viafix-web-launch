@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,26 +27,39 @@ interface MechanicsListProps {
 
 const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Simplify the loading logic to prevent flickering and UI jumps
+  // Stable loading animation without flickering
   useEffect(() => {
-    let progressTimer: NodeJS.Timeout;
+    // Clear any existing interval when effect runs
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
     
     if (isLoading) {
+      // Reset progress to 0
       setLoadingProgress(0);
-      progressTimer = setInterval(() => {
+      
+      // Use a reference to store the interval id
+      progressTimerRef.current = setInterval(() => {
         setLoadingProgress(prev => {
-          const increment = Math.random() * 15;
-          return Math.min(prev + increment, 90);
+          // Slower, more predictable progress
+          const newValue = prev + 1;
+          return newValue <= 90 ? newValue : 90;
         });
-      }, 150);
+      }, 100);
     } else {
       // Complete the progress bar when loading is done
       setLoadingProgress(100);
     }
     
+    // Cleanup function
     return () => {
-      if (progressTimer) clearInterval(progressTimer);
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
     };
   }, [isLoading]);
   
