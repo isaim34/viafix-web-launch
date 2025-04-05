@@ -39,14 +39,18 @@ export const useMechanicsPage = () => {
       mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    // No zip code filtering if zip code is empty
+    // If no zip code is provided, show all mechanics that match the search term
     if (!zipCode) {
       return matchesSearch;
     }
     
-    // Zip code matching - show all mechanics when searching by zip
-    // This makes sure mechanics show up regardless of exact zip match
-    return matchesSearch;
+    // Zip code matching - only show mechanics with matching zip code
+    // or if location name matches (city-based matching)
+    const matchesZipCode = mechanic.zipCode === zipCode;
+    const matchesLocation = locationName && 
+      mechanic.location.toLowerCase().includes(locationName.split(',')[0].toLowerCase());
+    
+    return matchesSearch && (matchesZipCode || matchesLocation);
   });
 
   return {
