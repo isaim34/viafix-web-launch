@@ -32,7 +32,7 @@ const Mechanics = () => {
           mechanics={filteredMechanics} 
           zipCode={zipCode} 
           locationName={locationName}
-          isLoading={isLoading && debouncedZipCode.length === 5 && debouncedZipCode === zipCode}
+          isLoading={isLoading && zipCode.length === 5}
         />
       </div>
     </Layout>

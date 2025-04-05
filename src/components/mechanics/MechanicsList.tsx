@@ -29,37 +29,47 @@ const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: Mechanic
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [showSkeleton, setShowSkeleton] = useState(false);
   
+  // Separate effect to handle showing the skeleton with a delay to prevent flickering
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    let progressTimer: NodeJS.Timeout;
+    let showTimer: NodeJS.Timeout;
     
     if (isLoading) {
-      setShowSkeleton(true);
-      
+      // Add a short delay before showing the skeleton to prevent flickering
+      showTimer = setTimeout(() => {
+        setShowSkeleton(true);
+      }, 300); // Wait 300ms before showing skeleton
+    } else {
+      setShowSkeleton(false);
+    }
+    
+    return () => {
+      clearTimeout(showTimer);
+    };
+  }, [isLoading]);
+  
+  // Handle progress animation
+  useEffect(() => {
+    let progressTimer: NodeJS.Timeout;
+    
+    if (showSkeleton) {
       setLoadingProgress(0);
       progressTimer = setInterval(() => {
         setLoadingProgress(prev => {
-          const increment = Math.random() * 10;
+          const increment = Math.random() * 8;
           const nextValue = prev + increment;
           return nextValue < 90 ? nextValue : 90;
         });
-      }, 200);
+      }, 300);
     } else {
       if (loadingProgress > 0) {
         setLoadingProgress(100);
-        timer = setTimeout(() => {
-          setShowSkeleton(false);
-        }, 600); // Give a bit more time before hiding the skeleton
-      } else {
-        setShowSkeleton(false);
       }
     }
     
     return () => {
-      clearTimeout(timer);
       clearInterval(progressTimer);
     };
-  }, [isLoading, loadingProgress]);
+  }, [showSkeleton, loadingProgress]);
   
   if (showSkeleton) {
     return (

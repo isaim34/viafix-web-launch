@@ -13,15 +13,17 @@ export const useMechanicsPage = () => {
   const [zipCode, setZipCode] = useState(initialZipCode);
   const [locationName, setLocationName] = useState('');
   const [debouncedZipCode, setDebouncedZipCode] = useState(initialZipCode);
+  const [isStableLoading, setIsStableLoading] = useState(false);
   const { fetchLocationData, locationData, isLoading, error } = useZipcode();
   
   // Use a debounce effect for zipcode to prevent too many API calls while typing
   useEffect(() => {
     // Only proceed with zipcode lookup when we have exactly 5 digits
     if (zipCode.length === 5) {
+      // Set a longer debounce to prevent flickering when typing
       const timer = setTimeout(() => {
         setDebouncedZipCode(zipCode);
-      }, 500); // 500ms debounce
+      }, 800); // Increased to 800ms for more stability
       
       return () => clearTimeout(timer);
     }
@@ -43,6 +45,20 @@ export const useMechanicsPage = () => {
       setLocationName('');
     }
   }, [locationData]);
+  
+  // Create a stable loading state that doesn't flicker
+  useEffect(() => {
+    if (isLoading) {
+      setIsStableLoading(true);
+    } else {
+      // Add a delay before turning off loading state to prevent quick flashes
+      const timer = setTimeout(() => {
+        setIsStableLoading(false);
+      }, 300); // Small delay before turning off loading
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 
@@ -68,7 +84,7 @@ export const useMechanicsPage = () => {
     setSearchTerm,
     filteredMechanics,
     locationName,
-    isLoading,
+    isLoading: isStableLoading,
     error,
     debouncedZipCode
   };
