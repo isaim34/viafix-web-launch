@@ -3,23 +3,27 @@ import React, { useEffect, useState } from 'react';
 import ProfileTabs from './profile/ProfileTabs';
 import { BasicProfileFormValues, sampleMechanicProfile } from '@/schemas/profileSchema';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
+  const { currentUserRole } = useAuth();
   const [profileData, setProfileData] = useState<BasicProfileFormValues>(sampleMechanicProfile);
+  const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
 
   // Load profile data from localStorage on component mount
   useEffect(() => {
-    const savedProfileData = localStorage.getItem('mechanicProfile');
+    const savedProfileData = localStorage.getItem(storageKey);
     if (savedProfileData) {
       try {
         const parsedData = JSON.parse(savedProfileData);
+        console.log('Loading saved profile data:', parsedData);
         setProfileData(parsedData);
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
       }
     }
-  }, []);
+  }, [storageKey]);
   
   const onSubmit = (data: BasicProfileFormValues) => {
     console.log('Updated profile data:', data);
@@ -30,14 +34,27 @@ const ProfileEditor = () => {
       data.profileImage = profileData.profileImage;
     }
     
-    // Save to localStorage
-    localStorage.setItem('mechanicProfile', JSON.stringify(data));
+    // Save to localStorage with user role-specific key
+    localStorage.setItem(storageKey, JSON.stringify(data));
     
     // Explicitly save avatar to localStorage - store both keys for compatibility
     if (data.profileImage) {
-      localStorage.setItem('mechanic-avatar', data.profileImage);
-      localStorage.setItem('mechanicAvatar', data.profileImage);
-      console.log('Avatar saved to localStorage');
+      const avatarKey = currentUserRole === 'mechanic' ? 'mechanicAvatar' : 'customerAvatar';
+      const legacyAvatarKey = currentUserRole === 'mechanic' ? 'mechanic-avatar' : 'customer-avatar';
+      
+      localStorage.setItem(avatarKey, data.profileImage);
+      localStorage.setItem(legacyAvatarKey, data.profileImage);
+      console.log('Avatar saved to localStorage with keys:', avatarKey, legacyAvatarKey);
+    }
+    
+    // Update username in localStorage if name has changed
+    if (data.firstName && data.lastName) {
+      const fullName = `${data.firstName} ${data.lastName}`;
+      localStorage.setItem('userName', fullName);
+      
+      // Trigger storage event for cross-tab updates
+      window.dispatchEvent(new Event('storage-event'));
+      console.log('Updated userName in localStorage to:', fullName);
     }
     
     // Update state after saving

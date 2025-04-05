@@ -28,10 +28,14 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   // Update form values when initialData changes
   useEffect(() => {
     if (initialData) {
-      console.log('Setting form values from initialData');
+      console.log('Setting form values from initialData:', initialData);
       Object.entries(initialData).forEach(([key, value]) => {
         if (value !== undefined) {
-          form.setValue(key as keyof BasicProfileFormValues, value);
+          form.setValue(key as keyof BasicProfileFormValues, value, {
+            shouldValidate: true,
+            shouldDirty: false,
+            shouldTouch: false
+          });
         }
       });
     }
