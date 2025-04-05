@@ -15,7 +15,7 @@ export const useMechanicsPage = () => {
   const [zipCode, setZipCode] = useState(initialZipCode);
   const [locationName, setLocationName] = useState('');
   const [localMechanicProfile, setLocalMechanicProfile] = useState<BasicProfileFormValues | null>(null);
-  const { fetchLocationData, locationData, error } = useZipcode();
+  const { fetchLocationData, locationData, error, reset } = useZipcode();
   
   // Load local mechanic profile
   useEffect(() => {
@@ -37,8 +37,9 @@ export const useMechanicsPage = () => {
       fetchLocationData(zipCode);
     } else if (zipCode.length === 0) {
       setLocationName('');
+      reset(); // Reset location data when zip code is cleared
     }
-  }, [zipCode, fetchLocationData]);
+  }, [zipCode, fetchLocationData, reset]);
   
   // Update locationName when we get data from the API
   useEffect(() => {

@@ -18,6 +18,11 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
     navigate(`/mechanics?zipCode=${zipCode}`);
   };
 
+  const handleClearZipCode = () => {
+    setZipCode('');
+    navigate('/mechanics');
+  };
+
   return (
     <div className="mb-6">
       <form onSubmit={handleZipCodeSearch} className="flex flex-col sm:flex-row gap-3">
@@ -26,13 +31,22 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
           <Input
             type="text"
             placeholder="Enter zip code"
-            className="pl-10"
+            className="pl-10 pr-10"
             value={zipCode}
             onChange={(e) => setZipCode(e.target.value.slice(0, 5))}
             pattern="[0-9]*"
             inputMode="numeric"
             maxLength={5}
           />
+          {zipCode && (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              onClick={handleClearZipCode}
+            >
+              ×
+            </button>
+          )}
         </div>
         <Button type="submit" size="default">
           Search by Zip Code

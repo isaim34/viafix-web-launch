@@ -30,7 +30,9 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   const { currentUserId } = useCustomerAuth();
   
   useEffect(() => {
-    if (!zipCode) {
+    // Only auto-set the zip code from the profile if there is no zip code currently set
+    // and the user hasn't explicitly cleared it
+    if (!zipCode && !document.activeElement?.classList.contains('pl-10')) {
       const storedProfileData = localStorage.getItem('mechanicProfile');
       if (storedProfileData) {
         try {
@@ -49,7 +51,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   // Determine which mechanics to display
   const displayMechanics = mechanics.length > 0 
     ? mechanics 
-    : (zipCode === '01605' ? mechanicsData.slice(0, 3) : []);
+    : (zipCode === '01605' ? mechanicsData.filter(m => m.zipCode === '01605') : []);
 
   return (
     <div className="w-full">
