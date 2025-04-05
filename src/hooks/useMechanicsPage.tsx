@@ -22,7 +22,7 @@ export const useMechanicsPage = () => {
     if (zipCode.length === 5) {
       const timer = setTimeout(() => {
         setDebouncedZipCode(zipCode);
-      }, 500); // Reduced from 800ms
+      }, 600);
       
       return () => clearTimeout(timer);
     }
@@ -45,21 +45,21 @@ export const useMechanicsPage = () => {
     }
   }, [locationData]);
   
-  // Create a stable loading state that doesn't flicker or freeze
+  // Simplify loading state logic to prevent flickering
   useEffect(() => {
     if (isLoading) {
       setIsStableLoading(true);
-    } else {
-      // Force reset the loading state immediately if we have location data
-      // or shorter delay if we don't to prevent freezing
-      const delay = locationData ? 0 : 200;
+    } else if (!isLoading && locationData) {
+      // When we have data, immediately turn off loading
+      setIsStableLoading(false);
+    } else if (!isLoading && !locationData && debouncedZipCode) {
+      // Small delay for error cases to prevent sudden transitions
       const timer = setTimeout(() => {
         setIsStableLoading(false);
-      }, delay);
-      
+      }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isLoading, locationData]);
+  }, [isLoading, locationData, debouncedZipCode]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 

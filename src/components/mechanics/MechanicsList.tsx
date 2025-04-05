@@ -27,43 +27,30 @@ interface MechanicsListProps {
 
 const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [showSkeleton, setShowSkeleton] = useState(false);
   
-  // Show skeleton immediately when loading starts, without delay
-  useEffect(() => {
-    if (isLoading) {
-      setShowSkeleton(true);
-    } else {
-      // When loading ends, immediately hide the skeleton
-      setShowSkeleton(false);
-    }
-  }, [isLoading]);
-  
-  // Handle progress animation
+  // Simplify the loading logic to prevent flickering and UI jumps
   useEffect(() => {
     let progressTimer: NodeJS.Timeout;
     
-    if (showSkeleton) {
+    if (isLoading) {
       setLoadingProgress(0);
       progressTimer = setInterval(() => {
         setLoadingProgress(prev => {
-          // Increase progress more rapidly to avoid appearance of being stuck
           const increment = Math.random() * 15;
-          const nextValue = prev + increment;
-          return nextValue < 95 ? nextValue : 95;
+          return Math.min(prev + increment, 90);
         });
-      }, 200);
+      }, 150);
     } else {
-      // Immediately complete progress when no longer loading
+      // Complete the progress bar when loading is done
       setLoadingProgress(100);
     }
     
     return () => {
-      clearInterval(progressTimer);
+      if (progressTimer) clearInterval(progressTimer);
     };
-  }, [showSkeleton]);
+  }, [isLoading]);
   
-  if (showSkeleton) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center w-full">
         <div className="w-full mb-6">
