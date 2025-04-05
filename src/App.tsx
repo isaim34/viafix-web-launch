@@ -15,6 +15,7 @@ import VehicleSafetyCheck from './pages/VehicleSafetyCheck';
 import HowItWorks from './pages/HowItWorks';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import ZipcodeTest from './pages/ZipcodeTest';
 import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
 import './App.css';
@@ -38,6 +39,9 @@ function App() {
           
           {/* Privacy Policy Page */}
           <Route path="/privacy" element={<Privacy />} />
+          
+          {/* Zipcode Test Page */}
+          <Route path="/zipcode-test" element={<ZipcodeTest />} />
           
           {/* Mechanic Dashboard Routes - Handle all possible variations */}
           <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
