@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,40 +26,36 @@ interface MechanicsListProps {
 
 const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [progressComplete, setProgressComplete] = useState(false);
+  const [progressVisible, setProgressVisible] = useState(false);
   const animationRef = useRef<number | null>(null);
+  const animationStartTimeRef = useRef<number>(0);
   
-  // Handle loading animation with reliable completion
+  // Handle loading animation with guaranteed completion
   useEffect(() => {
-    // Cleanup function to prevent memory leaks
-    const cleanup = () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-    
-    // Reset animation state when loading changes
+    // Reset state when loading starts
     if (isLoading) {
-      cleanup();
-      setProgressComplete(false);
       setLoadingProgress(0);
+      setProgressVisible(true);
+      animationStartTimeRef.current = performance.now();
       
-      let startTime = performance.now();
-      
-      // Define the animation function
-      const animate = (time: number) => {
-        // Calculate elapsed time
-        const elapsed = time - startTime;
+      // Define the animation function - ensure it always reaches 100%
+      const animate = (timestamp: number) => {
+        const elapsed = timestamp - animationStartTimeRef.current;
         
-        // Use a logarithmic curve to approach 90% but never reach it
-        // This creates a natural slowing effect as it approaches 90%
-        const progress = Math.min(90, 75 * (1 - Math.exp(-elapsed / 2000)));
+        // If loading for more than 10 seconds, force to complete
+        if (elapsed > 10000) {
+          setLoadingProgress(100);
+          return;
+        }
+        
+        // Use easing function to start fast and slow down approaching 95%
+        // This ensures visible progress that doesn't stall visually
+        const progress = Math.min(95, 100 * (1 - Math.exp(-elapsed / 2000)));
         
         setLoadingProgress(progress);
         
-        // Keep animating until we're not loading anymore
-        if (isLoading && progress < 90) {
+        // Continue animation while loading
+        if (isLoading) {
           animationRef.current = requestAnimationFrame(animate);
         }
       };
@@ -66,22 +63,23 @@ const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: Mechanic
       // Start the animation
       animationRef.current = requestAnimationFrame(animate);
     } else {
-      // When loading completes, go to 100% immediately
-      cleanup();
+      // When loading ends, immediately set to 100%
       setLoadingProgress(100);
       
-      // Set a flag after a short delay to properly handle transitions
-      const completeTimer = setTimeout(() => {
-        setProgressComplete(true);
-      }, 400);
+      // Hide the progress bar after a short delay to show completion
+      const hideTimer = setTimeout(() => {
+        setProgressVisible(false);
+      }, 500);
       
-      return () => {
-        cleanup();
-        clearTimeout(completeTimer);
-      };
+      return () => clearTimeout(hideTimer);
     }
     
-    return cleanup;
+    // Cleanup animation on unmount
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, [isLoading]);
   
   if (isLoading) {
@@ -90,7 +88,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: Mechanic
         <div className="w-full mb-6">
           <Progress 
             value={loadingProgress} 
-            className={`h-2 transition-opacity duration-300 ${progressComplete ? 'opacity-0' : 'opacity-100'}`}
+            className={`h-2 transition-opacity duration-300 ${progressVisible ? 'opacity-100' : 'opacity-0'}`}
           />
           <p className="text-center text-gray-500 mt-2">
             Looking for mechanics near {zipCode}...

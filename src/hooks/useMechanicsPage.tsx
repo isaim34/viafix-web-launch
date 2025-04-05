@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { mechanicsData } from '@/data/mechanicsPageData';
@@ -30,6 +31,7 @@ export const useMechanicsPage = () => {
   // Fetch location data when debouncedZipCode changes (not on every zipCode change)
   useEffect(() => {
     if (debouncedZipCode && debouncedZipCode.length === 5) {
+      setIsStableLoading(true); // Start loading immediately
       fetchLocationData(debouncedZipCode);
     }
   }, [debouncedZipCode, fetchLocationData]);
@@ -39,26 +41,26 @@ export const useMechanicsPage = () => {
     if (locationData && locationData.places && locationData.places.length > 0) {
       const place = locationData.places[0];
       setLocationName(`${place.placeName}, ${place.stateAbbreviation}`);
-    } else {
-      setLocationName('');
-    }
-  }, [locationData]);
-  
-  // Predictable loading state management that ensures proper completion
-  useEffect(() => {
-    if (isLoading) {
-      // Start loading immediately
-      setIsStableLoading(true);
-    } else {
-      // When loading ends, ensure we finish the animation with a minimal delay
-      // The delay is very short to avoid feeling unresponsive
+      
+      // Ensure loading ends after location data is processed
       const timer = setTimeout(() => {
         setIsStableLoading(false);
-      }, 250);
+      }, 200); // Short delay for consistent visual transition
       
       return () => clearTimeout(timer);
+    } else if (!isLoading && debouncedZipCode) {
+      // If API call completed but no data returned
+      setLocationName('');
+      setIsStableLoading(false);
     }
-  }, [isLoading]);
+  }, [locationData, isLoading, debouncedZipCode]);
+  
+  // Ensure loading state ends if there's an error
+  useEffect(() => {
+    if (error) {
+      setIsStableLoading(false);
+    }
+  }, [error]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 
