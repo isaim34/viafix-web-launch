@@ -10,9 +10,10 @@ import { BasicProfileFormValues } from '@/schemas/profileSchema';
 
 interface ProfileTabsProps {
   onProfileSubmit?: (data: BasicProfileFormValues) => void;
+  initialProfileData?: BasicProfileFormValues;
 }
 
-const ProfileTabs: React.FC<ProfileTabsProps> = ({ onProfileSubmit }) => {
+const ProfileTabs: React.FC<ProfileTabsProps> = ({ onProfileSubmit, initialProfileData }) => {
   return (
     <Tabs defaultValue="basic" className="w-full">
       <TabsList className="mb-8">
@@ -24,7 +25,7 @@ const ProfileTabs: React.FC<ProfileTabsProps> = ({ onProfileSubmit }) => {
       
       <TabsContent value="basic">
         <Card className="p-6">
-          <BasicProfileForm onSubmit={onProfileSubmit} />
+          <BasicProfileForm onSubmit={onProfileSubmit} initialData={initialProfileData} />
         </Card>
       </TabsContent>
       

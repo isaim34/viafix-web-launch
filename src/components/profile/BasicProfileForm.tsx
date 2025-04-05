@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,23 @@ import AboutField from './AboutField';
 
 interface BasicProfileFormProps {
   onSubmit?: (data: BasicProfileFormValues) => void;
+  initialData?: BasicProfileFormValues;
 }
 
-const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit }) => {
+const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialData }) => {
   const form = useForm<BasicProfileFormValues>({
     resolver: zodResolver(basicProfileSchema),
-    defaultValues: sampleMechanicProfile,
+    defaultValues: initialData || sampleMechanicProfile,
   });
+
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      Object.entries(initialData).forEach(([key, value]) => {
+        form.setValue(key as keyof BasicProfileFormValues, value);
+      });
+    }
+  }, [initialData, form]);
 
   const handleSubmit = (data: BasicProfileFormValues) => {
     console.log('Updated profile data:', data);
