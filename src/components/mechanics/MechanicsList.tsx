@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
+import { Loader2 } from 'lucide-react';
 
 interface Mechanic {
   id: string;
@@ -22,8 +23,17 @@ interface MechanicsListProps {
   isLoading?: boolean;
 }
 
-const MechanicsList = ({ mechanics, zipCode, locationName }: MechanicsListProps) => {
+const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
   const locationDisplay = locationName || zipCode;
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Searching for mechanics...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -34,16 +44,16 @@ const MechanicsList = ({ mechanics, zipCode, locationName }: MechanicsListProps)
         }
       </p>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mechanics.map((mechanic) => (
-          <MechanicCard 
-            key={mechanic.id} 
-            {...mechanic} 
-          />
-        ))}
-      </div>
-      
-      {mechanics.length === 0 && (
+      {mechanics.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {mechanics.map((mechanic) => (
+            <MechanicCard 
+              key={mechanic.id} 
+              {...mechanic} 
+            />
+          ))}
+        </div>
+      ) : (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium mb-2">No mechanics found</h3>
           <p className="text-gray-500 mb-6">
