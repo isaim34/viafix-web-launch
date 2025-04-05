@@ -20,18 +20,27 @@ const SpecialtiesField: React.FC<SpecialtiesFieldProps> = ({ control }) => {
     <FormField
       control={control}
       name="specialties"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Specialties</FormLabel>
-          <FormControl>
-            <Input {...field} />
-          </FormControl>
-          <FormDescription>
-            List your specialties separated by commas (e.g. "Brake Repair, Engine Diagnostics")
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        // Convert array to comma-separated string if it's an array
+        const value = Array.isArray(field.value) ? field.value.join(', ') : field.value;
+        
+        return (
+          <FormItem>
+            <FormLabel>Specialties</FormLabel>
+            <FormControl>
+              <Input 
+                {...field} 
+                value={value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            </FormControl>
+            <FormDescription>
+              List your specialties separated by commas (e.g. "Brake Repair, Engine Diagnostics")
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };

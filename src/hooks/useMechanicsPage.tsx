@@ -73,11 +73,16 @@ export const useMechanicsPage = () => {
       m.name === `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`
     );
     
+    // Convert specialties string to array if it's a string
+    const specialtiesArray = typeof localMechanicProfile.specialties === 'string' 
+      ? localMechanicProfile.specialties.split(',').map(s => s.trim())
+      : localMechanicProfile.specialties || [];
+    
     const localMechanic = {
       id: 'local-mechanic',
       name: localUserName || `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`,
       avatar: userAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
-      specialties: localMechanicProfile.specialties || [],
+      specialties: specialtiesArray,
       rating: 5.0,
       reviewCount: 0,
       location: locationName || 'Worcester, MA',
