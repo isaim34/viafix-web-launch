@@ -40,11 +40,13 @@ const ProfilePictureUploader = ({
     reader.onload = (event) => {
       if (event.target?.result) {
         const dataUrl = event.target.result as string;
+        console.log('Setting image URL to:', dataUrl.substring(0, 50) + '...');
         setImageUrl(dataUrl);
-        onImageChange(dataUrl);
+        onImageChange(dataUrl); // Pass to parent component
+        
         toast({
           title: "Profile picture updated",
-          description: "Your profile picture has been updated successfully",
+          description: "Click Save Changes to permanently save your new picture",
         });
       }
     };

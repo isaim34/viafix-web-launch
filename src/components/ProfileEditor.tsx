@@ -23,14 +23,18 @@ const ProfileEditor = () => {
   
   const onSubmit = (data: BasicProfileFormValues) => {
     console.log('Updated profile data:', data);
+    
     // Save to localStorage
     localStorage.setItem('mechanicProfile', JSON.stringify(data));
-    setProfileData(data);
     
-    // Update avatar in localStorage if profile image exists
+    // Update avatar in localStorage - store both keys for compatibility
     if (data.profileImage) {
-      localStorage.setItem(`mechanic-avatar`, data.profileImage);
+      localStorage.setItem('mechanic-avatar', data.profileImage);
+      // Also store without dash for backward compatibility if needed
+      localStorage.setItem('mechanicAvatar', data.profileImage);
     }
+    
+    setProfileData(data);
     
     toast({
       title: "Profile updated",

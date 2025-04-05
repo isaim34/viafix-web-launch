@@ -34,16 +34,18 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   }, [initialData, form]);
 
   const handleSubmit = (data: BasicProfileFormValues) => {
-    console.log('Updated profile data:', data);
+    console.log('Submitting profile data:', data);
     if (onSubmit) {
       onSubmit(data);
     }
   };
 
   const handleProfileImageChange = (url: string) => {
+    console.log('Profile image changed to:', url.substring(0, 50) + '...');
     form.setValue('profileImage', url, {
       shouldValidate: true,
-      shouldDirty: true
+      shouldDirty: true,
+      shouldTouch: true
     });
   };
 
