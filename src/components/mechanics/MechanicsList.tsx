@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,61 +25,73 @@ interface MechanicsListProps {
 
 const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressFrameRef = useRef<number | null>(null);
+  const [progressComplete, setProgressComplete] = useState(false);
+  const animationRef = useRef<number | null>(null);
   
-  // Smooth, non-flickering loading animation with requestAnimationFrame
+  // Handle loading animation with reliable completion
   useEffect(() => {
-    // Clear any existing animation
-    if (progressTimerRef.current) {
-      clearTimeout(progressTimerRef.current);
-      progressTimerRef.current = null;
-    }
+    // Cleanup function to prevent memory leaks
+    const cleanup = () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
     
-    if (progressFrameRef.current) {
-      cancelAnimationFrame(progressFrameRef.current);
-      progressFrameRef.current = null;
-    }
-    
+    // Reset animation state when loading changes
     if (isLoading) {
-      // Reset progress when loading starts
+      cleanup();
+      setProgressComplete(false);
       setLoadingProgress(0);
       
-      // Use a smooth animation that increases at a reducing rate
       let startTime = performance.now();
-      const animateProgress = (timestamp: number) => {
-        const elapsed = timestamp - startTime;
-        // Calculate progress with a curve that slows down as it approaches 90%
-        const targetProgress = Math.min(90, 90 * (1 - Math.exp(-elapsed / 3000)));
+      
+      // Define the animation function
+      const animate = (time: number) => {
+        // Calculate elapsed time
+        const elapsed = time - startTime;
         
-        setLoadingProgress(targetProgress);
+        // Use a logarithmic curve to approach 90% but never reach it
+        // This creates a natural slowing effect as it approaches 90%
+        const progress = Math.min(90, 75 * (1 - Math.exp(-elapsed / 2000)));
         
-        if (targetProgress < 90) {
-          progressFrameRef.current = requestAnimationFrame(animateProgress);
+        setLoadingProgress(progress);
+        
+        // Keep animating until we're not loading anymore
+        if (isLoading && progress < 90) {
+          animationRef.current = requestAnimationFrame(animate);
         }
       };
       
-      progressFrameRef.current = requestAnimationFrame(animateProgress);
+      // Start the animation
+      animationRef.current = requestAnimationFrame(animate);
     } else {
-      // When loading completes, quickly finish to 100%
+      // When loading completes, go to 100% immediately
+      cleanup();
       setLoadingProgress(100);
+      
+      // Set a flag after a short delay to properly handle transitions
+      const completeTimer = setTimeout(() => {
+        setProgressComplete(true);
+      }, 400);
+      
+      return () => {
+        cleanup();
+        clearTimeout(completeTimer);
+      };
     }
     
-    return () => {
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-      }
-      if (progressFrameRef.current) {
-        cancelAnimationFrame(progressFrameRef.current);
-      }
-    };
+    return cleanup;
   }, [isLoading]);
   
   if (isLoading) {
     return (
       <div className="flex flex-col items-center w-full">
         <div className="w-full mb-6">
-          <Progress value={loadingProgress} className="h-2" />
+          <Progress 
+            value={loadingProgress} 
+            className={`h-2 transition-opacity duration-300 ${progressComplete ? 'opacity-0' : 'opacity-100'}`}
+          />
           <p className="text-center text-gray-500 mt-2">
             Looking for mechanics near {zipCode}...
           </p>

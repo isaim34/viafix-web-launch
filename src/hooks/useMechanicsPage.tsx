@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { mechanicsData } from '@/data/mechanicsPageData';
@@ -45,17 +44,18 @@ export const useMechanicsPage = () => {
     }
   }, [locationData]);
   
-  // Stabilized loading state with minimal transitions
+  // Predictable loading state management that ensures proper completion
   useEffect(() => {
     if (isLoading) {
-      // Set loading immediately
+      // Start loading immediately
       setIsStableLoading(true);
     } else {
-      // When API call completes, set a small delay before finishing loading
-      // to ensure animations complete smoothly
+      // When loading ends, ensure we finish the animation with a minimal delay
+      // The delay is very short to avoid feeling unresponsive
       const timer = setTimeout(() => {
         setIsStableLoading(false);
-      }, 300);
+      }, 250);
+      
       return () => clearTimeout(timer);
     }
   }, [isLoading]);
