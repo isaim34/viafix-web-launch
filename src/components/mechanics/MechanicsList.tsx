@@ -46,9 +46,10 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     }
   }, [zipCode, setZipCode]);
 
-  const displayMechanics = zipCode === '01605' && mechanics.length === 0 
-    ? mechanicsData.slice(0, 3) 
-    : mechanics;
+  // Determine which mechanics to display
+  const displayMechanics = mechanics.length > 0 
+    ? mechanics 
+    : (zipCode === '01605' ? mechanicsData.slice(0, 3) : []);
 
   return (
     <div className="w-full">

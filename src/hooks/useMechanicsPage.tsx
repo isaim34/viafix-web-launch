@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { mechanicsData } from '@/data/mechanicsPageData';
 import { useZipcode } from '@/hooks/useZipcode';
 import { toast } from '@/components/ui/use-toast';
+import { BasicProfileFormValues } from '@/schemas/profileSchema';
 
 export const useMechanicsPage = () => {
   const location = useLocation();
@@ -13,7 +14,22 @@ export const useMechanicsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [zipCode, setZipCode] = useState(initialZipCode);
   const [locationName, setLocationName] = useState('');
+  const [localMechanicProfile, setLocalMechanicProfile] = useState<BasicProfileFormValues | null>(null);
   const { fetchLocationData, locationData, error } = useZipcode();
+  
+  // Load local mechanic profile
+  useEffect(() => {
+    const storedProfile = localStorage.getItem('mechanicProfile');
+    if (storedProfile) {
+      try {
+        const profile = JSON.parse(storedProfile);
+        console.log('Loaded mechanic profile from localStorage:', profile);
+        setLocalMechanicProfile(profile);
+      } catch (error) {
+        console.error('Error parsing mechanic profile:', error);
+      }
+    }
+  }, []);
   
   // Fetch location data when zip code changes
   useEffect(() => {
@@ -43,8 +59,42 @@ export const useMechanicsPage = () => {
       }
     }
   }, [locationData, zipCode]);
+
+  // Create a combined list of mechanics with the local profile included
+  const combinedMechanics = [...mechanicsData];
   
-  const filteredMechanics = mechanicsData.filter(mechanic => {
+  // Add the local mechanic profile to the list if it exists
+  if (localMechanicProfile && localMechanicProfile.firstName && localMechanicProfile.lastName) {
+    const localUserName = localStorage.getItem('userName');
+    const userAvatar = localStorage.getItem('mechanicAvatar') || localStorage.getItem('mechanic-avatar');
+    
+    // Check if the mechanic is already in the list to avoid duplicates
+    const existingMechanicIndex = combinedMechanics.findIndex(m => 
+      m.name === `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`
+    );
+    
+    const localMechanic = {
+      id: 'local-mechanic',
+      name: localUserName || `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`,
+      avatar: userAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+      specialties: localMechanicProfile.specialties || [],
+      rating: 5.0,
+      reviewCount: 0,
+      location: locationName || 'Worcester, MA',
+      hourlyRate: localMechanicProfile.hourlyRate || 75,
+      zipCode: localMechanicProfile.zipCode || '01605'
+    };
+    
+    if (existingMechanicIndex >= 0) {
+      // Update the existing mechanic
+      combinedMechanics[existingMechanicIndex] = localMechanic;
+    } else {
+      // Add the local mechanic to the list
+      combinedMechanics.push(localMechanic);
+    }
+  }
+  
+  const filteredMechanics = combinedMechanics.filter(mechanic => {
     // Search term filtering (name, specialties, location)
     const matchesSearch = !searchTerm ? true : (
       mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,9 +109,14 @@ export const useMechanicsPage = () => {
     
     // Special handling for the demo zip code 01605 (Worcester, MA)
     if (zipCode === '01605') {
-      // Show the first 3 mechanics regardless of their actual zip code
-      // This is just for demo purposes
-      const mechanicIndex = mechanicsData.indexOf(mechanic);
+      // For the demo zip code, show all mechanics in the Worcester area
+      // including our local mechanic profile (which should have this zip code)
+      if (mechanic.id === 'local-mechanic') {
+        return matchesSearch;
+      }
+      
+      // Show some sample mechanics for demo purposes
+      const mechanicIndex = combinedMechanics.indexOf(mechanic);
       return matchesSearch && mechanicIndex < 3;
     }
     
