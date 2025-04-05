@@ -30,12 +30,17 @@ export const useMechanicsPage = () => {
       const place = locationData.places[0];
       setLocationName(`${place.placeName}, ${place.stateAbbreviation}`);
     } else if (zipCode.length === 5 && !isLoading && !locationData) {
-      // If no location data found for valid zip code
-      toast({
-        title: "Location not found",
-        description: `We couldn't find location information for zip code ${zipCode}`,
-        variant: "destructive"
-      });
+      // For demo zip code 01605 (Worcester, MA), set a default location name
+      if (zipCode === '01605') {
+        setLocationName('Worcester, MA');
+      } else {
+        // For other zip codes with no location data found
+        toast({
+          title: "Location not found",
+          description: `We couldn't find location information for zip code ${zipCode}`,
+          variant: "destructive"
+        });
+      }
     }
   }, [locationData, zipCode, isLoading]);
   
@@ -52,11 +57,10 @@ export const useMechanicsPage = () => {
       return matchesSearch;
     }
     
-    // For demo purposes with test zip code 01605 (Worcester, MA), show a few mechanics
-    // In a real application, this would be based on actual data
+    // Special handling for the demo zip code 01605 (Worcester, MA)
     if (zipCode === '01605') {
-      // Return the first 3 mechanics for demo purposes when using this specific zip code
-      // This is just for testing - in a real app, you'd use real geographic data
+      // Show the first 3 mechanics regardless of their actual zip code
+      // This is just for demo purposes
       const mechanicIndex = mechanicsData.indexOf(mechanic);
       return matchesSearch && mechanicIndex < 3;
     }
