@@ -11,6 +11,7 @@ interface ZipCodeInputProps {
   label?: string;
   description?: string;
   required?: boolean;
+  onZipCodeChange?: (zipCode: string) => void;
 }
 
 const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
@@ -19,6 +20,7 @@ const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
   label = "Zip Code",
   description = "Enter your zip code to connect with nearby users",
   required = true,
+  onZipCodeChange,
 }) => {
   return (
     <FormField
@@ -48,6 +50,9 @@ const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '').slice(0, 5);
                   field.onChange(value);
+                  if (onZipCodeChange) {
+                    onZipCodeChange(value);
+                  }
                 }}
               />
             </FormControl>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { mechanicsDetailedData } from '@/data/mechanicsData';
@@ -8,6 +8,7 @@ import MechanicsZipCodeSearch from '@/components/mechanics/MechanicsZipCodeSearc
 import MechanicsSearch from '@/components/mechanics/MechanicsSearch';
 import MechanicsList from '@/components/mechanics/MechanicsList';
 import { Helmet } from 'react-helmet-async';
+import { useZipcode } from '@/hooks/useZipcode';
 
 const mechanicsData = [
   {
@@ -19,7 +20,8 @@ const mechanicsData = [
     reviewCount: 127,
     location: 'Austin, TX',
     hourlyRate: 85,
-    galleryImages: mechanicsDetailedData['1'].galleryImages
+    galleryImages: mechanicsDetailedData['1'].galleryImages,
+    zipCode: '73301'
   },
   {
     id: '2',
@@ -30,7 +32,8 @@ const mechanicsData = [
     reviewCount: 94,
     location: 'Austin, TX',
     hourlyRate: 75,
-    galleryImages: mechanicsDetailedData['2'].galleryImages
+    galleryImages: mechanicsDetailedData['2'].galleryImages,
+    zipCode: '73301'
   },
   {
     id: '3',
@@ -40,7 +43,8 @@ const mechanicsData = [
     rating: 4.9,
     reviewCount: 156,
     location: 'Austin, TX',
-    hourlyRate: 90
+    hourlyRate: 90,
+    zipCode: '73301'
   },
   {
     id: '4',
@@ -50,7 +54,8 @@ const mechanicsData = [
     rating: 4.6,
     reviewCount: 78,
     location: 'Austin, TX',
-    hourlyRate: 65
+    hourlyRate: 65,
+    zipCode: '78640' // Added your zipcode here for testing
   },
   {
     id: '5',
@@ -60,7 +65,8 @@ const mechanicsData = [
     rating: 4.8,
     reviewCount: 112,
     location: 'Austin, TX',
-    hourlyRate: 80
+    hourlyRate: 80,
+    zipCode: '73301'
   },
   {
     id: '6',
@@ -70,7 +76,8 @@ const mechanicsData = [
     rating: 4.9,
     reviewCount: 203,
     location: 'Austin, TX',
-    hourlyRate: 95
+    hourlyRate: 95,
+    zipCode: '73301'
   }
 ];
 
@@ -81,6 +88,25 @@ const Mechanics = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [zipCode, setZipCode] = useState(initialZipCode);
+  const [locationName, setLocationName] = useState('');
+  const { fetchLocationData, locationData, isLoading, error } = useZipcode();
+  
+  // Fetch location data when zipCode changes
+  useEffect(() => {
+    if (zipCode && zipCode.length === 5) {
+      fetchLocationData(zipCode);
+    }
+  }, [zipCode, fetchLocationData]);
+  
+  // Update locationName when we get data from the API
+  useEffect(() => {
+    if (locationData && locationData.places && locationData.places.length > 0) {
+      const place = locationData.places[0];
+      setLocationName(`${place.placeName}, ${place.stateAbbreviation}`);
+    } else {
+      setLocationName('');
+    }
+  }, [locationData]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 
@@ -88,17 +114,23 @@ const Mechanics = () => {
       mechanic.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase())) ||
       mechanic.location.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesZip = zipCode ? mechanic.location.includes(zipCode.substring(0, 2)) : true;
+    // Enhanced zipcode matching logic
+    const matchesZip = !zipCode ? true : (
+      // Exact match with mechanic's zipcode if available
+      (mechanic.zipCode && mechanic.zipCode === zipCode) ||
+      // Or in same city/area if we have location data
+      (locationName && mechanic.location.includes(locationName.split(',')[0]))
+    );
     
     return matchesSearch && matchesZip;
   });
 
   const pageTitle = zipCode 
-    ? `Find Mobile Mechanics in ${zipCode} | Austin, TX | ViaFix`
+    ? `Find Mobile Mechanics in ${zipCode} | ${locationName || 'Your Area'} | ViaFix`
     : `Top-Rated Mobile Mechanics in Austin, TX | ViaFix`;
 
   const pageDescription = zipCode
-    ? `Connect with ASE-certified mobile mechanics in ${zipCode}. Browse profiles, read reviews, and book gig-based auto repair services in Austin, TX.`
+    ? `Connect with ASE-certified mobile mechanics in ${zipCode}${locationName ? ` (${locationName})` : ''}. Browse profiles, read reviews, and book gig-based auto repair services.`
     : `Find skilled ASE-certified mobile mechanics in Austin, TX. ViaFix connects you with top-rated professionals for on-demand auto repair services at your location.`;
 
   return (
@@ -122,12 +154,12 @@ const Mechanics = () => {
                     "item": {
                       "@type": "Service",
                       "name": "${mechanic.name} - Mobile Mechanic",
-                      "description": "${mechanic.specialties.join(', ')} specialist in Austin, TX",
+                      "description": "${mechanic.specialties.join(', ')} specialist in ${mechanic.location}",
                       "provider": {
                         "@type": "Person",
                         "name": "${mechanic.name}",
                         "image": "${mechanic.avatar}",
-                        "areaServed": "Austin, TX"
+                        "areaServed": "${mechanic.location}"
                       },
                       "aggregateRating": {
                         "@type": "AggregateRating",
@@ -158,7 +190,12 @@ const Mechanics = () => {
         <MechanicsHeader />
         <MechanicsZipCodeSearch zipCode={zipCode} setZipCode={setZipCode} />
         <MechanicsSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <MechanicsList mechanics={filteredMechanics} zipCode={zipCode} />
+        <MechanicsList 
+          mechanics={filteredMechanics} 
+          zipCode={zipCode} 
+          locationName={locationName}
+          isLoading={isLoading && zipCode.length === 5}
+        />
       </div>
     </Layout>
   );
