@@ -1,7 +1,8 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 
 interface Mechanic {
   id: string;
@@ -24,11 +25,70 @@ interface MechanicsListProps {
 }
 
 const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
-  if (isLoading) {
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    let progressTimer: NodeJS.Timeout;
+    
+    if (isLoading) {
+      setShowSkeleton(true);
+      
+      setLoadingProgress(0);
+      progressTimer = setInterval(() => {
+        setLoadingProgress(prev => {
+          const increment = Math.random() * 10;
+          const nextValue = prev + increment;
+          return nextValue < 90 ? nextValue : 90;
+        });
+      }, 200);
+    } else {
+      if (loadingProgress > 0) {
+        setLoadingProgress(100);
+        timer = setTimeout(() => {
+          setShowSkeleton(false);
+        }, 400);
+      } else {
+        setShowSkeleton(false);
+      }
+    }
+    
+    return () => {
+      clearTimeout(timer);
+      clearInterval(progressTimer);
+    };
+  }, [isLoading, loadingProgress]);
+  
+  if (showSkeleton) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-        <p className="text-gray-500">Looking for mechanics near {zipCode}...</p>
+      <div className="flex flex-col items-center w-full">
+        <div className="w-full mb-6">
+          <Progress value={loadingProgress} className="h-2" />
+          <p className="text-center text-gray-500 mt-2">
+            Looking for mechanics near {zipCode}...
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[200px]" />
+                  <Skeleton className="h-4 w-[150px]" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <div className="flex justify-between">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
