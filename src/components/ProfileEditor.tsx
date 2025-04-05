@@ -27,6 +27,11 @@ const ProfileEditor = () => {
     localStorage.setItem('mechanicProfile', JSON.stringify(data));
     setProfileData(data);
     
+    // Update avatar in localStorage if profile image exists
+    if (data.profileImage) {
+      localStorage.setItem(`mechanic-avatar`, data.profileImage);
+    }
+    
     toast({
       title: "Profile updated",
       description: "Your profile has been successfully updated and saved",

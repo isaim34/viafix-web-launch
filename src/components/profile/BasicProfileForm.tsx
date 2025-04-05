@@ -10,7 +10,6 @@ import { basicProfileSchema, BasicProfileFormValues, sampleMechanicProfile } fro
 import NameFields from '@/components/common/NameFields';
 import PhoneField from './PhoneField';
 import NumericField from './NumericField';
-import ProfileImageField from './ProfileImageField';
 import SpecialtiesField from './SpecialtiesField';
 import AboutField from './AboutField';
 
@@ -42,7 +41,10 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   };
 
   const handleProfileImageChange = (url: string) => {
-    form.setValue('profileImage', url);
+    form.setValue('profileImage', url, {
+      shouldValidate: true,
+      shouldDirty: true
+    });
   };
 
   return (
@@ -80,7 +82,6 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
           />
         </div>
 
-        <ProfileImageField control={form.control} />
         <SpecialtiesField control={form.control} />
         <AboutField control={form.control} />
 

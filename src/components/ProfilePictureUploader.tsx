@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
@@ -17,6 +17,13 @@ const ProfilePictureUploader = ({
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    if (initialImageUrl && initialImageUrl !== imageUrl) {
+      setImageUrl(initialImageUrl);
+    }
+  }, [initialImageUrl]);
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
