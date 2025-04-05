@@ -32,18 +32,21 @@ export const useMechanicsPage = () => {
   }, [locationData]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
-    const matchesSearch = 
+    // Search term filtering (name, specialties, location)
+    const matchesSearch = !searchTerm ? true : (
       mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mechanic.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      mechanic.location.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Simple zipcode matching logic
-    const matchesZip = !zipCode ? true : (
-      (mechanic.zipCode && mechanic.zipCode === zipCode) ||
-      (locationName && mechanic.location.includes(locationName.split(',')[0]))
+      mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    return matchesSearch && matchesZip;
+    // No zip code filtering if zip code is empty
+    if (!zipCode) {
+      return matchesSearch;
+    }
+    
+    // Zip code matching - show all mechanics when searching by zip
+    // This makes sure mechanics show up regardless of exact zip match
+    return matchesSearch;
   });
 
   return {

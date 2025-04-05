@@ -46,7 +46,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName }: MechanicsListProps)
           <h3 className="text-lg font-medium mb-2">No mechanics found</h3>
           <p className="text-gray-500 mb-6">
             {zipCode 
-              ? `We couldn't find any mechanics near ${zipCode}. Try a different zip code or expand your search criteria.`
+              ? `Try a different zip code or expand your search criteria.`
               : 'Try adjusting your search criteria.'}
           </p>
         </div>
