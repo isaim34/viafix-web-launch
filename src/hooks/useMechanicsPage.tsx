@@ -114,15 +114,9 @@ export const useMechanicsPage = () => {
     
     // Special handling for the demo zip code 01605 (Worcester, MA)
     if (zipCode === '01605') {
-      // For the demo zip code, show all mechanics in the Worcester area
-      // including our local mechanic profile (which should have this zip code)
-      if (mechanic.id === 'local-mechanic') {
-        return matchesSearch;
-      }
-      
-      // Show some sample mechanics for demo purposes
-      const mechanicIndex = combinedMechanics.indexOf(mechanic);
-      return matchesSearch && mechanicIndex < 3;
+      // For the demo zip code, show all mechanics with 01605 zip code
+      // including our local mechanic profile and test profiles
+      return matchesSearch && mechanic.zipCode === '01605';
     }
     
     // More flexible location matching when zip code is provided

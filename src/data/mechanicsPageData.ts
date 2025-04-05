@@ -69,5 +69,39 @@ export const mechanicsData = [
     location: 'Austin, TX',
     hourlyRate: 95,
     zipCode: '73301'
+  },
+  // Adding 3 test mechanics with zip code 01605 (Worcester, MA)
+  {
+    id: 'test1',
+    name: 'John Smith',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+    specialties: ['BMW Specialist', 'European Cars', 'Diagnostics'],
+    rating: 4.9,
+    reviewCount: 85,
+    location: 'Worcester, MA',
+    hourlyRate: 90,
+    zipCode: '01605'
+  },
+  {
+    id: 'test2',
+    name: 'Maria Garcia',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+    specialties: ['Electrical Systems', 'Japanese Cars', 'Hybrid Vehicles'],
+    rating: 4.7,
+    reviewCount: 63,
+    location: 'Worcester, MA',
+    hourlyRate: 85,
+    zipCode: '01605'
+  },
+  {
+    id: 'test3',
+    name: 'Robert Taylor',
+    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+    specialties: ['American Cars', 'Engine Rebuilds', 'Transmission Repair'],
+    rating: 4.8,
+    reviewCount: 74,
+    location: 'Worcester, MA',
+    hourlyRate: 80,
+    zipCode: '01605'
   }
 ];
