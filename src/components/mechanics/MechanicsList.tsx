@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
-import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 
@@ -28,35 +27,51 @@ interface MechanicsListProps {
 const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const progressFrameRef = useRef<number | null>(null);
   
-  // Reset and manage loading animation
+  // Smooth, non-flickering loading animation with requestAnimationFrame
   useEffect(() => {
-    // Clear any existing interval
+    // Clear any existing animation
     if (progressTimerRef.current) {
-      clearInterval(progressTimerRef.current);
+      clearTimeout(progressTimerRef.current);
       progressTimerRef.current = null;
     }
     
-    // Reset progress when loading starts
+    if (progressFrameRef.current) {
+      cancelAnimationFrame(progressFrameRef.current);
+      progressFrameRef.current = null;
+    }
+    
     if (isLoading) {
+      // Reset progress when loading starts
       setLoadingProgress(0);
       
-      // Increment progress smoothly up to 90%
-      progressTimerRef.current = setInterval(() => {
-        setLoadingProgress(prev => {
-          const newValue = prev + 2;
-          return newValue <= 90 ? newValue : 90;
-        });
-      }, 150);
+      // Use a smooth animation that increases at a reducing rate
+      let startTime = performance.now();
+      const animateProgress = (timestamp: number) => {
+        const elapsed = timestamp - startTime;
+        // Calculate progress with a curve that slows down as it approaches 90%
+        const targetProgress = Math.min(90, 90 * (1 - Math.exp(-elapsed / 3000)));
+        
+        setLoadingProgress(targetProgress);
+        
+        if (targetProgress < 90) {
+          progressFrameRef.current = requestAnimationFrame(animateProgress);
+        }
+      };
+      
+      progressFrameRef.current = requestAnimationFrame(animateProgress);
     } else {
-      // Immediately complete the progress bar when loading is done
+      // When loading completes, quickly finish to 100%
       setLoadingProgress(100);
     }
     
     return () => {
       if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-        progressTimerRef.current = null;
+        clearTimeout(progressTimerRef.current);
+      }
+      if (progressFrameRef.current) {
+        cancelAnimationFrame(progressFrameRef.current);
       }
     };
   }, [isLoading]);
