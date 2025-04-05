@@ -30,11 +30,21 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   const { currentUserId } = useCustomerAuth();
   
   useEffect(() => {
-    // Check if the user has manually cleared the zip code
-    const manuallyCleared = sessionStorage.getItem('zipCodeManuallyCleared') === 'true';
+    // Check if component is mounting and if the zip code should be auto-populated
+    const shouldAutoPopulate = () => {
+      // Don't auto-populate if zip code is already set
+      if (zipCode) return false;
+      
+      // Don't auto-populate if user manually cleared zip code
+      if (sessionStorage.getItem('zipCodeManuallyCleared') === 'true') {
+        console.log('Zip code was manually cleared, not auto-populating');
+        return false;
+      }
+      
+      return true;
+    };
     
-    // Only auto-set the zip code if it's not already set, and the user hasn't manually cleared it
-    if (!zipCode && !manuallyCleared) {
+    if (shouldAutoPopulate()) {
       const storedProfileData = localStorage.getItem('mechanicProfile');
       if (storedProfileData) {
         try {

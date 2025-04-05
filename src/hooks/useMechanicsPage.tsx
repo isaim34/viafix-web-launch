@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { mechanicsData } from '@/data/mechanicsPageData';
 import { useZipcode } from '@/hooks/useZipcode';
 import { toast } from '@/components/ui/use-toast';
@@ -8,6 +8,7 @@ import { BasicProfileFormValues } from '@/schemas/profileSchema';
 
 export const useMechanicsPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const initialZipCode = queryParams.get('zipCode') || '';
   
@@ -16,6 +17,17 @@ export const useMechanicsPage = () => {
   const [locationName, setLocationName] = useState('');
   const [localMechanicProfile, setLocalMechanicProfile] = useState<BasicProfileFormValues | null>(null);
   const { fetchLocationData, locationData, error, reset } = useZipcode();
+  
+  // Create a wrapped setZipCode function that handles side effects
+  const handleSetZipCode = useCallback((newZipCode: string) => {
+    setZipCode(newZipCode);
+    
+    // If zip code is being cleared, make sure we reset related state
+    if (!newZipCode) {
+      setLocationName('');
+      reset();
+    }
+  }, [reset]);
   
   // Load local mechanic profile
   useEffect(() => {
@@ -141,7 +153,7 @@ export const useMechanicsPage = () => {
 
   return {
     zipCode,
-    setZipCode,
+    setZipCode: handleSetZipCode,
     searchTerm,
     setSearchTerm,
     filteredMechanics,

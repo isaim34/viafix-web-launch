@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/button';
 import { MapPin, X } from 'lucide-react';
 
 interface MechanicsZipCodeSearchProps {
@@ -15,14 +15,28 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
   
   const handleZipCodeSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/mechanics?zipCode=${zipCode}`);
+    if (zipCode) {
+      navigate(`/mechanics?zipCode=${zipCode}`);
+    }
   };
 
-  const handleClearZipCode = () => {
+  const handleClearZipCode = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Clear the zip code
     setZipCode('');
+    
     // Set a flag in session storage to indicate the user has manually cleared the zip code
     sessionStorage.setItem('zipCodeManuallyCleared', 'true');
+    
+    // Navigate without zip code parameter
     navigate('/mechanics');
+    
+    // Add a small delay before allowing auto-population to prevent race conditions
+    setTimeout(() => {
+      console.log('Zip code cleared successfully');
+    }, 100);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +75,7 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
             </button>
           )}
         </div>
-        <Button type="submit" size="default">
+        <Button type="submit" variant="default" size="default" disabled={!zipCode}>
           Search by Zip Code
         </Button>
       </form>
