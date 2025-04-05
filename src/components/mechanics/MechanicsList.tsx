@@ -30,9 +30,11 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   const { currentUserId } = useCustomerAuth();
   
   useEffect(() => {
-    // Only auto-set the zip code from the profile if there is no zip code currently set
-    // and the user hasn't explicitly cleared it
-    if (!zipCode && !document.activeElement?.classList.contains('pl-10')) {
+    // Check if the user has manually cleared the zip code
+    const manuallyCleared = sessionStorage.getItem('zipCodeManuallyCleared') === 'true';
+    
+    // Only auto-set the zip code if it's not already set, and the user hasn't manually cleared it
+    if (!zipCode && !manuallyCleared) {
       const storedProfileData = localStorage.getItem('mechanicProfile');
       if (storedProfileData) {
         try {

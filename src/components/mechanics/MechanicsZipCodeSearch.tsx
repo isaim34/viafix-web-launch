@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
-import { MapPin } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 
 interface MechanicsZipCodeSearchProps {
   zipCode: string;
@@ -20,7 +20,19 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
 
   const handleClearZipCode = () => {
     setZipCode('');
+    // Set a flag in session storage to indicate the user has manually cleared the zip code
+    sessionStorage.setItem('zipCodeManuallyCleared', 'true');
     navigate('/mechanics');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.slice(0, 5);
+    setZipCode(newValue);
+    
+    // If the user is actually typing something new, remove the manually cleared flag
+    if (newValue) {
+      sessionStorage.removeItem('zipCodeManuallyCleared');
+    }
   };
 
   return (
@@ -33,7 +45,7 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
             placeholder="Enter zip code"
             className="pl-10 pr-10"
             value={zipCode}
-            onChange={(e) => setZipCode(e.target.value.slice(0, 5))}
+            onChange={handleInputChange}
             pattern="[0-9]*"
             inputMode="numeric"
             maxLength={5}
@@ -41,10 +53,11 @@ const MechanicsZipCodeSearch = ({ zipCode, setZipCode }: MechanicsZipCodeSearchP
           {zipCode && (
             <button
               type="button"
+              aria-label="Clear zip code"
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               onClick={handleClearZipCode}
             >
-              ×
+              <X size={16} />
             </button>
           )}
         </div>
