@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { Loader2 } from 'lucide-react';
@@ -48,7 +49,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: Mechanic
         setLoadingProgress(100);
         timer = setTimeout(() => {
           setShowSkeleton(false);
-        }, 400);
+        }, 600); // Give a bit more time before hiding the skeleton
       } else {
         setShowSkeleton(false);
       }

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Layout } from '@/components/Layout';
-import { Helmet } from 'react-helmet-async';
 import { useMechanicsPage } from '@/hooks/useMechanicsPage';
 import MechanicsHeader from '@/components/mechanics/MechanicsHeader';
 import MechanicsZipCodeSearch from '@/components/mechanics/MechanicsZipCodeSearch';
@@ -17,7 +16,8 @@ const Mechanics = () => {
     setSearchTerm,
     filteredMechanics,
     locationName,
-    isLoading
+    isLoading,
+    debouncedZipCode
   } = useMechanicsPage();
 
   return (
@@ -32,7 +32,7 @@ const Mechanics = () => {
           mechanics={filteredMechanics} 
           zipCode={zipCode} 
           locationName={locationName}
-          isLoading={isLoading && zipCode.length === 5}
+          isLoading={isLoading && debouncedZipCode.length === 5 && debouncedZipCode === zipCode}
         />
       </div>
     </Layout>

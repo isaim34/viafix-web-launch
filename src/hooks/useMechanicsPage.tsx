@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { mechanicsData } from '@/data/mechanicsPageData';
 import { useZipcode } from '@/hooks/useZipcode';
@@ -12,14 +12,27 @@ export const useMechanicsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [zipCode, setZipCode] = useState(initialZipCode);
   const [locationName, setLocationName] = useState('');
+  const [debouncedZipCode, setDebouncedZipCode] = useState(initialZipCode);
   const { fetchLocationData, locationData, isLoading, error } = useZipcode();
   
-  // Fetch location data when zipCode changes
+  // Use a debounce effect for zipcode to prevent too many API calls while typing
   useEffect(() => {
-    if (zipCode && zipCode.length === 5) {
-      fetchLocationData(zipCode);
+    // Only proceed with zipcode lookup when we have exactly 5 digits
+    if (zipCode.length === 5) {
+      const timer = setTimeout(() => {
+        setDebouncedZipCode(zipCode);
+      }, 500); // 500ms debounce
+      
+      return () => clearTimeout(timer);
     }
-  }, [zipCode, fetchLocationData]);
+  }, [zipCode]);
+  
+  // Fetch location data when debouncedZipCode changes (not on every zipCode change)
+  useEffect(() => {
+    if (debouncedZipCode && debouncedZipCode.length === 5) {
+      fetchLocationData(debouncedZipCode);
+    }
+  }, [debouncedZipCode, fetchLocationData]);
   
   // Update locationName when we get data from the API
   useEffect(() => {
@@ -56,6 +69,7 @@ export const useMechanicsPage = () => {
     filteredMechanics,
     locationName,
     isLoading,
-    error
+    error,
+    debouncedZipCode
   };
 };
