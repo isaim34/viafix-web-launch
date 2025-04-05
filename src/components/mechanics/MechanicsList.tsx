@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { Loader2 } from 'lucide-react';
+import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 
 interface Mechanic {
   id: string;
@@ -21,10 +22,32 @@ interface MechanicsListProps {
   zipCode: string;
   locationName?: string;
   isLoading?: boolean;
+  setZipCode: (zipCode: string) => void;
 }
 
-const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: MechanicsListProps) => {
+const MechanicsList = ({ mechanics, zipCode, locationName, isLoading, setZipCode }: MechanicsListProps) => {
   const locationDisplay = locationName || zipCode;
+  const { currentUserId } = useCustomerAuth();
+  
+  // Check if user profile has a zip code stored in localStorage
+  useEffect(() => {
+    // Only apply this if no zipCode is currently set
+    if (!zipCode) {
+      // Get user's stored profile data
+      const storedProfileData = localStorage.getItem('mechanicProfile');
+      if (storedProfileData) {
+        try {
+          const parsedData = JSON.parse(storedProfileData);
+          if (parsedData.zipCode) {
+            console.log('Found profile zip code:', parsedData.zipCode);
+            setZipCode(parsedData.zipCode);
+          }
+        } catch (error) {
+          console.error('Error parsing profile data from localStorage:', error);
+        }
+      }
+    }
+  }, [zipCode, setZipCode]);
 
   if (isLoading) {
     return (

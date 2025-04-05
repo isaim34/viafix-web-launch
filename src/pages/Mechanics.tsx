@@ -32,6 +32,7 @@ const Mechanics = () => {
           zipCode={zipCode} 
           locationName={locationName}
           isLoading={isLoading}
+          setZipCode={setZipCode}
         />
       </div>
     </Layout>
