@@ -21,6 +21,7 @@ const ProfilePictureUploader = ({
   // Update local state when prop changes
   useEffect(() => {
     if (initialImageUrl && initialImageUrl !== imageUrl) {
+      console.log('Updating image URL from props:', initialImageUrl.substring(0, 50) + '...');
       setImageUrl(initialImageUrl);
     }
   }, [initialImageUrl]);
@@ -40,9 +41,14 @@ const ProfilePictureUploader = ({
     reader.onload = (event) => {
       if (event.target?.result) {
         const dataUrl = event.target.result as string;
-        console.log('Setting image URL to:', dataUrl.substring(0, 50) + '...');
+        console.log('Image selected, data URL length:', dataUrl.length);
+        console.log('Image preview data URL start:', dataUrl.substring(0, 50) + '...');
+        
+        // Set the image URL in local state for display
         setImageUrl(dataUrl);
-        onImageChange(dataUrl); // Pass to parent component
+        
+        // Pass to parent component immediately
+        onImageChange(dataUrl);
         
         toast({
           title: "Profile picture updated",

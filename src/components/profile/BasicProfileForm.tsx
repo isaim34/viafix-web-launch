@@ -22,31 +22,43 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   const form = useForm<BasicProfileFormValues>({
     resolver: zodResolver(basicProfileSchema),
     defaultValues: initialData || sampleMechanicProfile,
+    mode: 'onChange',
   });
 
   // Update form values when initialData changes
   useEffect(() => {
     if (initialData) {
+      console.log('Setting form values from initialData');
       Object.entries(initialData).forEach(([key, value]) => {
-        form.setValue(key as keyof BasicProfileFormValues, value);
+        if (value !== undefined) {
+          form.setValue(key as keyof BasicProfileFormValues, value);
+        }
       });
     }
   }, [initialData, form]);
 
   const handleSubmit = (data: BasicProfileFormValues) => {
-    console.log('Submitting profile data:', data);
+    console.log('Form submission triggered with data:', data);
+    console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
+    
     if (onSubmit) {
       onSubmit(data);
     }
   };
 
   const handleProfileImageChange = (url: string) => {
-    console.log('Profile image changed to:', url.substring(0, 50) + '...');
+    console.log('Profile image changed, length:', url.length);
+    console.log('Profile image changed to (start):', url.substring(0, 50) + '...');
+    
+    // Set the value in the form
     form.setValue('profileImage', url, {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true
     });
+    
+    // Force the form to recognize this as a change
+    form.trigger('profileImage');
   };
 
   return (
