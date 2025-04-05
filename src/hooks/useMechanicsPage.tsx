@@ -13,7 +13,7 @@ export const useMechanicsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [zipCode, setZipCode] = useState(initialZipCode);
   const [locationName, setLocationName] = useState('');
-  const { fetchLocationData, locationData, isLoading, error } = useZipcode();
+  const { fetchLocationData, locationData, error } = useZipcode();
   
   // Fetch location data when zip code changes
   useEffect(() => {
@@ -29,7 +29,7 @@ export const useMechanicsPage = () => {
     if (locationData && locationData.places && locationData.places.length > 0) {
       const place = locationData.places[0];
       setLocationName(`${place.placeName}, ${place.stateAbbreviation}`);
-    } else if (zipCode.length === 5 && !isLoading && !locationData) {
+    } else if (zipCode.length === 5 && !locationData) {
       // For demo zip code 01605 (Worcester, MA), set a default location name
       if (zipCode === '01605') {
         setLocationName('Worcester, MA');
@@ -42,7 +42,7 @@ export const useMechanicsPage = () => {
         });
       }
     }
-  }, [locationData, zipCode, isLoading]);
+  }, [locationData, zipCode]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     // Search term filtering (name, specialties, location)
@@ -91,7 +91,6 @@ export const useMechanicsPage = () => {
     setSearchTerm,
     filteredMechanics,
     locationName,
-    isLoading,
     error
   };
 };

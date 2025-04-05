@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
-import { Loader2 } from 'lucide-react';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
-import { Skeleton } from "@/components/ui/skeleton";
 import { mechanicsData } from '@/data/mechanicsPageData';
 
 interface Mechanic {
@@ -26,22 +25,9 @@ interface MechanicsListProps {
   setZipCode: (zipCode: string) => void;
 }
 
-const MechanicsList = ({ mechanics, zipCode, locationName, isLoading, setZipCode }: MechanicsListProps) => {
+const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: MechanicsListProps) => {
   const locationDisplay = locationName || zipCode;
   const { currentUserId } = useCustomerAuth();
-  const [stableLoading, setStableLoading] = useState(isLoading);
-  
-  useEffect(() => {
-    if (isLoading) {
-      setStableLoading(true);
-    } else {
-      const timer = setTimeout(() => {
-        setStableLoading(false);
-      }, 800);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading]);
   
   useEffect(() => {
     if (!zipCode) {
@@ -59,44 +45,6 @@ const MechanicsList = ({ mechanics, zipCode, locationName, isLoading, setZipCode
       }
     }
   }, [zipCode, setZipCode]);
-
-  if (stableLoading) {
-    return (
-      <div className="w-full py-8">
-        <div className="flex items-center justify-center mb-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-          <span className="text-lg">Searching for mechanics...</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="glass-card overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
-                    <Skeleton className="w-16 h-16 rounded-full" />
-                    <div className="ml-4">
-                      <Skeleton className="h-5 w-32 mb-2" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-8 w-20 rounded-full" />
-                </div>
-                <div className="mb-4">
-                  <div className="flex flex-wrap gap-2">
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                    <Skeleton className="h-6 w-24 rounded-full" />
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                  </div>
-                </div>
-                <Skeleton className="h-4 w-40" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   const displayMechanics = zipCode === '01605' && mechanics.length === 0 
     ? mechanicsData.slice(0, 3) 

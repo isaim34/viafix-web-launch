@@ -15,8 +15,7 @@ const Mechanics = () => {
     searchTerm,
     setSearchTerm,
     filteredMechanics,
-    locationName,
-    isLoading
+    locationName
   } = useMechanicsPage();
 
   return (
@@ -31,7 +30,6 @@ const Mechanics = () => {
           mechanics={filteredMechanics} 
           zipCode={zipCode} 
           locationName={locationName}
-          isLoading={isLoading}
           setZipCode={setZipCode}
         />
       </div>
