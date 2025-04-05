@@ -29,32 +29,30 @@ const MechanicsList = ({ mechanics, zipCode, locationName, isLoading }: Mechanic
   const [loadingProgress, setLoadingProgress] = useState(0);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Stable loading animation without flickering
+  // Reset and manage loading animation
   useEffect(() => {
-    // Clear any existing interval when effect runs
+    // Clear any existing interval
     if (progressTimerRef.current) {
       clearInterval(progressTimerRef.current);
       progressTimerRef.current = null;
     }
     
+    // Reset progress when loading starts
     if (isLoading) {
-      // Reset progress to 0
       setLoadingProgress(0);
       
-      // Use a reference to store the interval id
+      // Increment progress smoothly up to 90%
       progressTimerRef.current = setInterval(() => {
         setLoadingProgress(prev => {
-          // Slower, more predictable progress
-          const newValue = prev + 1;
+          const newValue = prev + 2;
           return newValue <= 90 ? newValue : 90;
         });
-      }, 100);
+      }, 150);
     } else {
-      // Complete the progress bar when loading is done
+      // Immediately complete the progress bar when loading is done
       setLoadingProgress(100);
     }
     
-    // Cleanup function
     return () => {
       if (progressTimerRef.current) {
         clearInterval(progressTimerRef.current);

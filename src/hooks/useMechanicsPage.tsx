@@ -45,16 +45,13 @@ export const useMechanicsPage = () => {
     }
   }, [locationData]);
   
-  // Simplified loading state - will stay true once loading starts until data is available
+  // Fixed loading state logic to ensure loading finishes properly
   useEffect(() => {
     if (isLoading) {
       setIsStableLoading(true);
-    } else if (!isLoading) {
-      // Delay turning off loading state slightly to prevent flicker
-      const timer = setTimeout(() => {
-        setIsStableLoading(false);
-      }, 500);
-      return () => clearTimeout(timer);
+    } else {
+      // Immediately turn off loading when the API call completes
+      setIsStableLoading(false);
     }
   }, [isLoading]);
   
