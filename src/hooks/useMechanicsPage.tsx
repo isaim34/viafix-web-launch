@@ -20,10 +20,9 @@ export const useMechanicsPage = () => {
   useEffect(() => {
     // Only proceed with zipcode lookup when we have exactly 5 digits
     if (zipCode.length === 5) {
-      // Set a longer debounce to prevent flickering when typing
       const timer = setTimeout(() => {
         setDebouncedZipCode(zipCode);
-      }, 800); // Increased to 800ms for more stability
+      }, 500); // Reduced from 800ms
       
       return () => clearTimeout(timer);
     }
@@ -46,19 +45,21 @@ export const useMechanicsPage = () => {
     }
   }, [locationData]);
   
-  // Create a stable loading state that doesn't flicker
+  // Create a stable loading state that doesn't flicker or freeze
   useEffect(() => {
     if (isLoading) {
       setIsStableLoading(true);
     } else {
-      // Add a delay before turning off loading state to prevent quick flashes
+      // Force reset the loading state immediately if we have location data
+      // or shorter delay if we don't to prevent freezing
+      const delay = locationData ? 0 : 200;
       const timer = setTimeout(() => {
         setIsStableLoading(false);
-      }, 300); // Small delay before turning off loading
+      }, delay);
       
       return () => clearTimeout(timer);
     }
-  }, [isLoading]);
+  }, [isLoading, locationData]);
   
   const filteredMechanics = mechanicsData.filter(mechanic => {
     const matchesSearch = 

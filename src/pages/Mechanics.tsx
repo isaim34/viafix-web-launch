@@ -16,8 +16,7 @@ const Mechanics = () => {
     setSearchTerm,
     filteredMechanics,
     locationName,
-    isLoading,
-    debouncedZipCode
+    isLoading
   } = useMechanicsPage();
 
   return (
@@ -32,7 +31,7 @@ const Mechanics = () => {
           mechanics={filteredMechanics} 
           zipCode={zipCode} 
           locationName={locationName}
-          isLoading={isLoading && zipCode.length === 5}
+          isLoading={isLoading}
         />
       </div>
     </Layout>
