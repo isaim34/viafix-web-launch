@@ -7,6 +7,7 @@ import EmptyPlannerState from './planner/EmptyPlannerState';
 import PlannerTable from './planner/PlannerTable';
 import AddJobDialog from './planner/AddJobDialog';
 import EditJobDialog from './planner/EditJobDialog';
+import { exportToCSV, printSchedule } from './planner/utils/exportUtils';
 
 const WeeklyPlanner = () => {
   const {
@@ -43,11 +44,24 @@ const WeeklyPlanner = () => {
     (filterOptions.endDate ? 1 : 0) + 
     (filterOptions.serviceType ? 1 : 0);
 
+  // Handle CSV export
+  const handleExportCSV = () => {
+    exportToCSV(filteredEntries, `planner-export-${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
+  // Handle print schedule
+  const handlePrintSchedule = () => {
+    printSchedule(filteredEntries, weeklyPlan.week);
+  };
+
   return (
     <div className="space-y-6">
       <PlannerHeader 
         weekTitle={weeklyPlan.week}
+        entries={filteredEntries}
         onAddClick={() => setIsAddDialogOpen(true)}
+        onExportCSV={handleExportCSV}
+        onPrintSchedule={handlePrintSchedule}
       />
 
       {weeklyPlan.entries.length === 0 ? (
