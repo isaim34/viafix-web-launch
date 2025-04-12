@@ -1,58 +1,22 @@
+
 import { useState } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { PlannerEntry, WeeklyPlan } from '@/types/mechanic';
+import { FilterOptions } from './types/plannerTypes';
+import { sampleWeeklyPlan, getEmptyEntry } from './data/sampleData';
+import { filterEntries, getUniqueServiceTypes } from './utils/filterUtils';
+import { formatDisplayDate } from './utils/dateUtils';
 
-// Sample data - in a real app, this would come from an API or database
-const sampleWeeklyPlan: WeeklyPlan = {
-  week: format(new Date(), "'Week of' MMM d, yyyy"),
-  entries: [
-    {
-      id: '1',
-      date: format(new Date(), 'yyyy-MM-dd'),
-      customerName: 'John Smith',
-      serviceType: 'Oil Change',
-      estimatedTime: '1 hour',
-      notes: 'Customer requested synthetic oil'
-    },
-    {
-      id: '2',
-      date: format(new Date(Date.now() + 86400000), 'yyyy-MM-dd'),
-      customerName: 'Sarah Johnson',
-      serviceType: 'Brake Replacement',
-      estimatedTime: '3 hours',
-      notes: 'Front and rear brake pads'
-    },
-    {
-      id: '3',
-      date: format(new Date(Date.now() + 86400000 * 2), 'yyyy-MM-dd'),
-      customerName: 'Mike Wilson',
-      serviceType: 'Tire Rotation',
-      estimatedTime: '45 minutes',
-      notes: 'Check tire pressure and tread depth'
-    }
-  ]
-};
-
-export type FilterOptions = {
-  startDate: string | undefined;
-  endDate: string | undefined;
-  serviceType: string | undefined;
-};
+export { formatDisplayDate } from './utils/dateUtils';
+export type { FilterOptions } from './types/plannerTypes';
 
 export function usePlannerState() {
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(sampleWeeklyPlan);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<PlannerEntry | null>(null);
-  const [date, setDate] = useState<Date>(new Date());
-  const [newEntry, setNewEntry] = useState<Omit<PlannerEntry, 'id'>>({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    customerName: '',
-    serviceType: '',
-    estimatedTime: '',
-    notes: ''
-  });
+  const [newEntry, setNewEntry] = useState<Omit<PlannerEntry, 'id'>>(getEmptyEntry());
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<string>('');
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -63,25 +27,10 @@ export function usePlannerState() {
   const { toast } = useToast();
 
   // Get unique service types for the filter dropdown
-  const uniqueServiceTypes = Array.from(new Set(weeklyPlan.entries.map(entry => entry.serviceType)));
+  const uniqueServiceTypes = getUniqueServiceTypes(weeklyPlan.entries);
 
   // Apply filters to entries
-  const filteredEntries = weeklyPlan.entries.filter(entry => {
-    // Filter by service type (skip if "all" is selected or no filter)
-    if (filterOptions.serviceType && filterOptions.serviceType !== 'all' && entry.serviceType !== filterOptions.serviceType) {
-      return false;
-    }
-
-    // Filter by date range
-    if (filterOptions.startDate && entry.date < filterOptions.startDate) {
-      return false;
-    }
-    if (filterOptions.endDate && entry.date > filterOptions.endDate) {
-      return false;
-    }
-
-    return true;
-  });
+  const filteredEntries = filterEntries(weeklyPlan.entries, filterOptions);
 
   const handleAddEntry = () => {
     if (!newEntry.customerName || !newEntry.serviceType) {
@@ -104,13 +53,7 @@ export function usePlannerState() {
     });
 
     // Reset form and close dialog
-    setNewEntry({
-      date: format(new Date(), 'yyyy-MM-dd'),
-      customerName: '',
-      serviceType: '',
-      estimatedTime: '',
-      notes: ''
-    });
+    setNewEntry(getEmptyEntry());
     setIsAddDialogOpen(false);
 
     toast({
@@ -209,15 +152,6 @@ export function usePlannerState() {
     });
   };
 
-  const formatDisplayDate = (dateString: string) => {
-    try {
-      const date = parseISO(dateString);
-      return format(date, 'EEE, MMM d, yyyy');
-    } catch (error) {
-      return dateString;
-    }
-  };
-
   return {
     weeklyPlan,
     filteredEntries,
@@ -227,8 +161,6 @@ export function usePlannerState() {
     setIsEditDialogOpen,
     editingEntry,
     setEditingEntry,
-    date,
-    setDate,
     newEntry,
     setNewEntry,
     editingNoteId,
