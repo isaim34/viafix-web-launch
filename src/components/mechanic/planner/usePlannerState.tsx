@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -68,8 +67,8 @@ export function usePlannerState() {
 
   // Apply filters to entries
   const filteredEntries = weeklyPlan.entries.filter(entry => {
-    // Filter by service type
-    if (filterOptions.serviceType && entry.serviceType !== filterOptions.serviceType) {
+    // Filter by service type (skip if "all" is selected or no filter)
+    if (filterOptions.serviceType && filterOptions.serviceType !== 'all' && entry.serviceType !== filterOptions.serviceType) {
       return false;
     }
 

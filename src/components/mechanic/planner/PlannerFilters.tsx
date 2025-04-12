@@ -84,7 +84,7 @@ const PlannerFilters: React.FC<PlannerFiltersProps> = ({
           </div>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Service Types</SelectItem>
+          <SelectItem value="all">All Service Types</SelectItem>
           {serviceTypes.map((type) => (
             <SelectItem key={type} value={type}>{type}</SelectItem>
           ))}
