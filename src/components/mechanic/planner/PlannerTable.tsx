@@ -50,23 +50,31 @@ const PlannerTable: React.FC<PlannerTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {entries
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .map((entry) => (
-              <PlannerTableRow
-                key={entry.id}
-                entry={entry}
-                editingNoteId={editingNoteId}
-                editedNote={editedNote}
-                formatDisplayDate={formatDisplayDate}
-                onEditClick={onEditClick}
-                onDeleteClick={onDeleteClick}
-                onStartEditingNote={onStartEditingNote}
-                onSaveEditedNote={onSaveEditedNote}
-                onCancelEditingNote={onCancelEditingNote}
-                onEditedNoteChange={onEditedNoteChange}
-              />
-            ))}
+          {entries.length > 0 ? (
+            entries
+              .sort((a, b) => a.date.localeCompare(b.date))
+              .map((entry) => (
+                <PlannerTableRow
+                  key={entry.id}
+                  entry={entry}
+                  editingNoteId={editingNoteId}
+                  editedNote={editedNote}
+                  formatDisplayDate={formatDisplayDate}
+                  onEditClick={onEditClick}
+                  onDeleteClick={onDeleteClick}
+                  onStartEditingNote={onStartEditingNote}
+                  onSaveEditedNote={onSaveEditedNote}
+                  onCancelEditingNote={onCancelEditingNote}
+                  onEditedNoteChange={onEditedNoteChange}
+                />
+              ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={6} className="h-32 text-center">
+                No jobs match the current filters
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

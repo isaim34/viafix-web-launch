@@ -35,6 +35,12 @@ const sampleWeeklyPlan: WeeklyPlan = {
   ]
 };
 
+export type FilterOptions = {
+  startDate: string | undefined;
+  endDate: string | undefined;
+  serviceType: string | undefined;
+};
+
 export function usePlannerState() {
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(sampleWeeklyPlan);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -50,7 +56,33 @@ export function usePlannerState() {
   });
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState<string>('');
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    startDate: undefined,
+    endDate: undefined,
+    serviceType: undefined,
+  });
   const { toast } = useToast();
+
+  // Get unique service types for the filter dropdown
+  const uniqueServiceTypes = Array.from(new Set(weeklyPlan.entries.map(entry => entry.serviceType)));
+
+  // Apply filters to entries
+  const filteredEntries = weeklyPlan.entries.filter(entry => {
+    // Filter by service type
+    if (filterOptions.serviceType && entry.serviceType !== filterOptions.serviceType) {
+      return false;
+    }
+
+    // Filter by date range
+    if (filterOptions.startDate && entry.date < filterOptions.startDate) {
+      return false;
+    }
+    if (filterOptions.endDate && entry.date > filterOptions.endDate) {
+      return false;
+    }
+
+    return true;
+  });
 
   const handleAddEntry = () => {
     if (!newEntry.customerName || !newEntry.serviceType) {
@@ -161,6 +193,23 @@ export function usePlannerState() {
     setEditedNote('');
   };
 
+  // Handle filter changes
+  const handleFilterChange = (newOptions: Partial<FilterOptions>) => {
+    setFilterOptions(prev => ({
+      ...prev,
+      ...newOptions
+    }));
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilterOptions({
+      startDate: undefined,
+      endDate: undefined,
+      serviceType: undefined,
+    });
+  };
+
   const formatDisplayDate = (dateString: string) => {
     try {
       const date = parseISO(dateString);
@@ -172,6 +221,7 @@ export function usePlannerState() {
 
   return {
     weeklyPlan,
+    filteredEntries,
     isAddDialogOpen,
     setIsAddDialogOpen,
     isEditDialogOpen,
@@ -192,6 +242,10 @@ export function usePlannerState() {
     startEditingNote,
     saveEditedNote,
     cancelEditingNote,
-    formatDisplayDate
+    formatDisplayDate,
+    filterOptions,
+    handleFilterChange,
+    clearFilters,
+    uniqueServiceTypes
   };
 }
