@@ -1,4 +1,3 @@
-
 export type Message = {
   id: string;
   from: string;
@@ -111,4 +110,18 @@ export type AdvertisementSettings = {
     featuredUntil?: string;
     messagesRemaining: number;
   };
+};
+
+export type PlannerEntry = {
+  id: string;
+  date: string;
+  customerName: string;
+  serviceType: string;
+  estimatedTime: string;
+  notes: string;
+};
+
+export type WeeklyPlan = {
+  week: string;
+  entries: PlannerEntry[];
 };
