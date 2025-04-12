@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, FilePlus, Pencil, Save, Trash2, X } from 'lucide-react';
+import { Calendar, Clock, FilePlus, Pencil, Save, Trash2, X, Edit, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -75,6 +75,8 @@ const WeeklyPlanner = () => {
     estimatedTime: '',
     notes: ''
   });
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editedNote, setEditedNote] = useState<string>('');
   const { toast } = useToast();
 
   const handleAddEntry = () => {
@@ -156,6 +158,36 @@ const WeeklyPlanner = () => {
     setIsEditDialogOpen(true);
   };
 
+  // Start inline note editing
+  const startEditingNote = (entry: PlannerEntry) => {
+    setEditingNoteId(entry.id);
+    setEditedNote(entry.notes);
+  };
+
+  // Save edited note
+  const saveEditedNote = (id: string) => {
+    setWeeklyPlan({
+      ...weeklyPlan,
+      entries: weeklyPlan.entries.map(entry => 
+        entry.id === id ? {...entry, notes: editedNote} : entry
+      )
+    });
+    
+    setEditingNoteId(null);
+    setEditedNote('');
+    
+    toast({
+      title: "Note updated",
+      description: "The job notes have been updated"
+    });
+  };
+
+  // Cancel note editing
+  const cancelEditingNote = () => {
+    setEditingNoteId(null);
+    setEditedNote('');
+  };
+
   const formatDisplayDate = (dateString: string) => {
     try {
       const date = parseISO(dateString);
@@ -221,8 +253,49 @@ const WeeklyPlanner = () => {
                       {entry.estimatedTime}
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-xs truncate" title={entry.notes}>
-                    {entry.notes}
+                  <TableCell className="max-w-xs">
+                    {editingNoteId === entry.id ? (
+                      <div className="flex flex-col gap-2">
+                        <Textarea 
+                          value={editedNote}
+                          onChange={(e) => setEditedNote(e.target.value)}
+                          className="min-h-[60px] text-sm"
+                          placeholder="Enter notes for this job"
+                        />
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => saveEditedNote(entry.id)}
+                          >
+                            <CheckSquare className="h-3.5 w-3.5 mr-1" />
+                            Save
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="h-7 px-2 text-xs"
+                            onClick={cancelEditingNote}
+                          >
+                            <X className="h-3.5 w-3.5 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between group">
+                        <span className="mr-2" title={entry.notes}>{entry.notes || "No notes"}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => startEditingNote(entry)}
+                        >
+                          <Edit size={14} />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
