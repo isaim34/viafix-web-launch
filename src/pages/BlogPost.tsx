@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { CommentSection } from '@/components/blog/CommentSection';
-import { blogPosts as blogPostsData } from '@/data/blogPosts';
+import { blogPosts as blogPostsData } from '@/data/blog';
 import { BlogPostHeader } from '@/components/blog/BlogPostHeader';
 import { BlogPostContent } from '@/components/blog/BlogPostContent';
 import { BlogPostFooter } from '@/components/blog/BlogPostFooter';

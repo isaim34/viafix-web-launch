@@ -7,7 +7,7 @@ import { ArrowRight, Calendar, User, Search, Tag } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
 import { Helmet } from 'react-helmet-async';
-import { blogPosts as blogPostsData } from '@/data/blogPosts';
+import { blogPosts as blogPostsData } from '@/data/blog';
 import { BlogPost } from '@/types/blog';
 
 // Convert the blog posts object to an array for easier rendering

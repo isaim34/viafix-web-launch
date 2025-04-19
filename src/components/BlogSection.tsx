@@ -6,7 +6,7 @@ import { ArrowRight, FileText, Car, Wrench } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
-import { blogPosts as blogPostsData } from '@/data/blogPosts';
+import { blogPosts as blogPostsData } from '@/data/blog';
 import { BlogPost } from '@/types/blog';
 
 // Create an array of the featured blog posts for the home page section
