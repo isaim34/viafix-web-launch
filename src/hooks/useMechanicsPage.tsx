@@ -135,11 +135,17 @@ export const useMechanicsPage = () => {
       return matchesSearch;
     }
     
+    // For the local mechanic profile, ensure it's always included when the user's zip code matches the search
+    if (mechanic.id === 'local-mechanic' && mechanic.zipCode === zipCode) {
+      console.log('Including local mechanic in search results because zip codes match:', mechanic.zipCode, zipCode);
+      return matchesSearch;
+    }
+    
     // Special handling for the demo zip code 01605 (Worcester, MA)
     if (zipCode === '01605') {
       // For the demo zip code, show all mechanics with 01605 zip code
       // including our local mechanic profile and test profiles
-      return matchesSearch && mechanic.zipCode === '01605';
+      return matchesSearch && (mechanic.zipCode === '01605' || mechanic.id === 'local-mechanic');
     }
     
     // More flexible location matching when zip code is provided

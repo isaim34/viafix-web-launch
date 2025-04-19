@@ -67,7 +67,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     }
   }, [zipCode, setZipCode, currentUserRole]);
 
-  // Determine which mechanics to display
+  // Determine which mechanics to display, including local mechanic profile
   const displayMechanics = mechanics.length > 0 
     ? mechanics 
     : (zipCode === '01605' ? mechanicsData.filter(m => m.zipCode === '01605') : []);
@@ -75,6 +75,26 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   // Check if user is logged in as a mechanic
   const userRole = localStorage.getItem('userRole');
   const isLoggedInMechanic = userRole === 'mechanic';
+
+  // Check if the current mechanic should be included in search results
+  const shouldIncludeCurrentMechanic = isLoggedInMechanic && zipCode && displayMechanics.findIndex(m => m.id === 'local-mechanic') === -1;
+  
+  // If local mechanic exists but not in results, check if their zip code matches the search
+  useEffect(() => {
+    if (shouldIncludeCurrentMechanic && zipCode) {
+      const mechanicProfile = localStorage.getItem('mechanicProfile');
+      if (mechanicProfile) {
+        try {
+          const profile = JSON.parse(mechanicProfile);
+          if (profile.zipCode === zipCode) {
+            console.log('Local mechanic should be in results but is missing. Zip codes match:', profile.zipCode, zipCode);
+          }
+        } catch (error) {
+          console.error('Error checking mechanic profile zip code:', error);
+        }
+      }
+    }
+  }, [shouldIncludeCurrentMechanic, zipCode]);
 
   return (
     <div className="w-full">
