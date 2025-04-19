@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ChatBox } from '@/components/chat/ChatBox';
 import { MechanicProfileHeader } from '@/components/mechanic/MechanicProfileHeader';
 import { MechanicAbout } from '@/components/mechanic/MechanicAbout';
@@ -25,6 +25,20 @@ const MechanicProfile = () => {
   const { id } = useParams<{ id: string }>();
   const { isCustomerLoggedIn, currentUserId, currentUserName } = useCustomerAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  // Check if user is logged in as a mechanic
+  useEffect(() => {
+    const userRole = localStorage.getItem('userRole');
+    const isLoggedInMechanic = userRole === 'mechanic';
+    
+    // If the user is a mechanic and trying to view a mechanic profile,
+    // redirect them to their dashboard if it's their own profile (local-mechanic)
+    if (isLoggedInMechanic && id === 'local-mechanic') {
+      navigate('/mechanic-dashboard');
+      return;
+    }
+  }, [id, navigate]);
   
   // Default to first mechanic if ID not found (for demo purposes)
   const mechanic = id && mechanicsDetailedData[id] 

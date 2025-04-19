@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { MechanicCard } from '@/components/MechanicCard';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { mechanicsData } from '@/data/mechanicsPageData';
+import { Link } from 'react-router-dom';
 
 interface Mechanic {
   id: string;
@@ -65,6 +66,10 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     ? mechanics 
     : (zipCode === '01605' ? mechanicsData.filter(m => m.zipCode === '01605') : []);
 
+  // Check if user is logged in as a mechanic
+  const userRole = localStorage.getItem('userRole');
+  const isLoggedInMechanic = userRole === 'mechanic';
+
   return (
     <div className="w-full">
       <p className="text-gray-500 mb-6">
@@ -76,13 +81,31 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
       
       {displayMechanics.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayMechanics.map((mechanic, index) => (
-            <MechanicCard 
-              key={mechanic.id} 
-              {...mechanic} 
-              delay={index * 0.1}
-            />
-          ))}
+          {displayMechanics.map((mechanic, index) => {
+            // Check if this is the logged-in mechanic's profile
+            const isCurrentMechanic = mechanic.id === 'local-mechanic';
+            
+            // For the local mechanic card, we'll wrap it in a Link to the dashboard
+            if (isCurrentMechanic && isLoggedInMechanic) {
+              return (
+                <Link to="/mechanic-dashboard" key={mechanic.id} className="block h-full">
+                  <MechanicCard 
+                    {...mechanic} 
+                    delay={index * 0.1}
+                  />
+                </Link>
+              );
+            }
+            
+            // For all other mechanics, use the normal MechanicCard with its built-in link
+            return (
+              <MechanicCard 
+                key={mechanic.id} 
+                {...mechanic} 
+                delay={index * 0.1}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12">
