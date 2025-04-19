@@ -33,9 +33,12 @@ export const Layout = ({ children }: LayoutProps) => {
               <Link to="/terms" className="text-gray-500 hover:text-gray-700 transition-colors">
                 Terms
               </Link>
-              <Link to="/support" className="text-gray-500 hover:text-gray-700 transition-colors">
+              <a 
+                href="mailto:support@tryviafix.com" 
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
                 Support
-              </Link>
+              </a>
             </div>
           </div>
         </div>
