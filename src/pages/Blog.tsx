@@ -7,18 +7,19 @@ import { ArrowRight, Calendar, User, Search, Tag } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
 import { Helmet } from 'react-helmet-async';
-import blogPosts from '@/data/blogPosts';
+import { blogPosts } from '@/data/blogPosts';
+import { BlogPost } from '@/types/blog';
 
 // Convert the blog posts object to an array for easier rendering
 const blogPostsArray = Object.entries(blogPosts).map(([slug, post]) => ({
   id: slug,
-  title: post.title,
-  excerpt: post.metaDescription,
-  image: post.image,
+  title: (post as BlogPost).title,
+  excerpt: (post as BlogPost).metaDescription,
+  image: (post as BlogPost).image,
   slug: slug,
-  date: post.date,
-  author: post.author,
-  category: post.category
+  date: (post as BlogPost).date,
+  author: (post as BlogPost).author,
+  category: (post as BlogPost).category
 }));
 
 // Get unique categories from blog posts

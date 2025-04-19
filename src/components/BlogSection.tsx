@@ -6,7 +6,8 @@ import { ArrowRight, FileText, Car, Wrench } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
-import blogPosts from '@/data/blogPosts';
+import { blogPosts } from '@/data/blogPosts';
+import { BlogPost } from '@/types/blog';
 
 // Create an array of the featured blog posts for the home page section
 // Focus on educational content and platform information
@@ -22,7 +23,7 @@ const validFeaturedSlugs = featuredPostSlugs.filter(slug =>
 );
 
 const featuredBlogPosts = validFeaturedSlugs.map(slug => {
-  const post = blogPosts[slug as keyof typeof blogPosts];
+  const post = blogPosts[slug as keyof typeof blogPosts] as BlogPost;
   return {
     id: slug,
     title: post.title,
