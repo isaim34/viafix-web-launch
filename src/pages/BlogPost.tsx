@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -10,6 +9,7 @@ import { BlogPostContent } from '@/components/blog/BlogPostContent';
 import { BlogPostFooter } from '@/components/blog/BlogPostFooter';
 import { BlogPostSEO } from '@/components/blog/BlogPostSEO';
 import { Card } from '@/components/ui/card';
+import { ChevronLeft } from 'lucide-react';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -20,11 +20,12 @@ const BlogPost = () => {
   if (!post) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 sm:px-6 py-12">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Post not found</h1>
-            <p className="mb-4">The blog post you're looking for doesn't exist or has been moved.</p>
-            <Link to="/blog" className="text-primary hover:underline">
+        <div className="container mx-auto px-4 sm:px-6 py-24">
+          <div className="max-w-lg mx-auto text-center">
+            <h1 className="text-3xl font-bold mb-6 text-gray-900">Post not found</h1>
+            <p className="text-gray-600 mb-8">The blog post you're looking for doesn't exist or has been moved.</p>
+            <Link to="/blog" className="inline-flex items-center text-primary hover:text-primary/80 font-medium">
+              <ChevronLeft className="w-4 h-4 mr-2" />
               Back to blog
             </Link>
           </div>
@@ -38,26 +39,26 @@ const BlogPost = () => {
       {/* SEO Setup */}
       <BlogPostSEO post={post} slug={slug || ''} />
 
-      <article className="bg-white">
+      <article className="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
         {/* Hero and Header */}
         <BlogPostHeader post={post} slug={slug || ''} />
         
         {/* Content section */}
         <div className="container mx-auto px-4 sm:px-6 py-12">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Card className="p-8 shadow-md">
+              <Card className="p-8 md:p-12 shadow-xl bg-white/80 backdrop-blur-sm">
                 {/* Main Content */}
                 <BlogPostContent content={post.content} />
               </Card>
             </motion.div>
             
             {/* Comment section */}
-            <div className="mt-8">
+            <div className="mt-12">
               <CommentSection postSlug={slug || ''} />
             </div>
             
