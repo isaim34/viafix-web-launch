@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { BlogPost } from '@/data/blogPosts';
+import { BlogPost } from '@/types/blog';
 
 interface BlogPostSEOProps {
   post: BlogPost;
@@ -13,7 +13,7 @@ export const BlogPostSEO = ({ post, slug }: BlogPostSEOProps) => {
     <Helmet>
       <title>{post.title} | ViaFix Blog | Austin, TX</title>
       <meta name="description" content={post.metaDescription || `Read about ${post.title} from ViaFix, Austin's premier mobile auto repair service.`} />
-      <meta name="keywords" content={post.tags.join(', ')} />
+      <meta name="keywords" content={post.tags ? post.tags.join(', ') : post.category} />
       <link rel="canonical" href={`https://tryviafix.com/blog/${slug}`} />
       
       {/* Open Graph / Facebook */}
@@ -23,7 +23,7 @@ export const BlogPostSEO = ({ post, slug }: BlogPostSEOProps) => {
       <meta property="og:image" content={post.image} />
       <meta property="article:published_time" content={new Date(post.date).toISOString()} />
       <meta property="article:author" content={post.author} />
-      {post.tags.map((tag, index) => (
+      {post.tags && post.tags.map((tag, index) => (
         <meta key={index} property="article:tag" content={tag} />
       ))}
       

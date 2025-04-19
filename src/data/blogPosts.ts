@@ -1,6 +1,6 @@
-import { BlogPost } from '@/types/blog';
+import { BlogPost, BlogPostsCollection } from '@/types/blog';
 
-const blogPosts: Record<string, BlogPost> = {
+const blogPosts: BlogPostsCollection = {
   'car-maintenance-basics': {
     title: 'Essential Car Maintenance Basics',
     date: 'March 2024',
@@ -8,6 +8,7 @@ const blogPosts: Record<string, BlogPost> = {
     category: 'Maintenance',
     image: '/lovable-uploads/mechanic-checking-car-engine.jpg',
     metaDescription: 'Learn the essential car maintenance basics to keep your vehicle running smoothly and avoid costly repairs.',
+    tags: ['maintenance', 'car care', 'DIY', 'auto repair'],
     content: `
 <h1>Essential Car Maintenance Basics</h1>
 
@@ -44,6 +45,7 @@ const blogPosts: Record<string, BlogPost> = {
     category: 'Service',
     image: '/lovable-uploads/mechanic-using-tablet-in-auto-repair-shop.jpg',
     metaDescription: 'Learn how to find a trusted auto service provider for reliable and quality car repairs and maintenance.',
+    tags: ['service provider', 'auto repair', 'mechanics', 'trust'],
     content: `
 <h1>How to Find a Trusted Auto Service Provider</h1>
 
@@ -80,6 +82,7 @@ const blogPosts: Record<string, BlogPost> = {
     category: 'Repair',
     image: '/lovable-uploads/man-repairing-car-engine.jpg',
     metaDescription: 'Discover essential auto repair tips for vehicle owners to save money and keep your car in top condition.',
+    tags: ['auto repair', 'DIY', 'vehicle care', 'maintenance'],
     content: `
 <h1>Essential Auto Repair Tips for Vehicle Owners</h1>
 
@@ -113,6 +116,7 @@ const blogPosts: Record<string, BlogPost> = {
     category: 'Platform Guide',
     image: '/lovable-uploads/2cfc70ff-cf79-4d44-aff0-00bb60306f80.png',
     metaDescription: 'Learn how ViaFix connects independent mechanics with vehicle owners through a simple, transparent monthly subscription model.',
+    tags: ['ViaFix', 'subscription', 'platform guide', 'mechanics'],
     content: `
 <h1>Getting Started with ViaFix: Revolutionizing Auto Repair</h1>
 
@@ -148,3 +152,4 @@ const blogPosts: Record<string, BlogPost> = {
 };
 
 export default blogPosts;
+export type { BlogPost, BlogPostsCollection };

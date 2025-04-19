@@ -4,7 +4,7 @@ import { Tag, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/ui/card';
-import { BlogPost, BlogPostsCollection } from '@/data/blogPosts';
+import { BlogPost, BlogPostsCollection } from '@/types/blog';
 
 interface BlogPostFooterProps {
   post: BlogPost;
@@ -19,7 +19,7 @@ export const BlogPostFooter = ({ post, slug, blogPosts }: BlogPostFooterProps) =
         <span className="text-sm font-medium flex items-center">
           <Tag className="w-4 h-4 mr-2" /> Tags:
         </span>
-        {post.tags.map((tag, index) => (
+        {post.tags && post.tags.map((tag, index) => (
           <span 
             key={index}
             className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full"

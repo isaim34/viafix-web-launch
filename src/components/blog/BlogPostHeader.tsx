@@ -4,7 +4,7 @@ import { Calendar, User, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { ChevronLeft, Share2 } from 'lucide-react';
-import { BlogPost } from '@/data/blogPosts';
+import { BlogPost } from '@/types/blog';
 
 interface BlogPostHeaderProps {
   post: BlogPost;
