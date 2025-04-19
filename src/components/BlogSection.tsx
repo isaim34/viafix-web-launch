@@ -16,16 +16,24 @@ const featuredPostSlugs = [
   'auto-repair-tips'
 ];
 
-const featuredBlogPosts = featuredPostSlugs.map(slug => ({
-  id: slug,
-  title: blogPosts[slug].title,
-  excerpt: blogPosts[slug].metaDescription,
-  image: blogPosts[slug].image,
-  slug: slug,
-  date: blogPosts[slug].date,
-  author: blogPosts[slug].author,
-  category: blogPosts[slug].category
-}));
+// Filter out any slugs that don't exist in blogPosts
+const validFeaturedSlugs = featuredPostSlugs.filter(slug => 
+  blogPosts[slug as keyof typeof blogPosts] !== undefined
+);
+
+const featuredBlogPosts = validFeaturedSlugs.map(slug => {
+  const post = blogPosts[slug as keyof typeof blogPosts];
+  return {
+    id: slug,
+    title: post.title,
+    excerpt: post.metaDescription,
+    image: post.image,
+    slug: slug,
+    date: post.date,
+    author: post.author,
+    category: post.category
+  };
+});
 
 export const BlogSection = () => {
   return (
@@ -45,46 +53,52 @@ export const BlogSection = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {featuredBlogPosts.map((post, index) => (
-            <motion.article
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 * index }}
-            >
-              <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
-                <Link to={`/blog/${post.slug}`} className="block h-full flex flex-col">
-                  <div className="w-full relative">
-                    <AspectRatio ratio={16 / 9} className="bg-gray-100">
-                      <img 
-                        src={post.image} 
-                        alt={post.title} 
-                        className="w-full h-full object-cover"
-                      />
-                    </AspectRatio>
-                  </div>
-                  <div className="p-6 flex-grow flex flex-col">
-                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                      <Car className="w-3 h-3 mr-1" />
-                      <span>{post.category}</span>
+        {featuredBlogPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {featuredBlogPosts.map((post, index) => (
+              <motion.article
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 * index }}
+              >
+                <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
+                  <Link to={`/blog/${post.slug}`} className="block h-full flex flex-col">
+                    <div className="w-full relative">
+                      <AspectRatio ratio={16 / 9} className="bg-gray-100">
+                        <img 
+                          src={post.image} 
+                          alt={post.title} 
+                          className="w-full h-full object-cover"
+                        />
+                      </AspectRatio>
                     </div>
-                    <h3 className="text-xl font-medium mb-2 hover:text-primary transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 flex-grow text-left">
-                      {post.excerpt.length > 120 ? `${post.excerpt.substring(0, 120)}...` : post.excerpt}
-                    </p>
-                    <div className="flex items-center text-primary font-medium text-sm mt-auto">
-                      Read more <ArrowRight className="ml-1 w-4 h-4" />
+                    <div className="p-6 flex-grow flex flex-col">
+                      <div className="flex items-center text-sm text-gray-500 mb-2">
+                        <Car className="w-3 h-3 mr-1" />
+                        <span>{post.category}</span>
+                      </div>
+                      <h3 className="text-xl font-medium mb-2 hover:text-primary transition-colors">
+                        {post.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4 flex-grow text-left">
+                        {post.excerpt.length > 120 ? `${post.excerpt.substring(0, 120)}...` : post.excerpt}
+                      </p>
+                      <div className="flex items-center text-primary font-medium text-sm mt-auto">
+                        Read more <ArrowRight className="ml-1 w-4 h-4" />
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </Card>
-            </motion.article>
-          ))}
-        </div>
+                  </Link>
+                </Card>
+              </motion.article>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-gray-500">No featured blog posts available at the moment.</p>
+          </div>
+        )}
 
         <div className="text-center space-y-4">
           <motion.div
