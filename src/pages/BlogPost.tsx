@@ -26,26 +26,70 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
+// Visual themes for different categories
+const categoryThemes = {
+  'Maintenance': {
+    gradient: 'from-blue-500 to-teal-400',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+  },
+  'Repair': {
+    gradient: 'from-red-500 to-orange-400',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+  },
+  'DIY': {
+    gradient: 'from-green-500 to-teal-400',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200',
+  },
+  'Tips': {
+    gradient: 'from-purple-500 to-pink-400',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+  },
+  'Reviews': {
+    gradient: 'from-amber-500 to-yellow-400',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-200',
+  }
+};
+
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
   const post = slug ? blogPosts[slug] : null;
   const { toast } = useToast();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  // Get related posts - 3 random posts that aren't the current one
+  // Get theme based on post category
+  const getTheme = () => {
+    if (!post) return categoryThemes['Maintenance'];
+    return categoryThemes[post.category as keyof typeof categoryThemes] || categoryThemes['Maintenance'];
+  };
+  
+  const theme = getTheme();
+  
+  // Get related posts - 3 random posts that aren't the current one but prioritize same category
   const getRelatedPosts = () => {
-    if (!slug) return [];
+    if (!slug || !post) return [];
     
-    return Object.entries(blogPosts)
-      .filter(([key]) => key !== slug)
+    const sameCategoryPosts = Object.entries(blogPosts)
+      .filter(([key, p]) => key !== slug && p.category === post.category)
       .sort(() => 0.5 - Math.random())
-      .slice(0, 3)
-      .map(([key, post]) => ({
-        slug: key,
-        title: post.title,
-        image: post.image,
-        date: post.date,
-      }));
+      .slice(0, 2);
+    
+    const otherPosts = Object.entries(blogPosts)
+      .filter(([key, p]) => key !== slug && p.category !== post.category)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3 - sameCategoryPosts.length);
+    
+    return [...sameCategoryPosts, ...otherPosts].map(([key, post]) => ({
+      slug: key,
+      title: post.title,
+      image: post.image,
+      date: post.date,
+      category: post.category
+    }));
   };
   
   const relatedPosts = getRelatedPosts();
@@ -90,7 +134,7 @@ const BlogPost = () => {
     <Layout>
       <BlogPostSEO post={post} slug={slug || ''} />
 
-      <article className="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
+      <article className={`min-h-screen bg-gradient-to-b from-white to-${theme.bgColor.replace('bg-', '')}/20`}>
         <BlogPostHeader post={post} slug={slug || ''} />
         
         <div className="container mx-auto px-4 sm:px-6 py-12">
@@ -102,9 +146,9 @@ const BlogPost = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <Card className="p-8 md:p-12 shadow-xl bg-white/80 backdrop-blur-sm">
+                <Card className="p-8 md:p-12 shadow-xl bg-white/80 backdrop-blur-sm border border-gray-100">
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-8">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                       <span className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2" />
                         {post.date}
@@ -112,6 +156,9 @@ const BlogPost = () => {
                       <span className="hidden sm:inline-flex items-center">
                         <BookOpen className="w-4 h-4 mr-2" />
                         {Math.ceil(post.content.length / 1000)} min read
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${theme.bgColor} ${theme.borderColor} border`}>
+                        {post.category}
                       </span>
                     </div>
                     
@@ -127,26 +174,11 @@ const BlogPost = () => {
                   </div>
 
                   <BlogPostContent content={post.content} />
-                  
-                  {/* Tags section within content */}
-                  <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-gray-100">
-                    <span className="text-sm font-medium flex items-center">
-                      <Tag className="w-4 h-4 mr-2" /> Tags:
-                    </span>
-                    {post.tags.map((tag, index) => (
-                      <span 
-                        key={index}
-                        className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
                 </Card>
               </motion.div>
               
               <div className="mt-12">
-                <Card className="overflow-hidden bg-white/80 backdrop-blur-sm">
+                <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border border-gray-100">
                   <div className="p-8">
                     <CommentSection postSlug={slug || ''} />
                   </div>
@@ -175,7 +207,7 @@ const BlogPost = () => {
                   <CollapsibleContent>
                     <div className="pt-4">
                       {/* Mobile sidebar content */}
-                      <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
+                      <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm border border-gray-100">
                         <h3 className="text-lg font-semibold mb-4">Search Posts</h3>
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -201,7 +233,7 @@ const BlogPost = () => {
                     {sidebarCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </Button>
                   
-                  <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
+                  <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm border border-gray-100">
                     <h3 className="text-lg font-semibold mb-4">Search Posts</h3>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -213,7 +245,7 @@ const BlogPost = () => {
                     </div>
                   </Card>
                   
-                  <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm">
+                  <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm border border-gray-100">
                     <h3 className="text-lg font-semibold mb-4">Related Posts</h3>
                     <div className="space-y-4">
                       {relatedPosts.map((relatedPost, index) => (
@@ -224,7 +256,7 @@ const BlogPost = () => {
                                 <img 
                                   src={relatedPost.image} 
                                   alt={relatedPost.title}
-                                  className="object-cover w-full h-full"
+                                  className="object-cover w-full h-full transition-all duration-300 group-hover:scale-110"
                                 />
                               </AspectRatio>
                             </div>
@@ -232,7 +264,12 @@ const BlogPost = () => {
                               <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
                                 {relatedPost.title}
                               </h4>
-                              <p className="text-xs text-gray-500 mt-1">{relatedPost.date}</p>
+                              <div className="flex items-center mt-1">
+                                <span className="text-xs text-gray-500 mr-2">{relatedPost.date}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${categoryThemes[relatedPost.category as keyof typeof categoryThemes]?.bgColor || 'bg-gray-100'}`}>
+                                  {relatedPost.category}
+                                </span>
+                              </div>
                             </div>
                           </Link>
                         </div>
@@ -248,7 +285,7 @@ const BlogPost = () => {
                     </div>
                   </Card>
                   
-                  <Card className="p-6 bg-gradient-to-br from-primary/10 to-purple-500/10 backdrop-blur-sm">
+                  <Card className={`p-6 bg-gradient-to-br ${theme.gradient} bg-opacity-10 backdrop-blur-sm border ${theme.borderColor}`}>
                     <h3 className="text-lg font-semibold mb-2">Need help with your vehicle?</h3>
                     <p className="text-sm text-gray-600 mb-4">Connect with ASE-certified mechanics ready to help with your auto repair needs.</p>
                     <Link to="/mechanics">
