@@ -8,15 +8,30 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
 import blogPosts from '@/data/blogPosts';
 
+// Check which blog posts are actually available
+console.log('Available blog posts:', Object.keys(blogPosts));
+
 // Create an array of the featured blog posts for the home page section
 // Focus on educational content and platform information
-const featuredPostSlugs = [
+// Making sure we only use slugs that exist in the blogPosts object
+const availableBlogPostSlugs = Object.keys(blogPosts);
+const desiredFeaturedSlugs = [
   'car-maintenance-basics',
   'find-trusted-service-provider', 
   'auto-repair-tips'
 ];
 
-const featuredBlogPosts = featuredPostSlugs.map(slug => ({
+// Filter to only include slugs that actually exist in blogPosts
+const featuredPostSlugs = desiredFeaturedSlugs.filter(slug => 
+  availableBlogPostSlugs.includes(slug)
+);
+
+// If we don't have any matching slugs, use the first few available posts
+const finalFeaturedPostSlugs = featuredPostSlugs.length > 0 
+  ? featuredPostSlugs 
+  : availableBlogPostSlugs.slice(0, 3);
+
+const featuredBlogPosts = finalFeaturedPostSlugs.map(slug => ({
   id: slug,
   title: blogPosts[slug].title,
   excerpt: blogPosts[slug].metaDescription,
