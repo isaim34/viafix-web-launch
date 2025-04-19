@@ -18,6 +18,11 @@ import { post as qualityToolsMobileMechanics } from './posts/quality-tools-mobil
 import { post as vehiclePartSuppliers } from './posts/vehicle-part-suppliers';
 import { post as buildingTrustMobileMechanic } from './posts/building-trust-mobile-mechanic';
 
+// Import new vendor blog posts
+import { post as howViafixSupportsMechanics } from './posts/how-viafix-supports-mechanics';
+import { post as buildingMobileMechanicTrust } from './posts/building-mobile-mechanic-trust';
+import { post as mobileMechanicInsuranceBasics } from './posts/mobile-mechanic-insurance-basics';
+
 export const blogPosts: BlogPostsCollection = {
   'car-maintenance-basics': carMaintenanceBasics,
   'find-trusted-service-provider': findTrustedServiceProvider,
@@ -35,7 +40,12 @@ export const blogPosts: BlogPostsCollection = {
   'becoming-viafix-vendor': becomingViafixVendor,
   'quality-tools-mobile-mechanics': qualityToolsMobileMechanics,
   'vehicle-part-suppliers': vehiclePartSuppliers,
-  'building-trust-mobile-mechanic': buildingTrustMobileMechanic
+  'building-trust-mobile-mechanic': buildingTrustMobileMechanic,
+  
+  // Add new vendor blog posts
+  'how-viafix-supports-mechanics': howViafixSupportsMechanics,
+  'building-mobile-mechanic-trust': buildingMobileMechanicTrust,
+  'mobile-mechanic-insurance-basics': mobileMechanicInsuranceBasics
 };
 
 export default blogPosts;
