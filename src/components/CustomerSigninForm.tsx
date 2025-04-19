@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +28,6 @@ const CustomerSigninForm = () => {
   const location = useLocation();
   const [showPassword, setShowPassword] = React.useState(false);
   
-  // Get redirect information from location state (if available)
   const redirectTo = location.state?.redirectTo || '/';
   const redirectAction = location.state?.action || null;
   
@@ -44,29 +42,22 @@ const CustomerSigninForm = () => {
   const onSubmit = (data: CustomerFormValues) => {
     console.log('Customer signin data:', data);
     
-    // Extract username from email (for demo purposes)
-    const userName = data.email.split('@')[0];
-    const formattedName = userName
-      .split(/[._-]/)
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
+    const storedName = localStorage.getItem(`registered_${data.email}`);
     
-    // Simulate successful login - store auth info in localStorage for demo
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'customer');
     localStorage.setItem('userId', 'customer-123');
-    localStorage.setItem('userName', formattedName);
+    localStorage.setItem('userName', storedName || 'Customer');
     
-    // Show success toast
+    window.dispatchEvent(new Event('storage-event'));
+    
     toast({
-      title: `Welcome back, ${formattedName}!`,
+      title: `Welcome back${storedName ? `, ${storedName}` : ''}!`,
       description: "You have successfully signed in.",
     });
     
-    // Navigate to the redirect path or home page
     navigate(redirectTo);
     
-    // If there was a specific action requested before login, show appropriate toast
     if (redirectAction) {
       setTimeout(() => {
         if (redirectAction === 'book') {

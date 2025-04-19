@@ -30,6 +30,11 @@ const CustomerSignupForm = () => {
   const onSubmit = (data: BaseUserFormValues) => {
     console.log('Customer signup data:', data);
     
+    // Store the full name in localStorage for this demo
+    // In a real app, this would be stored in a database
+    const fullName = `${data.firstName} ${data.lastName}`;
+    localStorage.setItem(`registered_${data.email}`, fullName);
+    
     // Simulate API call for account creation
     toast({
       title: "Account created!",
@@ -39,7 +44,10 @@ const CustomerSignupForm = () => {
     // Navigate to 2FA setup with user data
     navigate('/two-factor-auth', { 
       state: { 
-        userData: data,
+        userData: {
+          ...data,
+          fullName
+        },
         userType: 'customer' 
       } 
     });

@@ -42,7 +42,7 @@ const MechanicSigninForm = () => {
     // Store auth data in localStorage
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'mechanic');
-    localStorage.setItem('userName', data.email.split('@')[0]);
+    localStorage.setItem('userName', data.email.split('@')[0]); // We will remove this
     localStorage.setItem('userId', Math.random().toString(36).substring(2, 9));
     
     // Dispatch storage event to notify all components
