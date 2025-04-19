@@ -154,4 +154,4 @@ const blogPosts: BlogPostsCollection = {
 };
 
 export default blogPosts;
-export type { BlogPost, BlogPostsCollection };
+export { BlogPost, BlogPostsCollection };
