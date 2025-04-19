@@ -9,6 +9,11 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const handleSupportClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.location.href = 'mailto:support@tryviafix.com';
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -34,7 +39,8 @@ export const Layout = ({ children }: LayoutProps) => {
                 Terms
               </Link>
               <a 
-                href="mailto:support@tryviafix.com" 
+                href="#" 
+                onClick={handleSupportClick}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Support
