@@ -1,11 +1,10 @@
-
 import { mechanicsDetailedData } from '@/data/mechanicsData';
 
 export const mechanicsData = [
   {
     id: '1',
     name: 'Alex Johnson',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+    avatar: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
     specialties: ['Engine Repair', 'Diagnostics'],
     rating: 4.8,
     reviewCount: 127,
@@ -70,7 +69,6 @@ export const mechanicsData = [
     hourlyRate: 95,
     zipCode: '73301'
   },
-  // Adding 3 test mechanics with zip code 01605 (Worcester, MA)
   {
     id: 'test1',
     name: 'John Smith',

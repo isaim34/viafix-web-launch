@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Gig, GigFormValues } from '@/components/gig/types';
@@ -11,7 +10,7 @@ const sampleGigs = [
     description: 'Complete inspection of all major systems including engine, transmission, brakes, and suspension.',
     price: 75,
     duration: '1 hour',
-    image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60', // Car inspection image
     status: 'active'
   },
   {
@@ -20,7 +19,7 @@ const sampleGigs = [
     description: 'Complete oil change with filter replacement. Premium synthetic oil included.',
     price: 65,
     duration: '30 min',
-    image: 'https://images.unsplash.com/photo-1599256879960-6ead7c9d1ae4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    image: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60', // Oil change image
     status: 'active'
   }
 ];
