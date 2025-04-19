@@ -1,3 +1,4 @@
+
 import { BlogPost, BlogPostsCollection } from '@/types/blog';
 
 const blogPosts: BlogPostsCollection = {
@@ -127,7 +128,7 @@ const blogPosts: BlogPostsCollection = {
 <p>ViaFix offers a straightforward monthly subscription model that connects you directly with skilled, independent mechanics in Austin, TX. Here's what makes us unique:</p>
 
 <h3>Simple Pricing, No Hidden Fees</h3>
-<p>We charge a low monthly subscription fee that gives you access to our network of ASE-certified mechanics. Unlike traditional platforms, we do <strong>NOT</strong> take any commission from repair costs. Mechanics keep 100% of their repair earnings, ensuring they are fairly compensated for their expertise.</p>
+<p>We charge a low monthly subscription fee that gives you access to our network of ASE-certified mechanics. Unlike traditional platforms, we take <strong>NO commission</strong> from repair costs. Mechanics keep 100% of their repair earnings, ensuring they are fairly compensated for their expertise.</p>
 
 <h3>Benefits for Vehicle Owners</h3>
 <ul>
@@ -139,10 +140,11 @@ const blogPosts: BlogPostsCollection = {
 
 <h3>Benefits for Mechanics</h3>
 <ul>
-  <li>Keep 100% of repair earnings</li>
+  <li>Keep 100% of repair earnings - we take NO commission</li>
+  <li>Pay only a low monthly subscription fee</li>
   <li>Flexible, gig-based work opportunities</li>
   <li>Direct connection with vehicle owners</li>
-  <li>No commission or hidden platform fees</li>
+  <li>No percentage fees or hidden platform charges</li>
 </ul>
 
 <h2>Get Started Today</h2>
