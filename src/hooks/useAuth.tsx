@@ -42,6 +42,8 @@ export function useAuth() {
     
     // Trigger a storage event for cross-tab updates
     window.dispatchEvent(new Event('storage-event'));
+    
+    console.log('Username updated to:', newName);
   };
 
   return {

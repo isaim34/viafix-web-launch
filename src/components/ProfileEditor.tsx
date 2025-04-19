@@ -19,15 +19,21 @@ const ProfileEditor = () => {
         const parsedData = JSON.parse(savedProfileData);
         console.log('Loading saved profile data:', parsedData);
         setProfileData(parsedData);
+        
+        // When profile data is loaded, ensure the header username is in sync
+        if (parsedData.firstName && parsedData.lastName) {
+          const fullName = `${parsedData.firstName} ${parsedData.lastName}`;
+          updateUserName(fullName);
+        }
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
       }
     }
-  }, [storageKey]);
+  }, [storageKey, updateUserName]);
   
   const onSubmit = (data: BasicProfileFormValues) => {
     console.log('Updated profile data:', data);
-    console.log('Profile image being saved:', data.profileImage?.substring(0, 50) + '...');
+    console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
     
     // Ensure we have the profile image in the data
     if (!data.profileImage && profileData.profileImage) {
