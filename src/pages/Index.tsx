@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { HeroSection } from '@/components/HeroSection';
 import { FeaturedMechanics } from '@/components/FeaturedMechanics';
 import { BlogSection } from '@/components/BlogSection';
+import { LinkChecker } from '@/components/LinkChecker';
 import { motion } from 'framer-motion';
 import { Shield, ThumbsUp, Clock, Wrench, Settings, Car } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -95,6 +95,8 @@ const Index = () => {
         </script>
       </Helmet>
       <HeroSection />
+      
+      {process.env.NODE_ENV === 'development' && <LinkChecker />}
       
       {/* How it works */}
       <section id="features" className="py-20 bg-gray-50">
