@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -9,15 +8,12 @@ import { Card } from '@/components/ui/card';
 import { blogPosts as blogPostsData } from '@/data/blog';
 import { BlogPost } from '@/types/blog';
 
-// Create an array of the featured blog posts for the home page section
-// Focus on educational content and platform information
 const featuredPostSlugs = [
   'car-maintenance-basics',
   'find-trusted-service-provider', 
   'auto-repair-tips'
 ];
 
-// Filter out any slugs that don't exist in blogPosts
 const validFeaturedSlugs = featuredPostSlugs.filter(slug => 
   blogPostsData[slug as keyof typeof blogPostsData] !== undefined
 );
@@ -119,7 +115,7 @@ export const BlogSection = () => {
               </Button>
             </Link>
             
-            <Link to="/find-service-provider">
+            <Link to="/mechanics">
               <Button 
                 variant="default" 
                 size="lg"

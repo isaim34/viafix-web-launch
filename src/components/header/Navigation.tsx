@@ -1,34 +1,22 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export const Navigation = () => {
   return (
     <nav className="hidden md:flex items-center space-x-8">
-      <NavLink 
-        to="/"
-        className={({ isActive }) => `text-sm font-medium transition-colors ${
-          isActive ? 'text-primary' : 'text-foreground hover:text-primary'
-        }`}
-      >
+      <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
         Home
-      </NavLink>
-      <NavLink 
-        to="/mechanics"
-        className={({ isActive }) => `text-sm font-medium transition-colors ${
-          isActive ? 'text-primary' : 'text-foreground hover:text-primary'
-        }`}
-      >
-        Mechanics
-      </NavLink>
-      <NavLink 
-        to="/how-it-works"
-        className={({ isActive }) => `text-sm font-medium transition-colors ${
-          isActive ? 'text-primary' : 'text-foreground hover:text-primary'
-        }`}
-      >
+      </Link>
+      <Link to="/mechanics" className="text-gray-700 hover:text-primary transition-colors">
+        Find Mechanics 
+      </Link>
+      <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors">
+        Blog
+      </Link>
+      <Link to="/how-it-works" className="text-gray-700 hover:text-primary transition-colors">
         How It Works
-      </NavLink>
+      </Link>
     </nav>
   );
 };

@@ -1,56 +1,33 @@
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { NavLink } from 'react-router-dom';
-import { AuthButtons } from './AuthButtons';
+import { Link } from 'react-router-dom';
 
 interface MobileMenuProps {
   isOpen: boolean;
 }
 
-export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen }) => {
+export const MobileMenu = ({ isOpen }: MobileMenuProps) => {
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2 }}
-          className="md:hidden border-t"
-        >
-          <div className="px-4 py-4 space-y-3">
-            <NavLink 
-              to="/"
-              className={({ isActive }) => `block py-2 px-3 rounded-md ${
-                isActive ? 'bg-primary/10 text-primary' : 'hover:bg-accent'
-              }`}
-            >
-              Home
-            </NavLink>
-            <NavLink 
-              to="/mechanics"
-              className={({ isActive }) => `block py-2 px-3 rounded-md ${
-                isActive ? 'bg-primary/10 text-primary' : 'hover:bg-accent'
-              }`}
-            >
-              Mechanics
-            </NavLink>
-            <NavLink 
-              to="/how-it-works"
-              className={({ isActive }) => `block py-2 px-3 rounded-md ${
-                isActive ? 'bg-primary/10 text-primary' : 'hover:bg-accent'
-              }`}
-            >
-              How It Works
-            </NavLink>
-            
-            <div className="pt-4 mt-4 border-t">
-              <AuthButtons isMobile={true} />
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className="md:hidden">
+      <div className="fixed inset-0 z-40 bg-black bg-opacity-50" />
+      <nav className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-xl">
+        <div className="flex flex-col p-4 space-y-4">
+          <Link to="/" className="text-gray-700 hover:text-primary transition-colors py-2">
+            Home
+          </Link>
+          <Link to="/mechanics" className="text-gray-700 hover:text-primary transition-colors py-2">
+            Find Mechanics
+          </Link>
+          <Link to="/blog" className="text-gray-700 hover:text-primary transition-colors py-2">
+            Blog
+          </Link>
+          <Link to="/how-it-works" className="text-gray-700 hover:text-primary transition-colors py-2">
+            How It Works
+          </Link>
+        </div>
+      </nav>
+    </div>
   );
 };
