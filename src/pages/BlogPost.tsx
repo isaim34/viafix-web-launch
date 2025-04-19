@@ -13,7 +13,9 @@ import { Card } from '@/components/ui/card';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = slug ? blogPosts[slug as keyof typeof blogPosts] : null;
+  console.log("Current blog post slug:", slug);
+  const post = slug ? blogPosts[slug] : null;
+  console.log("Found blog post:", post);
   
   if (!post) {
     return (
@@ -21,6 +23,7 @@ const BlogPost = () => {
         <div className="container mx-auto px-4 sm:px-6 py-12">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Post not found</h1>
+            <p className="mb-4">The blog post you're looking for doesn't exist or has been moved.</p>
             <Link to="/blog" className="text-primary hover:underline">
               Back to blog
             </Link>
@@ -42,10 +45,16 @@ const BlogPost = () => {
         {/* Content section */}
         <div className="container mx-auto px-4 sm:px-6 py-12">
           <div className="max-w-3xl mx-auto">
-            <Card className="p-8 shadow-md">
-              {/* Main Content */}
-              <BlogPostContent content={post.content} />
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="p-8 shadow-md">
+                {/* Main Content */}
+                <BlogPostContent content={post.content} />
+              </Card>
+            </motion.div>
             
             {/* Comment section */}
             <div className="mt-8">
