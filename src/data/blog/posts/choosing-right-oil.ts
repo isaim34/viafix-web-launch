@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2023-10-30',
   author: 'Fiona White',
   category: 'Maintenance',
-  image: '/lovable-uploads/49995959-6669-4649-8999-999999999999.png',
+  image: '/lovable-uploads/motor-oil-types.jpg',
   metaDescription: 'Understanding motor oil types, viscosity grades, and how to choose the best oil for your vehicle. Learn about synthetic vs. conventional oils and manufacturer recommendations.',
   content: `
     <h1>Choosing the Right Oil for Your Vehicle</h1>

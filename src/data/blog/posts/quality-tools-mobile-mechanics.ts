@@ -5,7 +5,7 @@ export const post: BlogPost = {
   date: '2025-04-15',
   author: 'Mike Rodriguez',
   category: 'Tools',
-  image: '/lovable-uploads/2cfc70ff-cf79-4d44-aff0-00bb60306f80.png',
+  image: '/lovable-uploads/mechanic-tools.jpg',
   metaDescription: 'Discover the essential tools every mobile mechanic needs for success, from diagnostic equipment to specialty tools, and learn about future ViaFix tool partnership opportunities.',
   content: `
     <h1>Essential Quality Tools Every Mobile Mechanic Needs</h1>

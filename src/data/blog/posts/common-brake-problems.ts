@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2023-08-01',
   author: 'Hannah Green',
   category: 'Repair',
-  image: '/lovable-uploads/22222222-2222-2222-2222-222222222222.png',
+  image: '/lovable-uploads/brake-repair.jpg',
   metaDescription: 'Learn to identify common brake problems, understand their causes, and know when to seek professional help. Essential guide for vehicle safety and maintenance.',
   content: `
     <h1>Common Brake Problems and How to Address Them</h1>

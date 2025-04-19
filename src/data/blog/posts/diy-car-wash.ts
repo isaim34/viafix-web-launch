@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2023-07-10',
   author: 'Isaac Brown',
   category: 'Maintenance',
-  image: '/lovable-uploads/33333333-3333-3333-3333-333333333333.png',
+  image: '/lovable-uploads/car-washing-tips.jpg',
   metaDescription: 'Learn professional car washing techniques you can do at home. Get tips for achieving a showroom-quality finish while protecting your vehicle\'s paint and saving money.',
   content: `
     <h1>DIY Car Wash: Tips and Tricks for a Spotless Finish</h1>

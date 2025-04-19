@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2023-09-15',
   author: 'George Black',
   category: 'Maintenance',
-  image: '/lovable-uploads/77777777-7777-7777-7777-777777777777.png',
+  image: '/lovable-uploads/tire-maintenance.jpg',
   metaDescription: 'Learn proven strategies and maintenance tips to maximize your tire life, improve safety, and save money on replacements. Expert advice on tire care and maintenance.',
   content: `
     <h1>How to Extend the Life of Your Tires</h1>

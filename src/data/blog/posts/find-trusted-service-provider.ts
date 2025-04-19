@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2024-03-01',
   author: 'Alice Johnson',
   category: 'Service',
-  image: '/lovable-uploads/69f7999b-1c91-4c96-9191-440a78917c43.png',
+  image: '/lovable-uploads/trusted-mechanic.jpg',
   metaDescription: 'Discover proven strategies for finding a reliable, honest, and skilled auto service provider to keep your vehicle in top condition.',
   content: `
     <h1>Finding a Trusted Auto Service Provider: What You Need to Know</h1>

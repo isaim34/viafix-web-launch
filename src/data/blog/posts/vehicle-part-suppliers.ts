@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2025-04-12',
   author: 'Michael Chen',
   category: 'Parts',
-  image: '/lovable-uploads/8c83d7f4-0ce4-49c7-90a2-92a24cd5e29a.png',
+  image: '/lovable-uploads/auto-parts-supply.jpg',
   metaDescription: 'Learn key strategies for mobile mechanics to establish reliable parts supply chains, evaluate quality vs. cost, and develop relationships with parts suppliers.',
   content: `
     <h1>Working with Vehicle Part Suppliers: What to Consider as a Mobile Mechanic</h1>

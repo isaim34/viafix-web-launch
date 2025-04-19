@@ -5,7 +5,7 @@ export const post: BlogPost = {
   date: '2025-04-18',
   author: 'ViaFix Team',
   category: 'Service',
-  image: '/lovable-uploads/489f7032-b400-43c3-a86b-2f163b4ca524.png',
+  image: '/lovable-uploads/viafix-service.jpg',
   metaDescription: 'Discover how ViaFix is transforming vehicle maintenance with on-demand mobile mechanic services that bring convenient, quality repairs directly to your location.',
   content: `
     <h1>How ViaFix is Changing the Way People Access Vehicle Maintenance</h1>

@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -6,7 +5,7 @@ export const post: BlogPost = {
   date: '2023-12-10',
   author: 'Diana Rodriguez',
   category: 'Service',
-  image: '/lovable-uploads/91296558-5969-464d-91a8-39f4918a8169.png',
+  image: '/lovable-uploads/mobile-mechanic-service.jpg',
   metaDescription: 'Discover why mobile mechanic services are becoming increasingly popular and how they can save you time, money, and hassle with convenient auto repairs at your location.',
   content: `
     <h1>The Benefits of Using a Mobile Mechanic Service</h1>

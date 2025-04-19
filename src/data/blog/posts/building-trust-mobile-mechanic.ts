@@ -5,7 +5,7 @@ export const post: BlogPost = {
   date: '2025-04-16',
   author: 'Sarah Johnson',
   category: 'Business Growth',
-  image: '/lovable-uploads/b991d0cd-8d45-457b-a5c9-db342ae34022.png',
+  image: '/lovable-uploads/mechanic-customer-trust.jpg',
   metaDescription: 'Learn essential strategies for building and maintaining trust with customers as a mobile mechanic, including communication tips, service quality standards, and business best practices.',
   content: `
     <h1>Building Trust as a Mobile Mechanic: A Guide to Long-Term Success</h1>

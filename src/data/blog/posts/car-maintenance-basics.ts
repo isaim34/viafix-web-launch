@@ -5,7 +5,7 @@ export const post: BlogPost = {
   date: '2024-01-05',
   author: 'John Smith',
   category: 'Maintenance',
-  image: '/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png',
+  image: '/lovable-uploads/basic-car-maintenance.jpg',
   metaDescription: 'Learn the fundamental aspects of car maintenance that every vehicle owner should understand to keep their car running smoothly and avoid costly repairs.',
   content: `
     <h1>Essential Car Maintenance Basics Every Owner Should Know</h1>
