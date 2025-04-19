@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Header } from './Header';
 import { motion } from 'framer-motion';
@@ -11,7 +10,18 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const handleSupportClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    window.location.href = 'mailto:support@tryviafix.com';
+    const email = 'support@tryviafix.com';
+    const subject = 'ViaFix Support Request';
+    const body = 'Hello ViaFix Support Team,\n\nI need assistance with...';
+    
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    try {
+      window.location.href = mailtoLink;
+    } catch (error) {
+      console.error('Failed to open email client:', error);
+      alert('Please send an email to support@tryviafix.com');
+    }
   };
 
   return (
