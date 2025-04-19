@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   FormControl,
@@ -22,7 +21,15 @@ const SpecialtiesField: React.FC<SpecialtiesFieldProps> = ({ control }) => {
       name="specialties"
       render={({ field }) => {
         // Convert array to comma-separated string if it's an array
-        const value = Array.isArray(field.value) ? field.value.join(', ') : field.value;
+        const displayValue = Array.isArray(field.value) 
+          ? field.value.join(', ') 
+          : field.value || '';
+        
+        // Create a handler that keeps the original field behavior but formats our value
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const inputValue = e.target.value;
+          field.onChange(inputValue);
+        };
         
         return (
           <FormItem>
@@ -30,8 +37,8 @@ const SpecialtiesField: React.FC<SpecialtiesFieldProps> = ({ control }) => {
             <FormControl>
               <Input 
                 {...field} 
-                value={value}
-                onChange={(e) => field.onChange(e.target.value)}
+                value={displayValue}
+                onChange={handleChange}
               />
             </FormControl>
             <FormDescription>

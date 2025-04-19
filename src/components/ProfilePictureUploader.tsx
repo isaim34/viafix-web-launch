@@ -24,7 +24,7 @@ const ProfilePictureUploader = ({
       console.log('Updating image URL from props:', initialImageUrl.substring(0, 50) + '...');
       setImageUrl(initialImageUrl);
     }
-  }, [initialImageUrl]);
+  }, [initialImageUrl, imageUrl]);
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -75,6 +75,7 @@ const ProfilePictureUploader = ({
           size="icon" 
           className="absolute bottom-0 right-0 rounded-full w-8 h-8"
           onClick={triggerFileInput}
+          type="button"
         >
           <Camera className="h-4 w-4" />
         </Button>
@@ -92,6 +93,7 @@ const ProfilePictureUploader = ({
         size="sm" 
         className="flex items-center gap-2"
         onClick={triggerFileInput}
+        type="button"
       >
         Upload Photo
       </Button>

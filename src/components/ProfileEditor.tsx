@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
-  const { currentUserRole } = useAuth();
+  const { currentUserRole, updateUserName } = useAuth();
   const [profileData, setProfileData] = useState<BasicProfileFormValues>(sampleMechanicProfile);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
 
@@ -50,10 +50,10 @@ const ProfileEditor = () => {
     // Update username in localStorage if name has changed
     if (data.firstName && data.lastName) {
       const fullName = `${data.firstName} ${data.lastName}`;
-      localStorage.setItem('userName', fullName);
       
-      // Trigger storage event for cross-tab updates
-      window.dispatchEvent(new Event('storage-event'));
+      // Use the updateUserName function from useAuth to ensure proper updates
+      updateUserName(fullName);
+      
       console.log('Updated userName in localStorage to:', fullName);
     }
     

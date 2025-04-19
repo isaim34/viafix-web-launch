@@ -35,11 +35,21 @@ export function useAuth() {
     };
   }, []);
 
+  // Add function to update user name
+  const updateUserName = (newName: string) => {
+    localStorage.setItem('userName', newName);
+    setCurrentUserName(newName);
+    
+    // Trigger a storage event for cross-tab updates
+    window.dispatchEvent(new Event('storage-event'));
+  };
+
   return {
     isCustomerLoggedIn,
     isMechanicLoggedIn,
     isLoggedIn: isCustomerLoggedIn || isMechanicLoggedIn,
     currentUserName,
     currentUserRole,
+    updateUserName,
   };
 }

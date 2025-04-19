@@ -29,6 +29,11 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   useEffect(() => {
     if (initialData) {
       console.log('Setting form values from initialData:', initialData);
+      
+      // Reset form with new values
+      form.reset(initialData);
+      
+      // Explicitly set each field to ensure proper update
       Object.entries(initialData).forEach(([key, value]) => {
         if (value !== undefined) {
           form.setValue(key as keyof BasicProfileFormValues, value, {
@@ -44,6 +49,11 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   const handleSubmit = (data: BasicProfileFormValues) => {
     console.log('Form submission triggered with data:', data);
     console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
+    
+    // Parse specialties if it's a string
+    if (typeof data.specialties === 'string') {
+      data.specialties = data.specialties.split(',').map(s => s.trim()).filter(s => s);
+    }
     
     if (onSubmit) {
       onSubmit(data);
