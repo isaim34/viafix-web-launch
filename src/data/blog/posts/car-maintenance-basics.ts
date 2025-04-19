@@ -1,68 +1,81 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
-  title: 'Car Maintenance Basics: Keeping Your Vehicle in Top Shape',
-  date: '2025-04-15',
-  author: 'ViaFix Team',
+  title: 'Essential Car Maintenance Basics Every Owner Should Know',
+  date: '2024-01-05',
+  author: 'John Smith',
   category: 'Maintenance',
-  image: '/lovable-uploads/c9506907-b57c-4c55-95e1-fcc9e22a5a23.png',
-  metaDescription: 'Learn essential car maintenance tips to keep your vehicle running smoothly, extend its lifespan, and prevent costly repairs.',
+  image: '/lovable-uploads/1ab9806b-4f6f-4b90-ab8d-dda363292b09.png',
+  metaDescription: 'Learn the fundamental aspects of car maintenance that every vehicle owner should understand to keep their car running smoothly and avoid costly repairs.',
   content: `
-    <h1>Car Maintenance Basics: A Comprehensive Guide</h1>
-    
-    <p>Proper car maintenance is crucial for ensuring your vehicle's longevity, performance, and safety. By following a regular maintenance schedule, you can prevent unexpected breakdowns, save money on repairs, and maintain your car's value.</p>
-    
-    <h2>1. Regular Oil Changes</h2>
-    <p>Oil is the lifeblood of your engine. Regular oil changes help:</p>
+    <h1>Essential Car Maintenance Basics Every Owner Should Know</h1>
+
+    <p>Understanding basic car maintenance can save you time, money, and prevent unexpected breakdowns. This guide covers the essential maintenance tasks that every car owner should be familiar with.</p>
+
+    <h2>Regular Maintenance Schedule</h2>
+
+    <p>Following a regular maintenance schedule is crucial for your vehicle's longevity:</p>
+
     <ul>
-      <li>Reduce engine wear</li>
-      <li>Improve fuel efficiency</li>
-      <li>Prevent overheating</li>
+      <li><strong>Oil Changes:</strong> Typically every 5,000-7,500 miles</li>
+      <li><strong>Tire Rotation:</strong> Every 5,000-8,000 miles</li>
+      <li><strong>Brake Inspection:</strong> Every 12,000 miles</li>
+      <li><strong>Air Filter:</strong> Every 15,000-30,000 miles</li>
     </ul>
-    <p>Typically, you should change your oil every 5,000 to 7,500 miles, depending on your vehicle and driving conditions.</p>
-    
-    <h2>2. Tire Maintenance</h2>
-    <p>Proper tire care is essential for safety and performance:</p>
+
+    <h2>Fluid Checks</h2>
+
+    <p>Regular fluid checks are essential:</p>
+
     <ul>
-      <li>Check tire pressure monthly</li>
-      <li>Rotate tires every 5,000-7,500 miles</li>
-      <li>Align wheels to prevent uneven wear</li>
-      <li>Replace tires when tread depth is low</li>
-    </ul>
-    
-    <h2>3. Brake System Check</h2>
-    <p>Your brakes are critical for safety. Regular maintenance includes:</p>
-    <ul>
-      <li>Checking brake pad thickness</li>
-      <li>Inspecting brake fluid levels</li>
-      <li>Listening for unusual noises</li>
-      <li>Replacing brake components as needed</li>
-    </ul>
-    
-    <h2>4. Battery and Electrical System</h2>
-    <p>Maintain your car's electrical system by:</p>
-    <ul>
-      <li>Checking battery terminals for corrosion</li>
-      <li>Testing battery charge</li>
-      <li>Replacing battery every 3-5 years</li>
-      <li>Checking alternator and starter</li>
-    </ul>
-    
-    <h2>5. Fluid Levels</h2>
-    <p>Regularly check and top up these essential fluids:</p>
-    <ul>
-      <li>Coolant/Antifreeze</li>
-      <li>Transmission fluid</li>
-      <li>Power steering fluid</li>
+      <li>Engine oil level</li>
+      <li>Coolant level</li>
       <li>Brake fluid</li>
+      <li>Power steering fluid</li>
       <li>Windshield washer fluid</li>
     </ul>
-    
+
+    <blockquote>
+      "Prevention is better than cure - this applies perfectly to car maintenance." — Experienced Mechanic
+    </blockquote>
+
+    <h2>Tire Maintenance</h2>
+
+    <p>Proper tire care ensures safety and performance:</p>
+
+    <ul>
+      <li>Check tire pressure monthly</li>
+      <li>Inspect tread depth regularly</li>
+      <li>Look for uneven wear patterns</li>
+      <li>Rotate tires according to schedule</li>
+    </ul>
+
+    <h2>When to Seek Professional Help</h2>
+
+    <p>Know when to contact a professional mechanic:</p>
+
+    <ul>
+      <li>Check engine light illuminated</li>
+      <li>Unusual noises or vibrations</li>
+      <li>Fluid leaks</li>
+      <li>Brake issues</li>
+      <li>Complex repairs</li>
+    </ul>
+
+    <h2>ViaFix Solutions</h2>
+
+    <p>Through ViaFix, you can:</p>
+
+    <ul>
+      <li>Schedule regular maintenance</li>
+      <li>Track your vehicle's service history</li>
+      <li>Get expert advice from certified mechanics</li>
+      <li>Have services performed at your location</li>
+    </ul>
+
     <h2>Conclusion</h2>
-    <p>By following these maintenance basics, you can keep your vehicle running smoothly, improve its performance, and avoid costly repairs. Remember, prevention is always better than cure!</p>
-    
-    <blockquote>Pro Tip: Keep a maintenance log to track your car's service history and stay on top of routine checks.</blockquote>
+
+    <p>Regular maintenance is key to keeping your vehicle reliable and maintaining its value. When you need professional help, ViaFix connects you with qualified mobile mechanics who can service your vehicle at your convenience.</p>
   `,
-  tags: ['maintenance', 'car care', 'vehicle tips']
+  tags: ['car maintenance', 'vehicle care', 'DIY maintenance', 'auto service']
 };

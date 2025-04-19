@@ -1,4 +1,3 @@
-
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -39,8 +38,6 @@ export const post: BlogPost = {
     <h2>Building Partnerships for Better Service</h2>
     
     <p>Moving forward, we're exploring relationships with tool suppliers, parts distributors, and service providers to enhance the experience for both mechanics and customers. These partnerships will eventually help our mechanics access quality parts and tools at competitive prices, allowing them to provide better service at fair rates.</p>
-    
-    <p>We believe that by focusing on quality service, transparent communication, and convenience, we can create a better vehicle maintenance experience for everyone involved.</p>
     
     <h2>What's Next for ViaFix?</h2>
     
