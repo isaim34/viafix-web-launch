@@ -1,6 +1,18 @@
-import { BlogPost } from './blogPosts';
 
-const blogPosts: Record<string, BlogPost> = {
+export interface BlogPost {
+  title: string;
+  image: string;
+  date: string;
+  author: string;
+  category: string;
+  tags: string[];
+  metaDescription: string;
+  content: string;
+}
+
+export type BlogPostsCollection = Record<string, BlogPost>;
+
+const blogPosts: BlogPostsCollection = {
   'car-maintenance-basics': {
     title: 'Essential Car Maintenance Basics',
     image: '/images/blog/car-maintenance.webp',
