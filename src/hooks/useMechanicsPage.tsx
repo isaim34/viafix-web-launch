@@ -91,9 +91,16 @@ export const useMechanicsPage = () => {
     const localUserName = localStorage.getItem('userName');
     const userAvatar = localStorage.getItem('mechanicAvatar') || localStorage.getItem('mechanic-avatar');
     
+    // Detailed logging for debugging purposes
+    console.log('Local mechanic profile:', localMechanicProfile);
+    console.log('User role:', userRole);
+    console.log('Username:', localUserName);
+    console.log('Local mechanic zip code:', localMechanicProfile.zipCode);
+    console.log('Search zip code:', zipCode);
+    
     // Check if the mechanic is already in the list to avoid duplicates
     const existingMechanicIndex = combinedMechanics.findIndex(m => 
-      m.name === `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`
+      m.name === `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}` || m.id === 'local-mechanic'
     );
     
     // Convert specialties string to array if it's a string
@@ -113,16 +120,23 @@ export const useMechanicsPage = () => {
       zipCode: localMechanicProfile.zipCode || '01605'
     };
     
+    console.log('Adding local mechanic to results:', localMechanic);
+    
     if (existingMechanicIndex >= 0) {
       // Update the existing mechanic
+      console.log('Updating existing mechanic at index:', existingMechanicIndex);
       combinedMechanics[existingMechanicIndex] = localMechanic;
     } else {
       // Add the local mechanic to the list
+      console.log('Adding new local mechanic to results');
       combinedMechanics.push(localMechanic);
     }
   }
   
   const filteredMechanics = combinedMechanics.filter(mechanic => {
+    // Debugging logs
+    console.log(`Filtering mechanic: ${mechanic.name}, id: ${mechanic.id}, zipCode: ${mechanic.zipCode}`);
+    
     // Search term filtering (name, specialties, location)
     const matchesSearch = !searchTerm ? true : (
       mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -143,9 +157,16 @@ export const useMechanicsPage = () => {
     
     // Special handling for the demo zip code 01605 (Worcester, MA)
     if (zipCode === '01605') {
+      // Ensure local mechanic is included when search is 01605
+      if (mechanic.id === 'local-mechanic') {
+        console.log('Including local mechanic in 01605 search results');
+        return matchesSearch;
+      }
+      
       // For the demo zip code, show all mechanics with 01605 zip code
-      // including our local mechanic profile and test profiles
-      return matchesSearch && (mechanic.zipCode === '01605' || mechanic.id === 'local-mechanic');
+      const result = matchesSearch && (mechanic.zipCode === '01605' || mechanic.id === 'local-mechanic');
+      console.log(`Mechanic ${mechanic.name} included in 01605 results: ${result}`);
+      return result;
     }
     
     // More flexible location matching when zip code is provided
@@ -166,6 +187,8 @@ export const useMechanicsPage = () => {
     // Fallback to exact zip code matching if we don't have location data yet
     return matchesSearch && mechanic.zipCode === zipCode;
   });
+
+  console.log('Final filtered mechanics:', filteredMechanics);
 
   return {
     zipCode,
