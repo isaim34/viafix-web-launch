@@ -13,9 +13,7 @@ import { ChevronLeft, Calendar } from 'lucide-react';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  console.log("Current blog post slug:", slug);
   const post = slug ? blogPosts[slug] : null;
-  console.log("Found blog post:", post);
   
   if (!post) {
     return (
@@ -36,14 +34,11 @@ const BlogPost = () => {
 
   return (
     <Layout>
-      {/* SEO Setup */}
       <BlogPostSEO post={post} slug={slug || ''} />
 
       <article className="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
-        {/* Hero and Header */}
         <BlogPostHeader post={post} slug={slug || ''} />
         
-        {/* Content section */}
         <div className="container mx-auto px-4 sm:px-6 py-12">
           <div className="max-w-4xl mx-auto">
             <motion.div
@@ -52,7 +47,6 @@ const BlogPost = () => {
               transition={{ duration: 0.5 }}
             >
               <Card className="p-8 md:p-12 shadow-xl bg-white/80 backdrop-blur-sm">
-                {/* Reading time and date info */}
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-8">
                   <div className="flex items-center space-x-4">
                     <span className="flex items-center">
@@ -62,12 +56,10 @@ const BlogPost = () => {
                   </div>
                 </div>
 
-                {/* Main Content */}
                 <BlogPostContent content={post.content} />
               </Card>
             </motion.div>
             
-            {/* Comment section with updated styling */}
             <div className="mt-12">
               <Card className="overflow-hidden bg-white/80 backdrop-blur-sm">
                 <div className="p-8">
@@ -76,7 +68,6 @@ const BlogPost = () => {
               </Card>
             </div>
             
-            {/* Tags and Related Articles */}
             <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPosts} />
           </div>
         </div>
