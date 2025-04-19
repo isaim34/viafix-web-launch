@@ -22,21 +22,26 @@ const BlogPost = () => {
   return (
     <Layout>
       <BlogPostSEO post={post} slug={slug || ''} />
-
-      <article className="min-h-screen">
+      
+      <article className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <BlogPostHeader post={post} slug={slug || ''} />
         
         <div className="container mx-auto px-4 sm:px-6 py-12">
           <div className="max-w-4xl mx-auto">
             <PostContainer post={post} />
             
-            <div className="mt-12">
-              <Card className="overflow-hidden">
+            <motion.div 
+              className="mt-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card className="overflow-hidden bg-white/80 backdrop-blur-sm">
                 <div className="p-8">
                   <CommentSection postSlug={slug || ''} />
                 </div>
               </Card>
-            </div>
+            </motion.div>
             
             <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPosts} />
           </div>
