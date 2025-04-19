@@ -29,17 +29,25 @@ export const useMechanicsPage = () => {
     }
   }, [reset]);
   
-  // Load local mechanic profile
+  // Load local mechanic profile only if the user is a mechanic
   useEffect(() => {
-    const storedProfile = localStorage.getItem('mechanicProfile');
-    if (storedProfile) {
-      try {
-        const profile = JSON.parse(storedProfile);
-        console.log('Loaded mechanic profile from localStorage:', profile);
-        setLocalMechanicProfile(profile);
-      } catch (error) {
-        console.error('Error parsing mechanic profile:', error);
+    const userRole = localStorage.getItem('userRole');
+    
+    // Only load mechanic profile if the user is actually a mechanic
+    if (userRole === 'mechanic') {
+      const storedProfile = localStorage.getItem('mechanicProfile');
+      if (storedProfile) {
+        try {
+          const profile = JSON.parse(storedProfile);
+          console.log('Loaded mechanic profile from localStorage:', profile);
+          setLocalMechanicProfile(profile);
+        } catch (error) {
+          console.error('Error parsing mechanic profile:', error);
+        }
       }
+    } else {
+      // Ensure local mechanic profile is null for non-mechanics
+      setLocalMechanicProfile(null);
     }
   }, []);
   
@@ -76,8 +84,10 @@ export const useMechanicsPage = () => {
   // Create a combined list of mechanics with the local profile included
   const combinedMechanics = [...mechanicsData];
   
-  // Add the local mechanic profile to the list if it exists
-  if (localMechanicProfile && localMechanicProfile.firstName && localMechanicProfile.lastName) {
+  // Add the local mechanic profile to the list if it exists AND the user is a mechanic
+  const userRole = localStorage.getItem('userRole');
+  
+  if (localMechanicProfile && localMechanicProfile.firstName && localMechanicProfile.lastName && userRole === 'mechanic') {
     const localUserName = localStorage.getItem('userName');
     const userAvatar = localStorage.getItem('mechanicAvatar') || localStorage.getItem('mechanic-avatar');
     

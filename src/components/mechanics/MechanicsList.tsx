@@ -28,7 +28,12 @@ interface MechanicsListProps {
 
 const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: MechanicsListProps) => {
   const locationDisplay = locationName || zipCode;
-  const { currentUserId } = useCustomerAuth();
+  const { currentUserId, currentUserRole } = useCustomerAuth();
+  
+  // Log the current user role for debugging
+  useEffect(() => {
+    console.log('MechanicsList - Current user role:', currentUserRole);
+  }, [currentUserRole]);
   
   useEffect(() => {
     // Check if component is mounting and if the zip code should be auto-populated
@@ -45,7 +50,8 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
       return true;
     };
     
-    if (shouldAutoPopulate()) {
+    // Only auto-populate zip code for mechanics
+    if (shouldAutoPopulate() && currentUserRole === 'mechanic') {
       const storedProfileData = localStorage.getItem('mechanicProfile');
       if (storedProfileData) {
         try {
@@ -59,7 +65,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
         }
       }
     }
-  }, [zipCode, setZipCode]);
+  }, [zipCode, setZipCode, currentUserRole]);
 
   // Determine which mechanics to display
   const displayMechanics = mechanics.length > 0 

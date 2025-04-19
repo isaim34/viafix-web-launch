@@ -7,6 +7,7 @@ export function useCustomerAuth() {
   const [userName, setUserName] = useState(localStorage.getItem('userName') || 'Customer');
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
   const [isCustomerLoggedIn, setIsCustomerLoggedIn] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   
   useEffect(() => {
     // Enhanced auth status check
@@ -22,6 +23,8 @@ export function useCustomerAuth() {
         !!storedUserId; // Ensure userId is present and convert to boolean
       
       setIsCustomerLoggedIn(isValidLogin);
+      setCurrentUserRole(userRole);
+      
       if (storedUserName) setUserName(storedUserName);
       if (storedUserId) setUserId(storedUserId);
       
@@ -57,6 +60,7 @@ export function useCustomerAuth() {
     isCustomerLoggedIn: isCustomerLoggedIn,
     currentUserId: userId,
     currentUserName: userName,
+    currentUserRole: currentUserRole,
     updateUserName,
   };
 }
