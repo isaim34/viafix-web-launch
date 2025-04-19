@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,10 +24,8 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   const { isLoggedIn, currentUserName, currentUserRole, currentUserId } = useCustomerAuth();
   const [forceUpdate, setForceUpdate] = useState(0);
   
-  // Force component to update when authentication state changes
   useEffect(() => {
     const handleStorageEvent = () => {
-      // Force re-render when auth state changes
       setForceUpdate(prev => prev + 1);
     };
     
@@ -36,19 +33,16 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     return () => window.removeEventListener('storage-event', handleStorageEvent);
   }, []);
   
-  // Get customer profile image if available
   const profileImage = currentUserRole === 'customer' 
     ? localStorage.getItem(`customer-${currentUserId}-profileImage`) || ''
     : '';
 
   const handleLogout = () => {
-    // Clear auth data
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
     
-    // Dispatch storage event to notify all components
     window.dispatchEvent(new Event('storage-event'));
     
     toast({
@@ -59,14 +53,22 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     navigate('/', { replace: true });
   };
 
-  // Check if user is actually logged in by verifying localStorage directly
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole');
   const userName = localStorage.getItem('userName') || currentUserName;
   
-  // Determine if we should show auth buttons
+  const getProfileRoute = () => {
+    switch(userRole) {
+      case 'customer':
+        return '/profile';
+      case 'mechanic':
+        return '/mechanic-dashboard';
+      default:
+        return '/';
+    }
+  };
+
   if (userLoggedIn) {
-    // User is logged in, show profile section
     return (
       <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
         <div className="text-sm">
@@ -97,23 +99,21 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             
-            {userRole === 'customer' && (
-              <DropdownMenuItem asChild>
-                <Link to="/profile" className="flex items-center cursor-pointer">
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Your Profile</span>
-                </Link>
-              </DropdownMenuItem>
-            )}
-            
-            {userRole === 'mechanic' && (
-              <DropdownMenuItem asChild>
-                <Link to="/mechanic-dashboard" className="flex items-center cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem asChild>
+              <Link to={getProfileRoute()} className="flex items-center cursor-pointer">
+                {userRole === 'customer' ? (
+                  <>
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Your Profile</span>
+                  </>
+                ) : (
+                  <>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </>
+                )}
+              </Link>
+            </DropdownMenuItem>
             
             <DropdownMenuItem onClick={handleLogout} className="text-red-600">
               <LogOut className="mr-2 h-4 w-4" />
@@ -125,12 +125,10 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     );
   }
 
-  // Don't show auth buttons on mechanic dashboard if not logged in
   if (location.pathname.includes('/mechanic-dashboard') && !userLoggedIn) {
     return null;
   }
 
-  // Not logged in, show login/signup buttons
   return (
     <div className={isMobile ? "space-y-3" : "space-x-4"}>
       <Button 
