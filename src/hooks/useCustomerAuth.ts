@@ -9,45 +9,46 @@ export function useCustomerAuth() {
   const [isCustomerLoggedIn, setIsCustomerLoggedIn] = useState(false);
   
   useEffect(() => {
-    // Check auth status directly from localStorage
+    // Enhanced auth status check
     const checkAuth = () => {
       const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
       const userRole = localStorage.getItem('userRole');
       const storedUserName = localStorage.getItem('userName');
       const storedUserId = localStorage.getItem('userId');
       
-      // Consider both customer and mechanic as valid logged-in users
-      setIsCustomerLoggedIn(userLoggedIn && (userRole === 'customer' || userRole === 'mechanic'));
+      // More robust login state determination
+      const isValidLogin = userLoggedIn && 
+        (userRole === 'customer' || userRole === 'mechanic') && 
+        storedUserId; // Ensure userId is present
+      
+      setIsCustomerLoggedIn(isValidLogin);
       if (storedUserName) setUserName(storedUserName);
       if (storedUserId) setUserId(storedUserId);
+      
+      console.log('Auth check:', { 
+        userLoggedIn, 
+        userRole, 
+        isValidLogin, 
+        userId: storedUserId 
+      });
     };
     
-    // Initial check
+    // Initial and subsequent checks
     checkAuth();
     
-    // Update when auth state changes
-    if (auth.currentUserName) {
-      setUserName(auth.currentUserName);
-    }
-    
-    // Ensure state is updated if localStorage changes
-    const handleStorageChange = () => {
-      checkAuth();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('storage-event', handleStorageChange);
+    // Update listeners
+    window.addEventListener('storage', checkAuth);
+    window.addEventListener('storage-event', checkAuth);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('storage-event', handleStorageChange);
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('storage-event', checkAuth);
     };
-  }, [auth.currentUserName]);
+  }, []);
   
   const updateUserName = useCallback((newName: string) => {
     localStorage.setItem('userName', newName);
     setUserName(newName);
-    // Trigger a storage event for cross-tab updates
     window.dispatchEvent(new Event('storage-event'));
   }, []);
   
