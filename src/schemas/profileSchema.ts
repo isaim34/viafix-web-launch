@@ -10,7 +10,10 @@ export const basicProfileSchema = z.object({
   profileImage: z.string().url("Please enter a valid URL").optional(),
   yearsExperience: z.coerce.number().min(0, "Experience can't be negative"),
   about: z.string().min(20, "About section must be at least 20 characters"),
-  specialties: z.string().min(3, "Specialties are required"),
+  specialties: z.union([
+    z.string().min(3, "Specialties are required"),
+    z.array(z.string()).min(1, "At least one specialty is required")
+  ]),
 });
 
 export type BasicProfileFormValues = z.infer<typeof basicProfileSchema>;

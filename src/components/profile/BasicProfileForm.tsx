@@ -50,10 +50,8 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
     console.log('Form submission triggered with data:', data);
     console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
     
-    // Parse specialties if it's a string
-    if (typeof data.specialties === 'string') {
-      data.specialties = data.specialties.split(',').map(s => s.trim()).filter(s => s);
-    }
+    // No conversion needed now that we've updated the schema
+    // The form will accept either string or string[] for specialties
     
     if (onSubmit) {
       onSubmit(data);

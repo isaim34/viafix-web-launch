@@ -34,6 +34,11 @@ const ProfileEditor = () => {
       data.profileImage = profileData.profileImage;
     }
     
+    // Convert specialties to string format for consistency when saving
+    if (Array.isArray(data.specialties)) {
+      data.specialties = data.specialties.join(', ');
+    }
+    
     // Save to localStorage with user role-specific key
     localStorage.setItem(storageKey, JSON.stringify(data));
     
