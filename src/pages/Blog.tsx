@@ -7,11 +7,11 @@ import { ArrowRight, Calendar, User, Search, Tag } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
 import { Helmet } from 'react-helmet-async';
-import { blogPosts } from '@/data/blogPosts';
+import { blogPosts as blogPostsData } from '@/data/blogPosts';
 import { BlogPost } from '@/types/blog';
 
 // Convert the blog posts object to an array for easier rendering
-const blogPostsArray = Object.entries(blogPosts).map(([slug, post]) => ({
+const blogPostsArray = Object.entries(blogPostsData).map(([slug, post]) => ({
   id: slug,
   title: (post as BlogPost).title,
   excerpt: (post as BlogPost).metaDescription,

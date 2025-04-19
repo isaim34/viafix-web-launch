@@ -6,7 +6,7 @@ import { ArrowRight, FileText, Car, Wrench } from 'lucide-react';
 import { Button } from './Button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
-import { blogPosts } from '@/data/blogPosts';
+import { blogPosts as blogPostsData } from '@/data/blogPosts';
 import { BlogPost } from '@/types/blog';
 
 // Create an array of the featured blog posts for the home page section
@@ -19,11 +19,11 @@ const featuredPostSlugs = [
 
 // Filter out any slugs that don't exist in blogPosts
 const validFeaturedSlugs = featuredPostSlugs.filter(slug => 
-  blogPosts[slug as keyof typeof blogPosts] !== undefined
+  blogPostsData[slug as keyof typeof blogPostsData] !== undefined
 );
 
 const featuredBlogPosts = validFeaturedSlugs.map(slug => {
-  const post = blogPosts[slug as keyof typeof blogPosts] as BlogPost;
+  const post = blogPostsData[slug as keyof typeof blogPostsData] as BlogPost;
   return {
     id: slug,
     title: post.title,

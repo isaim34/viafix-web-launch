@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { CommentSection } from '@/components/blog/CommentSection';
-import { blogPosts } from '@/data/blogPosts';
+import { blogPosts as blogPostsData } from '@/data/blogPosts';
 import { BlogPostHeader } from '@/components/blog/BlogPostHeader';
 import { BlogPostContent } from '@/components/blog/BlogPostContent';
 import { BlogPostFooter } from '@/components/blog/BlogPostFooter';
@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = slug ? blogPosts[slug as keyof typeof blogPosts] : null;
+  const post = slug ? blogPostsData[slug as keyof typeof blogPostsData] : null;
   
   if (!post) {
     return (
@@ -53,7 +53,7 @@ const BlogPost = () => {
             </div>
             
             {/* Tags and Related Articles */}
-            <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPosts} />
+            <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPostsData} />
           </div>
         </div>
       </article>
