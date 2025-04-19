@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
@@ -52,14 +53,28 @@ const BlogPost = () => {
               transition={{ duration: 0.5 }}
             >
               <Card className="p-8 md:p-12 shadow-xl bg-white/80 backdrop-blur-sm">
+                {/* Reading time and date info */}
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-8">
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      {post.date}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Main Content */}
                 <BlogPostContent content={post.content} />
               </Card>
             </motion.div>
             
-            {/* Comment section */}
+            {/* Comment section with updated styling */}
             <div className="mt-12">
-              <CommentSection postSlug={slug || ''} />
+              <Card className="overflow-hidden bg-white/80 backdrop-blur-sm">
+                <div className="p-8">
+                  <CommentSection postSlug={slug || ''} />
+                </div>
+              </Card>
             </div>
             
             {/* Tags and Related Articles */}

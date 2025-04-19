@@ -15,33 +15,56 @@ export const BlogPostContent = ({ content }: BlogPostContentProps) => {
       className="prose prose-lg md:prose-xl max-w-none"
     >
       <div className="blog-content">
-        {/* Apply the styles directly to elements using Tailwind classes */}
         <style>
           {`
+            .blog-content {
+              @apply max-w-[65ch] mx-auto text-gray-700;
+            }
+            
             .blog-content h1 {
-              @apply text-4xl md:text-5xl font-bold mb-8 text-gray-900 tracking-tight;
+              @apply text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent tracking-tight;
             }
+            
             .blog-content h2 {
-              @apply text-3xl font-semibold mb-6 mt-12 text-gray-800;
+              @apply text-3xl font-semibold mb-6 mt-12 text-gray-800 border-b pb-2;
             }
+            
             .blog-content p {
-              @apply text-gray-600 leading-relaxed mb-6 text-lg;
+              @apply text-lg leading-relaxed mb-6 text-gray-600;
+              font-feature-settings: "liga" 1, "kern" 1;
             }
+            
             .blog-content ul {
-              @apply space-y-4 my-8;
+              @apply space-y-4 my-8 ml-6;
             }
+            
             .blog-content li {
-              @apply flex items-start space-x-3 text-gray-600;
+              @apply relative pl-6 text-gray-600;
             }
+            
             .blog-content li:before {
-              content: "•";
-              @apply text-primary font-bold mr-2;
+              content: "";
+              @apply absolute left-0 top-[0.6em] w-2 h-2 bg-primary/60 rounded-full;
             }
+            
             .blog-content strong {
               @apply text-gray-900 font-semibold;
             }
-            .blog-content ul li {
-              @apply pl-4 -indent-4;
+            
+            .blog-content blockquote {
+              @apply pl-6 border-l-4 border-primary/30 italic text-gray-700 my-8;
+            }
+            
+            .blog-content a {
+              @apply text-primary hover:text-primary/80 underline decoration-2 underline-offset-2 transition-colors;
+            }
+
+            .blog-content img {
+              @apply rounded-xl shadow-lg my-8;
+            }
+            
+            .blog-content code {
+              @apply px-2 py-1 bg-gray-100 rounded text-sm text-gray-800;
             }
           `}
         </style>
