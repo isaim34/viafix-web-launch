@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu, 
@@ -22,8 +24,9 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoggedIn, currentUserName, currentUserRole, currentUserId } = useCustomerAuth();
+  const { getProfileRoute } = useAuthRedirect();
   const [forceUpdate, setForceUpdate] = useState(0);
-  
+
   useEffect(() => {
     const handleStorageEvent = () => {
       setForceUpdate(prev => prev + 1);
@@ -32,41 +35,48 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     window.addEventListener('storage-event', handleStorageEvent);
     return () => window.removeEventListener('storage-event', handleStorageEvent);
   }, []);
-  
-  const profileImage = currentUserRole === 'customer' 
-    ? localStorage.getItem(`customer-${currentUserId}-profileImage`) || ''
-    : '';
+
+  const getProfileImage = (): string => {
+    try {
+      if (currentUserRole === 'customer' && currentUserId) {
+        return localStorage.getItem(`customer-${currentUserId}-profileImage`) || '';
+      }
+      return '';
+    } catch (error) {
+      console.error('Error accessing profile image:', error);
+      return '';
+    }
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem('userLoggedIn');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userId');
-    
-    window.dispatchEvent(new Event('storage-event'));
-    
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-    
-    navigate('/', { replace: true });
+    try {
+      localStorage.removeItem('userLoggedIn');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userId');
+      
+      window.dispatchEvent(new Event('storage-event'));
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-  const userRole = localStorage.getItem('userRole');
+  const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
   const userName = localStorage.getItem('userName') || currentUserName;
-  
-  const getProfileRoute = () => {
-    switch(userRole) {
-      case 'customer':
-        return '/profile';
-      case 'mechanic':
-        return '/mechanic-dashboard';
-      default:
-        return '/';
-    }
-  };
+  const profileImage = getProfileImage();
 
   if (userLoggedIn) {
     return (
@@ -88,7 +98,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profileImage} alt={userName} />
+                <AvatarImage src={profileImage} alt={userName || 'User'} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {userName ? userName.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
@@ -100,7 +110,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
             <DropdownMenuSeparator />
             
             <DropdownMenuItem asChild>
-              <Link to={getProfileRoute()} className="flex items-center cursor-pointer">
+              <Link to={getProfileRoute(userRole)} className="flex items-center cursor-pointer">
                 {userRole === 'customer' ? (
                   <>
                     <UserCircle className="mr-2 h-4 w-4" />
