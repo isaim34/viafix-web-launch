@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Layout } from '@/components/Layout';
 import { CommentSection } from '@/components/blog/CommentSection';
 import blogPosts from '@/data/blogPosts';
