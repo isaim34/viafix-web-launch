@@ -19,7 +19,7 @@ export function useCustomerAuth() {
       // More robust login state determination
       const isValidLogin = userLoggedIn && 
         (userRole === 'customer' || userRole === 'mechanic') && 
-        storedUserId; // Ensure userId is present
+        !!storedUserId; // Ensure userId is present and convert to boolean
       
       setIsCustomerLoggedIn(isValidLogin);
       if (storedUserName) setUserName(storedUserName);
