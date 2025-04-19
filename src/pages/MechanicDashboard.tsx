@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { Inbox, Settings, BarChart3, Wrench, MessageCircle, CheckSquare, Star, Calendar } from 'lucide-react';
+import { Inbox, Settings, BarChart3, Wrench, MessageCircle, CheckSquare, Star, Calendar, X } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
 import MechanicMailbox from '@/components/MechanicMailbox';
@@ -12,6 +11,8 @@ import CompletedJobsTab from '@/components/CompletedJobsTab';
 import WeeklyPlannerTab from '@/components/WeeklyPlannerTab';
 import StatsOverview from '@/components/stats/StatsOverview';
 import AdvertisingTab from '@/components/advertising/AdvertisingTab';
+import CancelledGigsTab from '@/components/CancelledGigsTab';
+import ReviewsTab from '@/components/ReviewsTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const MechanicDashboard = () => {
@@ -66,6 +67,14 @@ const MechanicDashboard = () => {
               <Settings className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span className={isMobile ? "hidden xs:inline" : ""}>Profile</span>
             </TabsTrigger>
+            <TabsTrigger value="cancelled" className="flex items-center gap-2 text-xs md:text-sm">
+              <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className={isMobile ? "hidden xs:inline" : ""}>Cancelled</span>
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="flex items-center gap-2 text-xs md:text-sm">
+              <Star className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className={isMobile ? "hidden xs:inline" : ""}>Reviews</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="gigs">
@@ -98,6 +107,14 @@ const MechanicDashboard = () => {
           
           <TabsContent value="profile">
             <ProfileEditor />
+          </TabsContent>
+          
+          <TabsContent value="cancelled">
+            <CancelledGigsTab />
+          </TabsContent>
+          
+          <TabsContent value="reviews">
+            <ReviewsTab />
           </TabsContent>
         </Tabs>
       </div>
