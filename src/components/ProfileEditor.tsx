@@ -4,15 +4,19 @@ import ProfileTabs from './profile/ProfileTabs';
 import { BasicProfileFormValues, sampleMechanicProfile } from '@/schemas/profileSchema';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
   const { currentUserRole, updateUserName, currentUserName } = useAuth();
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
 
   // Load profile data from localStorage on component mount
   useEffect(() => {
+    setIsLoading(true);
+    
     // Try to load saved profile data first
     const savedProfileData = localStorage.getItem(storageKey);
     if (savedProfileData) {
@@ -27,6 +31,8 @@ const ProfileEditor = () => {
     } else {
       setProfileData(createInitialProfile());
     }
+    
+    setIsLoading(false);
   }, [storageKey, currentUserName]);
   
   // Helper function to create initial profile
@@ -98,9 +104,23 @@ const ProfileEditor = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      {profileData && <ProfileTabs onProfileSubmit={onSubmit} initialProfileData={profileData} />}
+      {profileData ? (
+        <ProfileTabs onProfileSubmit={onSubmit} initialProfileData={profileData} />
+      ) : (
+        <div className="p-6 bg-gray-100 rounded-md text-center">
+          <p>Failed to load profile data. Please refresh the page and try again.</p>
+        </div>
+      )}
     </div>
   );
 };
