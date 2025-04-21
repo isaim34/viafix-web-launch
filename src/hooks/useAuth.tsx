@@ -37,6 +37,8 @@ export function useAuth() {
 
   // Add function to update user name
   const updateUserName = (newName: string) => {
+    if (!newName) return;
+    
     localStorage.setItem('userName', newName);
     setCurrentUserName(newName);
     

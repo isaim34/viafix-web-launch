@@ -59,16 +59,22 @@ const CustomerProfileEditor = () => {
       console.log('Updated customer profile data:', data);
       
       // Store the updated profile in localStorage with consistent keys
-      const formattedName = `${data.firstName} ${data.lastName}`;
-      localStorage.setItem('userName', formattedName);
+      const formattedName = `${data.firstName} ${data.lastName}`.trim();
+      if (formattedName) {
+        localStorage.setItem('userName', formattedName);
+        // Update the user name in the auth context
+        updateUserName(formattedName);
+      }
       
       // Use a consistent userId for storage
       const userId = localStorage.getItem('userId') || currentUserId;
-      localStorage.setItem(`customer-${userId}-profileImage`, data.profileImage || '');
-      
-      // Also store in global avatar keys for compatibility
-      localStorage.setItem('customerAvatar', data.profileImage || '');
-      localStorage.setItem('customer-avatar', data.profileImage || '');
+      if (data.profileImage) {
+        localStorage.setItem(`customer-${userId}-profileImage`, data.profileImage);
+        
+        // Also store in global avatar keys for compatibility
+        localStorage.setItem('customerAvatar', data.profileImage);
+        localStorage.setItem('customer-avatar', data.profileImage);
+      }
       
       // Ensure profile data is synced properly
       localStorage.setItem('customerProfile', JSON.stringify({
@@ -77,8 +83,8 @@ const CustomerProfileEditor = () => {
         profileImage: data.profileImage
       }));
       
-      // Update the user name in the auth context
-      updateUserName(formattedName);
+      // Trigger a storage event to update all components
+      window.dispatchEvent(new Event('storage-event'));
       
       toast({
         title: "Profile updated",

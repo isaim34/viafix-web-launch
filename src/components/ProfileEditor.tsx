@@ -68,17 +68,25 @@ const ProfileEditor = () => {
       
       localStorage.setItem(avatarKey, data.profileImage);
       localStorage.setItem(legacyAvatarKey, data.profileImage);
+      
+      // Also save to the userId-specific key
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        localStorage.setItem(`${currentUserRole === 'mechanic' ? 'mechanic' : 'customer'}-${userId}-profileImage`, data.profileImage);
+      }
+      
       console.log('Avatar saved to localStorage with keys:', avatarKey, legacyAvatarKey);
     }
     
     // Update username in localStorage if name has changed
     if (data.firstName !== undefined && data.lastName !== undefined) {
-      const fullName = `${data.firstName} ${data.lastName}`;
+      const fullName = `${data.firstName} ${data.lastName}`.trim();
       
-      // Use the updateUserName function from useAuth to ensure proper updates
-      updateUserName(fullName);
-      
-      console.log('Updated userName in localStorage to:', fullName);
+      if (fullName) {
+        // Use the updateUserName function from useAuth to ensure proper updates
+        updateUserName(fullName);
+        console.log('Updated userName in localStorage to:', fullName);
+      }
     }
     
     // Update state after saving

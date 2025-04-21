@@ -38,7 +38,8 @@ export function useCustomerAuth() {
         userLoggedIn, 
         userRole, 
         isValidLogin, 
-        userId: storedUserId 
+        userId: storedUserId,
+        userName: storedUserName
       });
     };
     
@@ -56,6 +57,8 @@ export function useCustomerAuth() {
   }, []);
   
   const updateUserName = useCallback((newName: string) => {
+    if (!newName) return;
+    
     localStorage.setItem('userName', newName);
     setUserName(newName);
     
