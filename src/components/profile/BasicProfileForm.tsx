@@ -19,9 +19,16 @@ interface BasicProfileFormProps {
 }
 
 const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialData }) => {
+  const cleanInitialData = {
+    ...sampleMechanicProfile,
+    ...initialData,
+    firstName: initialData?.firstName || '',
+    lastName: initialData?.lastName || '',
+  };
+
   const form = useForm<BasicProfileFormValues>({
     resolver: zodResolver(basicProfileSchema),
-    defaultValues: initialData || sampleMechanicProfile,
+    defaultValues: cleanInitialData,
     mode: 'onChange',
   });
 
@@ -30,16 +37,13 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
     if (initialData) {
       console.log('Setting form values from initialData:', initialData);
       
-      // Reset form with new values
-      form.reset(initialData);
-      
       // Explicitly set each field to ensure proper update
       Object.entries(initialData).forEach(([key, value]) => {
         if (value !== undefined) {
           form.setValue(key as keyof BasicProfileFormValues, value, {
             shouldValidate: true,
-            shouldDirty: false,
-            shouldTouch: false
+            shouldDirty: true,
+            shouldTouch: true
           });
         }
       });
@@ -49,9 +53,6 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   const handleSubmit = (data: BasicProfileFormValues) => {
     console.log('Form submission triggered with data:', data);
     console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
-    
-    // No conversion needed now that we've updated the schema
-    // The form will accept either string or string[] for specialties
     
     if (onSubmit) {
       onSubmit(data);

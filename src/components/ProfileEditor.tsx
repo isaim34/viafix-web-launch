@@ -19,6 +19,11 @@ const ProfileEditor = () => {
       try {
         const parsedData = JSON.parse(savedProfileData);
         console.log('Loading saved profile data:', parsedData);
+        
+        // Ensure firstName and lastName are strings
+        if (parsedData.firstName === undefined) parsedData.firstName = '';
+        if (parsedData.lastName === undefined) parsedData.lastName = '';
+        
         setProfileData(parsedData);
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
@@ -69,7 +74,7 @@ const ProfileEditor = () => {
     }
     
     // Update username in localStorage if name has changed
-    if (data.firstName && data.lastName) {
+    if (data.firstName !== undefined && data.lastName !== undefined) {
       const fullName = `${data.firstName} ${data.lastName}`;
       
       // Use the updateUserName function from useAuth to ensure proper updates

@@ -24,7 +24,12 @@ const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
           <FormItem>
             <FormLabel>First Name<span className="text-destructive ml-1">*</span></FormLabel>
             <FormControl>
-              <Input placeholder="Enter your first name" {...field} />
+              <Input 
+                placeholder="Enter your first name" 
+                {...field} 
+                onChange={(e) => field.onChange(e.target.value)}
+                value={field.value || ''}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -37,7 +42,12 @@ const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
           <FormItem>
             <FormLabel>Last Name<span className="text-destructive ml-1">*</span></FormLabel>
             <FormControl>
-              <Input placeholder="Enter your last name" {...field} />
+              <Input 
+                placeholder="Enter your last name" 
+                {...field} 
+                onChange={(e) => field.onChange(e.target.value)}
+                value={field.value || ''}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
