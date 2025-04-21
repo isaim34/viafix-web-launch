@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -75,7 +74,10 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     }
   };
 
-  // We're now always getting the most up-to-date values from localStorage to ensure consistency
+  const getFirstName = (fullName: string) => {
+    return fullName.split(' ')[0];
+  };
+
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
   const userName = localStorage.getItem('userName') || currentUserName || '';
@@ -87,12 +89,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         <div className="text-sm">
           {isMobile ? (
             <div className="pb-2">
-              <p className="font-medium">Hello, {userName}</p>
+              <p className="font-medium">Hello, {getFirstName(userName)}</p>
               <p className="text-muted-foreground capitalize">{userRole || currentUserRole}</p>
             </div>
           ) : (
             <p className="hidden md:block text-right mr-2">
-              Hello, <span className="font-medium">{userName}</span>
+              Hello, <span className="font-medium">{getFirstName(userName)}</span>
             </p>
           )}
         </div>
