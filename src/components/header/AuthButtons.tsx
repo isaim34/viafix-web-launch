@@ -40,6 +40,8 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     try {
       if (currentUserRole === 'customer' && currentUserId) {
         return localStorage.getItem(`customer-${currentUserId}-profileImage`) || '';
+      } else if (currentUserRole === 'mechanic') {
+        return localStorage.getItem('mechanicAvatar') || '';
       }
       return '';
     } catch (error) {
@@ -73,9 +75,10 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     }
   };
 
+  // We're now always getting the most up-to-date values from localStorage to ensure consistency
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
-  const userName = localStorage.getItem('userName') || currentUserName;
+  const userName = localStorage.getItem('userName') || currentUserName || '';
   const profileImage = getProfileImage();
 
   if (userLoggedIn) {

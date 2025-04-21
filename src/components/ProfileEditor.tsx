@@ -7,36 +7,46 @@ import { useAuth } from '@/hooks/useAuth';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
-  const { currentUserRole, updateUserName } = useAuth();
-  const [profileData, setProfileData] = useState<BasicProfileFormValues>(sampleMechanicProfile);
+  const { currentUserRole, updateUserName, currentUserName } = useAuth();
+  const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
 
   // Load profile data from localStorage on component mount
   useEffect(() => {
+    // Try to load saved profile data first
     const savedProfileData = localStorage.getItem(storageKey);
     if (savedProfileData) {
       try {
         const parsedData = JSON.parse(savedProfileData);
         console.log('Loading saved profile data:', parsedData);
         setProfileData(parsedData);
-        
-        // When profile data is loaded, ensure the header username is in sync
-        if (parsedData.firstName && parsedData.lastName) {
-          const fullName = `${parsedData.firstName} ${parsedData.lastName}`;
-          updateUserName(fullName);
-        }
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
       }
+    } else {
+      // If no saved profile data exists, create a new profile using the current username
+      const nameParts = currentUserName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Create a new profile based on the template but with current username
+      const initialProfile = {
+        ...sampleMechanicProfile,
+        firstName,
+        lastName,
+      };
+      
+      setProfileData(initialProfile);
+      console.log('Created new profile with current username:', initialProfile);
     }
-  }, [storageKey, updateUserName]);
+  }, [storageKey, updateUserName, currentUserName]);
   
   const onSubmit = (data: BasicProfileFormValues) => {
     console.log('Updated profile data:', data);
     console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
     
     // Ensure we have the profile image in the data
-    if (!data.profileImage && profileData.profileImage) {
+    if (!data.profileImage && profileData?.profileImage) {
       data.profileImage = profileData.profileImage;
     }
     
@@ -79,7 +89,7 @@ const ProfileEditor = () => {
 
   return (
     <div className="space-y-8">
-      <ProfileTabs onProfileSubmit={onSubmit} initialProfileData={profileData} />
+      {profileData && <ProfileTabs onProfileSubmit={onSubmit} initialProfileData={profileData} />}
     </div>
   );
 };
