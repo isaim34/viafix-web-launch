@@ -42,13 +42,23 @@ const ProfilePictureUploader = ({
       if (event.target?.result) {
         const dataUrl = event.target.result as string;
         console.log('Image selected, data URL length:', dataUrl.length);
-        console.log('Image preview data URL start:', dataUrl.substring(0, 50) + '...');
         
         // Set the image URL in local state for display
         setImageUrl(dataUrl);
         
         // Pass to parent component immediately
         onImageChange(dataUrl);
+        
+        // Store in localStorage for immediate visibility
+        const userRole = localStorage.getItem('userRole');
+        const userId = localStorage.getItem('userId');
+        
+        if (userRole === 'customer' && userId) {
+          localStorage.setItem(`customer-${userId}-profileImage`, dataUrl);
+          localStorage.setItem('customerAvatar', dataUrl);
+        } else if (userRole === 'mechanic') {
+          localStorage.setItem('mechanicAvatar', dataUrl);
+        }
         
         toast({
           title: "Profile picture updated",

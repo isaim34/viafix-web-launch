@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CustomerProfileFormValues, customerProfileSchema } from '@/schemas/customerProfileSchema';
@@ -21,7 +21,8 @@ const CustomerProfileEditor = () => {
   const lastName = nameParts.slice(1).join(' ') || '';
   
   // Get stored profile image from localStorage, if any
-  const storedProfileImage = localStorage.getItem(`customer-${currentUserId}-profileImage`) || '';
+  const userId = localStorage.getItem('userId') || currentUserId;
+  const storedProfileImage = localStorage.getItem(`customer-${userId}-profileImage`) || '';
   
   const form = useForm<CustomerProfileFormValues>({
     resolver: zodResolver(customerProfileSchema),
@@ -31,6 +32,25 @@ const CustomerProfileEditor = () => {
       profileImage: storedProfileImage,
     },
   });
+  
+  // Synchronize form with user data when currentUserName changes
+  useEffect(() => {
+    if (currentUserName) {
+      const parts = currentUserName.split(' ');
+      const first = parts[0] || '';
+      const last = parts.slice(1).join(' ') || '';
+      
+      form.setValue('firstName', first);
+      form.setValue('lastName', last);
+    }
+    
+    // Re-fetch profile image when user ID changes
+    const userId = localStorage.getItem('userId') || currentUserId;
+    const profileImg = localStorage.getItem(`customer-${userId}-profileImage`);
+    if (profileImg) {
+      form.setValue('profileImage', profileImg);
+    }
+  }, [currentUserName, currentUserId, form]);
 
   const onSubmit = async (data: CustomerProfileFormValues) => {
     setIsSaving(true);
@@ -38,10 +58,24 @@ const CustomerProfileEditor = () => {
     try {
       console.log('Updated customer profile data:', data);
       
-      // Store the updated profile in localStorage
+      // Store the updated profile in localStorage with consistent keys
       const formattedName = `${data.firstName} ${data.lastName}`;
       localStorage.setItem('userName', formattedName);
-      localStorage.setItem(`customer-${currentUserId}-profileImage`, data.profileImage || '');
+      
+      // Use a consistent userId for storage
+      const userId = localStorage.getItem('userId') || currentUserId;
+      localStorage.setItem(`customer-${userId}-profileImage`, data.profileImage || '');
+      
+      // Also store in global avatar keys for compatibility
+      localStorage.setItem('customerAvatar', data.profileImage || '');
+      localStorage.setItem('customer-avatar', data.profileImage || '');
+      
+      // Ensure profile data is synced properly
+      localStorage.setItem('customerProfile', JSON.stringify({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        profileImage: data.profileImage
+      }));
       
       // Update the user name in the auth context
       updateUserName(formattedName);
@@ -84,7 +118,7 @@ const CustomerProfileEditor = () => {
         <div className="flex justify-center mt-8">
           <Button 
             type="submit" 
-            disabled={isSaving || !form.formState.isDirty}
+            disabled={isSaving}
             className="px-8"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}

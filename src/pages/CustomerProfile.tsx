@@ -13,12 +13,18 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { Car, User, Shield } from 'lucide-react';
 
 const CustomerProfile = () => {
-  const { isCustomerLoggedIn } = useCustomerAuth();
+  const { isCustomerLoggedIn, currentUserId } = useCustomerAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [checkedAuth, setCheckedAuth] = useState(false);
   
   useEffect(() => {
+    // Ensure we have userId set for consistent storage
+    const userId = localStorage.getItem('userId');
+    if (!userId && isCustomerLoggedIn) {
+      localStorage.setItem('userId', 'customer-123');
+    }
+    
     const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
     const userRole = localStorage.getItem('userRole');
     
@@ -34,7 +40,7 @@ const CustomerProfile = () => {
     } else {
       setCheckedAuth(true);
     }
-  }, [toast, navigate]);
+  }, [toast, navigate, isCustomerLoggedIn]);
 
   if (!checkedAuth) {
     return null;

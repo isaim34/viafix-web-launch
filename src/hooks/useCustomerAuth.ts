@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 export function useCustomerAuth() {
   const auth = useAuth();
   const [userName, setUserName] = useState(localStorage.getItem('userName') || 'Customer');
-  const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || 'customer-123');
   const [isCustomerLoggedIn, setIsCustomerLoggedIn] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   
@@ -15,12 +15,18 @@ export function useCustomerAuth() {
       const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
       const userRole = localStorage.getItem('userRole');
       const storedUserName = localStorage.getItem('userName');
-      const storedUserId = localStorage.getItem('userId');
+      let storedUserId = localStorage.getItem('userId');
+      
+      // Ensure userId is always set for storage consistency
+      if (!storedUserId && userLoggedIn && userRole === 'customer') {
+        storedUserId = 'customer-123';
+        localStorage.setItem('userId', storedUserId);
+      }
       
       // More robust login state determination
       const isValidLogin = userLoggedIn && 
         (userRole === 'customer' || userRole === 'mechanic') && 
-        !!storedUserId; // Ensure userId is present and convert to boolean
+        !!storedUserId; // Ensure userId is present
       
       setIsCustomerLoggedIn(isValidLogin);
       setCurrentUserRole(userRole);
@@ -52,7 +58,11 @@ export function useCustomerAuth() {
   const updateUserName = useCallback((newName: string) => {
     localStorage.setItem('userName', newName);
     setUserName(newName);
+    
+    // Ensure cross-tab updates
     window.dispatchEvent(new Event('storage-event'));
+    
+    console.log('Username updated to:', newName);
   }, []);
   
   return {
