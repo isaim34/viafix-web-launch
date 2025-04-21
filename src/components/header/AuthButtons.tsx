@@ -76,12 +76,14 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   };
 
   const getFirstName = (fullName: string) => {
+    if (!fullName) return '';
     return fullName.split(' ')[0];
   };
 
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
   const userName = localStorage.getItem('userName') || currentUserName || '';
+  const firstName = getFirstName(userName);
   const profileImage = getProfileImage();
 
   if (userLoggedIn) {
@@ -90,12 +92,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         <div className="text-sm">
           {isMobile ? (
             <div className="pb-2">
-              <p className="font-medium">Hello, {getFirstName(userName)}</p>
+              <p className="font-medium">Hello, {firstName}</p>
               <p className="text-muted-foreground capitalize">{userRole || currentUserRole}</p>
             </div>
           ) : (
             <p className="hidden md:block text-right mr-2">
-              Hello, <span className="font-medium">{getFirstName(userName)}</span>
+              Hello, <span className="font-medium">{firstName}</span>
             </p>
           )}
         </div>
@@ -106,7 +108,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profileImage} alt={userName || 'User'} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                  {firstName ? firstName.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
               </Avatar>
             </Button>

@@ -92,6 +92,9 @@ const ProfileEditor = () => {
         // Use the updateUserName function from useAuth to ensure proper updates
         updateUserName(fullName);
         console.log('Updated userName in localStorage to:', fullName);
+        
+        // Force refresh for mechanic dashboard header
+        window.dispatchEvent(new Event('storage-event'));
       }
     }
     

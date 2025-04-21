@@ -39,13 +39,17 @@ export function useAuth() {
   const updateUserName = (newName: string) => {
     if (!newName) return;
     
-    localStorage.setItem('userName', newName);
-    setCurrentUserName(newName);
+    // Ensure the name is properly formatted
+    const trimmedName = newName.trim();
+    if (trimmedName.length === 0) return;
+    
+    localStorage.setItem('userName', trimmedName);
+    setCurrentUserName(trimmedName);
     
     // Trigger a storage event for cross-tab updates
     window.dispatchEvent(new Event('storage-event'));
     
-    console.log('Username updated to:', newName);
+    console.log('Username updated to:', trimmedName);
   };
 
   return {
