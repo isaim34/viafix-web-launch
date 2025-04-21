@@ -1,34 +1,84 @@
 
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main routes -->
   <url>
     <loc>https://tryviafix.com/</loc>
-    <lastmod>2025-04-03</lastmod>
+    <lastmod>2025-04-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://tryviafix.com/mechanics</loc>
-    <lastmod>2025-04-03</lastmod>
+    <lastmod>2025-04-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://tryviafix.com/signup</loc>
-    <lastmod>2025-04-03</lastmod>
+    <loc>https://tryviafix.com/how-it-works</loc>
+    <lastmod>2025-04-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://tryviafix.com/signin</loc>
-    <lastmod>2025-04-03</lastmod>
+    <loc>https://tryviafix.com/blog</loc>
+    <lastmod>2025-04-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Blog posts -->
+  <url>
+    <loc>https://tryviafix.com/blog/car-maintenance-basics</loc>
+    <lastmod>2024-01-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://tryviafix.com/blog</loc>
-    <lastmod>2025-04-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://tryviafix.com/blog/common-brake-problems</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://tryviafix.com/blog/choosing-right-oil</loc>
+    <lastmod>2023-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://tryviafix.com/blog/building-trust-mobile-mechanic</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Auth routes -->
+  <url>
+    <loc>https://tryviafix.com/signin</loc>
+    <lastmod>2025-04-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://tryviafix.com/signup</loc>
+    <lastmod>2025-04-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Legal routes -->
+  <url>
+    <loc>https://tryviafix.com/terms</loc>
+    <lastmod>2025-04-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://tryviafix.com/privacy</loc>
+    <lastmod>2025-04-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 </urlset>
+
