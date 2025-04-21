@@ -19,16 +19,15 @@ interface BasicProfileFormProps {
 }
 
 const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialData }) => {
-  const cleanInitialData = {
+  // Ensure we have default values for firstName and lastName
+  const defaultValues = {
     ...sampleMechanicProfile,
-    ...initialData,
-    firstName: initialData?.firstName || '',
-    lastName: initialData?.lastName || '',
+    ...(initialData || {}),
   };
 
   const form = useForm<BasicProfileFormValues>({
     resolver: zodResolver(basicProfileSchema),
-    defaultValues: cleanInitialData,
+    defaultValues: defaultValues,
     mode: 'onChange',
   });
 
@@ -37,15 +36,11 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
     if (initialData) {
       console.log('Setting form values from initialData:', initialData);
       
-      // Explicitly set each field to ensure proper update
-      Object.entries(initialData).forEach(([key, value]) => {
-        if (value !== undefined) {
-          form.setValue(key as keyof BasicProfileFormValues, value, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true
-          });
-        }
+      // Reset the form with the new values
+      form.reset({
+        ...initialData,
+        firstName: initialData.firstName || '',
+        lastName: initialData.lastName || '',
       });
     }
   }, [initialData, form]);

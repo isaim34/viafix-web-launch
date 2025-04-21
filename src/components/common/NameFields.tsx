@@ -27,7 +27,6 @@ const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
               <Input 
                 placeholder="Enter your first name" 
                 {...field} 
-                onChange={(e) => field.onChange(e.target.value)}
                 value={field.value || ''}
               />
             </FormControl>
@@ -45,7 +44,6 @@ const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
               <Input 
                 placeholder="Enter your last name" 
                 {...field} 
-                onChange={(e) => field.onChange(e.target.value)}
                 value={field.value || ''}
               />
             </FormControl>

@@ -19,36 +19,34 @@ const ProfileEditor = () => {
       try {
         const parsedData = JSON.parse(savedProfileData);
         console.log('Loading saved profile data:', parsedData);
-        
-        // Ensure firstName and lastName are strings
-        if (parsedData.firstName === undefined) parsedData.firstName = '';
-        if (parsedData.lastName === undefined) parsedData.lastName = '';
-        
         setProfileData(parsedData);
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
+        setProfileData(createInitialProfile());
       }
     } else {
-      // If no saved profile data exists, create a new profile using the current username
-      const nameParts = currentUserName.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
-      // Create a new profile based on the template but with current username
-      const initialProfile = {
-        ...sampleMechanicProfile,
-        firstName,
-        lastName,
-      };
-      
-      setProfileData(initialProfile);
-      console.log('Created new profile with current username:', initialProfile);
+      setProfileData(createInitialProfile());
     }
-  }, [storageKey, updateUserName, currentUserName]);
+  }, [storageKey, currentUserName]);
+  
+  // Helper function to create initial profile
+  const createInitialProfile = () => {
+    const nameParts = currentUserName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
+    const initialProfile = {
+      ...sampleMechanicProfile,
+      firstName,
+      lastName,
+    };
+    
+    console.log('Created new profile with current username:', initialProfile);
+    return initialProfile;
+  };
   
   const onSubmit = (data: BasicProfileFormValues) => {
     console.log('Updated profile data:', data);
-    console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
     
     // Ensure we have the profile image in the data
     if (!data.profileImage && profileData?.profileImage) {
