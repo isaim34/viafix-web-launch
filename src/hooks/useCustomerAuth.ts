@@ -57,16 +57,10 @@ export function useCustomerAuth() {
   }, []);
   
   const updateUserName = useCallback((newName: string) => {
-    if (!newName) return;
-    
-    localStorage.setItem('userName', newName);
+    // Use the auth.updateUserName for consistent behavior
+    auth.updateUserName(newName);
     setUserName(newName);
-    
-    // Ensure cross-tab updates
-    window.dispatchEvent(new Event('storage-event'));
-    
-    console.log('Username updated to:', newName);
-  }, []);
+  }, [auth]);
   
   return {
     ...auth,

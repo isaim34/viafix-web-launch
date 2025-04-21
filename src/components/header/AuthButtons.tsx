@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -75,9 +76,10 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     }
   };
 
+  // Force get the latest state from localStorage each render cycle
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
-  const userName = localStorage.getItem('userName') || currentUserName || '';
+  const userName = localStorage.getItem('userName') || '';
   const firstName = getFirstName(userName);
   const profileImage = getProfileImage();
 
