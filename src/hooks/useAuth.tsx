@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export function useAuth() {
@@ -7,26 +6,31 @@ export function useAuth() {
   const [currentUserName, setCurrentUserName] = useState('');
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   
-  // Check auth status on component mount
+  const getFirstName = (fullName: string) => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    return parts[0] || '';
+  };
+
   useEffect(() => {
     const checkUserAuth = () => {
       const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
       const userRole = localStorage.getItem('userRole');
       const userName = localStorage.getItem('userName');
       
+      const storedName = userName || '';
+      
       setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
       setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
-      setCurrentUserName(userName || '');
+      setCurrentUserName(storedName);
       setCurrentUserRole(userRole);
       
-      console.log('Auth state checked:', { userLoggedIn, userRole, userName });
+      console.log('Auth state checked:', { userLoggedIn, userRole, userName: storedName });
     };
     
     checkUserAuth();
     
-    // Setup event listener for storage changes (for multi-tab support)
     window.addEventListener('storage', checkUserAuth);
-    // Also listen for custom storage events dispatched within the app
     window.addEventListener('storage-event', checkUserAuth);
     
     return () => {
@@ -35,18 +39,15 @@ export function useAuth() {
     };
   }, []);
 
-  // Add function to update user name
   const updateUserName = (newName: string) => {
     if (!newName) return;
     
-    // Ensure the name is properly formatted
     const trimmedName = newName.trim();
     if (trimmedName.length === 0) return;
     
     localStorage.setItem('userName', trimmedName);
     setCurrentUserName(trimmedName);
     
-    // Trigger a storage event for cross-tab updates
     window.dispatchEvent(new Event('storage-event'));
     
     console.log('Username updated to:', trimmedName);
@@ -59,5 +60,6 @@ export function useAuth() {
     currentUserName,
     currentUserRole,
     updateUserName,
+    getFirstName,
   };
 }

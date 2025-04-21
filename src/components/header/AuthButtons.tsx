@@ -1,9 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
@@ -15,6 +13,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { LogOut, UserCircle, User } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
@@ -23,7 +22,7 @@ interface AuthButtonsProps {
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, currentUserName, currentUserRole, currentUserId } = useCustomerAuth();
+  const { isLoggedIn, currentUserName, currentUserRole, getFirstName } = useAuth();
   const { getProfileRoute } = useAuthRedirect();
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -38,8 +37,9 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
 
   const getProfileImage = (): string => {
     try {
-      if (currentUserRole === 'customer' && currentUserId) {
-        return localStorage.getItem(`customer-${currentUserId}-profileImage`) || '';
+      if (currentUserRole === 'customer') {
+        const userId = localStorage.getItem('userId');
+        return localStorage.getItem(`customer-${userId}-profileImage`) || '';
       } else if (currentUserRole === 'mechanic') {
         return localStorage.getItem('mechanicAvatar') || '';
       }
@@ -73,11 +73,6 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         variant: "destructive",
       });
     }
-  };
-
-  const getFirstName = (fullName: string) => {
-    if (!fullName) return '';
-    return fullName.split(' ')[0];
   };
 
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
