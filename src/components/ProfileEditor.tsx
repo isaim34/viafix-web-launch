@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
-  const { currentUserRole, updateUserName, currentUserName } = useAuth();
+  const { currentUserRole, updateUserName, currentUserName, getFirstName } = useAuth();
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
@@ -37,9 +37,21 @@ const ProfileEditor = () => {
   
   // Helper function to create initial profile
   const createInitialProfile = () => {
-    const nameParts = currentUserName.split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
+    // Handle email-based usernames properly
+    let firstName = '';
+    let lastName = '';
+    
+    if (currentUserName.includes('@')) {
+      // If username is an email, use the part before @ as first name
+      firstName = currentUserName.split('@')[0];
+      // Capitalize first letter
+      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+    } else {
+      // Normal name handling
+      const nameParts = currentUserName.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
     
     const initialProfile = {
       ...sampleMechanicProfile,

@@ -76,11 +76,25 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     }
   };
 
-  // Force get the latest state from localStorage each render cycle
+  // Extract user info directly from localStorage for consistent real-time data
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
   const userName = localStorage.getItem('userName') || '';
-  const firstName = getFirstName(userName);
+  
+  // Get just the first name for display
+  const extractFirstName = (name: string): string => {
+    if (!name) return '';
+    // Handle email addresses - if contains @ symbol, extract username portion
+    if (name.includes('@')) {
+      const username = name.split('@')[0];
+      // Convert first letter to uppercase for better display
+      return username.charAt(0).toUpperCase() + username.slice(1);
+    }
+    // Regular name - just return first part
+    return name.split(' ')[0] || '';
+  };
+  
+  const firstName = extractFirstName(userName);
   const profileImage = getProfileImage();
 
   if (userLoggedIn) {
@@ -103,7 +117,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profileImage} alt={userName || 'User'} />
+                <AvatarImage src={profileImage} alt={firstName} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {firstName ? firstName.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
