@@ -18,7 +18,6 @@ const CustomerProfile = lazy(() => import('./pages/CustomerProfile'));
 const MechanicDashboard = lazy(() => import('./pages/MechanicDashboard'));
 const Signin = lazy(() => import('./pages/Signin'));
 const Signup = lazy(() => import('./pages/Signup'));
-const TwoFactorAuth = lazy(() => import('./pages/TwoFactorAuth'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const VehicleSafetyCheck = lazy(() => import('./pages/VehicleSafetyCheck'));
@@ -47,28 +46,16 @@ function App() {
               <Route path="/mechanics/:id" element={<MechanicProfile />} />
               <Route path="/profile" element={<CustomerProfile />} />
               <Route path="/customer/profile" element={<Navigate to="/profile" replace />} />
-              
-              {/* How It Works page */}
               <Route path="/how-it-works" element={<HowItWorks />} />
-              
-              {/* Terms of Service Page */}
               <Route path="/terms" element={<Terms />} />
-              
-              {/* Privacy Policy Page */}
               <Route path="/privacy" element={<Privacy />} />
-              
-              {/* Zipcode Test Page */}
               <Route path="/zipcode-test" element={<ZipcodeTest />} />
-              
-              {/* Mechanic Dashboard Routes - Handle all possible variations */}
               <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
               <Route path="/mechanic-dashboard/*" element={<MechanicDashboard />} />
               <Route path="/mechanic/dashboard" element={<Navigate to="/mechanic-dashboard" replace />} />
               <Route path="/mechanic/dashboard/*" element={<Navigate to="/mechanic-dashboard" replace />} />
-              
               <Route path="/signin" element={<Signin />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />

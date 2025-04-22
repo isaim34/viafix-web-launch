@@ -11,9 +11,11 @@ import { baseUserSchema, BaseUserFormValues } from '@/schemas/signupSchema';
 import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CustomerSignupForm = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   
   const form = useForm<BaseUserFormValues>({
     resolver: zodResolver(baseUserSchema),
@@ -27,30 +29,30 @@ const CustomerSignupForm = () => {
     },
   });
 
-  const onSubmit = (data: BaseUserFormValues) => {
-    console.log('Customer signup data:', data);
-    
-    // Store the full name in localStorage for this demo
-    // In a real app, this would be stored in a database
-    const fullName = `${data.firstName} ${data.lastName}`;
-    localStorage.setItem(`registered_${data.email}`, fullName);
-    
-    // Simulate API call for account creation
-    toast({
-      title: "Account created!",
-      description: "Now let's set up two-factor authentication for your security.",
-    });
-    
-    // Navigate to 2FA setup with user data
-    navigate('/two-factor-auth', { 
-      state: { 
-        userData: {
-          ...data,
-          fullName
-        },
-        userType: 'customer' 
-      } 
-    });
+  const onSubmit = async (data: BaseUserFormValues) => {
+    try {
+      await signUp(
+        data.email, 
+        data.password, 
+        'customer',
+        data.firstName,
+        data.lastName
+      );
+      
+      toast({
+        title: "Account created successfully",
+        description: "Welcome to ViaFix!",
+      });
+      
+      navigate('/');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast({
+        title: "Error creating account",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
