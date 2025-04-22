@@ -14,7 +14,14 @@ export const MechanicCardWrapper = ({
   index,
   isLoggedInMechanic
 }: MechanicCardWrapperProps) => {
-  const isCurrentMechanic = mechanic.id === 'local-mechanic';
+  const isCurrentMechanic = mechanic.id === 'local-mechanic' || mechanic.id === 'default-vendor';
+  
+  console.log('MechanicCardWrapper -', { 
+    mechanic: mechanic.name, 
+    id: mechanic.id, 
+    isCurrentMechanic, 
+    isLoggedInMechanic 
+  });
 
   // Link to dashboard if it's the current mechanic and they're logged in
   if (isCurrentMechanic && isLoggedInMechanic) {

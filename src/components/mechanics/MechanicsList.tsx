@@ -41,15 +41,32 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     console.log('MechanicsList - Mechanics provided:', mechanics.length, mechanics.map(m => m.id));
     console.log('MechanicsList - Current zip code:', zipCode);
 
+    // Check if mechanic profile exists in localStorage
     const storedProfile = localStorage.getItem('mechanicProfile');
     if (storedProfile) {
       try {
         const profile = JSON.parse(storedProfile);
         setLocalProfile(profile);
         console.log('MechanicsList - Loaded local profile with zip:', profile.zipCode);
+        
+        // Make sure the vendor name and avatar are set
+        localStorage.setItem('vendorName', localStorage.getItem('vendorName') || 'Isai Mercado');
+        localStorage.setItem('vendorAvatar', localStorage.getItem('vendorAvatar') || 
+                           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80');
       } catch (error) {
         console.error('Error parsing mechanic profile:', error);
       }
+    } else if (currentUserRole === 'mechanic') {
+      // If no profile but user is a mechanic, create a basic one
+      const defaultProfile = {
+        zipCode: '01605',
+        location: 'Worcester, MA',
+        hourlyRate: 75,
+        specialties: ['General Repairs']
+      };
+      console.log('MechanicsList - No profile found, creating default:', defaultProfile);
+      localStorage.setItem('mechanicProfile', JSON.stringify(defaultProfile));
+      setLocalProfile(defaultProfile);
     }
 
     if (currentUserRole === 'customer' && currentUserName) {
