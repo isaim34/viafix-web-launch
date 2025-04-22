@@ -22,7 +22,7 @@ export function useDisplayedMechanics(
   currentUserRole: string | null
 ) {
   return useMemo(() => {
-    // If we have mechanics, show them.
+    // If we have mechanics, use them; otherwise, use default data
     let displayMechanics = mechanics.length > 0
       ? mechanics
       : (zipCode ? mechanicsData.filter(m => m.zipCode?.startsWith(zipCode.substring(0, 3))) : mechanicsData);
@@ -32,7 +32,6 @@ export function useDisplayedMechanics(
     
     // Add the local mechanic if it's not already in the list (for mechanic users only)
     if (!hasLocalMechanic && currentUserRole === 'mechanic') {
-      // Try to get the local mechanic profile
       const mechanicProfile = localStorage.getItem('mechanicProfile');
       if (mechanicProfile) {
         try {
@@ -64,12 +63,19 @@ export function useDisplayedMechanics(
       }
     }
 
-    // Remove 'local-mechanic' from customer-facing results
-    if (currentUserRole === 'customer') {
-      displayMechanics = displayMechanics.filter(m => m.id !== 'local-mechanic');
+    // Customer-specific: Only show mechanics (including vendors/local-mechanic) that match the search zip code if filtering by zip code.
+    if (currentUserRole === 'customer' && zipCode) {
+      displayMechanics = displayMechanics.filter(m => m.zipCode && m.zipCode.startsWith(zipCode.substring(0, 3)));
     }
+
+    // (OPTIONAL: If you want to prevent "local-mechanic" from showing at all to customers, uncomment below.
+    // But as per the request, we now allow it to show if the zip code matches.)
+    // if (currentUserRole === 'customer') {
+    //   displayMechanics = displayMechanics.filter(m => m.id !== 'local-mechanic');
+    // }
     
     console.log('Displaying mechanics:', displayMechanics.map(m => m.name));
     return displayMechanics;
   }, [mechanics, zipCode, currentUserRole]);
 }
+
