@@ -134,7 +134,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
             <DropdownMenuSeparator />
             
             <DropdownMenuItem asChild>
-              <Link to={getProfileRoute(userRole)} className="flex items-center cursor-pointer">
+              <Link to={getProfileRoute(userRole as 'customer' | 'mechanic' | null)} className="flex items-center cursor-pointer">
                 {userRole === 'customer' ? (
                   <>
                     <UserCircle className="mr-2 h-4 w-4" />
