@@ -23,6 +23,7 @@ export const useFilteredMechanics = (
   localMechanicProfile: BasicProfileFormValues | null
 ) => {
   return useMemo(() => {
+    // Start with all mechanics from the data
     const allMechanics = [...mechanicsData];
     const userRole = localStorage.getItem('userRole');
     
@@ -68,6 +69,13 @@ export const useFilteredMechanics = (
       }
     }
     
+    // Ensure the mechanic profile with ID "local-mechanic" from mechanicsData is always included
+    // This ensures that a vendor account is always searchable when a customer is looking for it
+    const localMechanicInData = mechanicsData.find(m => m.id === 'local-mechanic');
+    if (localMechanicInData && !allMechanics.some(m => m.id === 'local-mechanic')) {
+      allMechanics.push(localMechanicInData);
+    }
+    
     // Filter mechanics
     const filteredMechanics = allMechanics.filter(mechanic => {
       console.log(`Filtering mechanic: ${mechanic.name}, id: ${mechanic.id}, zipCode: ${mechanic.zipCode}`);
@@ -80,12 +88,24 @@ export const useFilteredMechanics = (
         mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
       
+      // Special case for the local mechanic when logged in as a customer
+      // Always include it in search results regardless of zip code
+      if (userRole === 'customer' && mechanic.id === 'local-mechanic') {
+        console.log('Customer searching for local mechanic, including it regardless of zip');
+        return matchesSearch;
+      }
+      
+      // If no zipcode filter, return based on search term only
       if (!zipCode) return matchesSearch;
       
+      // Special handling for local mechanic
       if (mechanic.id === 'local-mechanic') {
         const zipCodeMatches = mechanic.zipCode === zipCode;
         console.log(`Local mechanic zip match? ${zipCodeMatches} (${mechanic.zipCode} === ${zipCode})`);
+        // For local mechanic, be more lenient with zip code matching
         if (zipCodeMatches) return matchesSearch;
+        // When user is searching specifically for this mechanic, include it
+        if (searchTerm && mechanic.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
       }
       
       if (zipCode === '01605') {

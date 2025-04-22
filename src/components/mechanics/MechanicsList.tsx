@@ -87,32 +87,21 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     }
   }, [zipCode, setZipCode, currentUserRole]);
 
-  // Check if the local mechanic is missing from search results
+  // Ensure mechanics are visible across zip codes when customer is searching
   useEffect(() => {
-    if (currentUserRole === 'mechanic' && zipCode && localProfile) {
-      const hasLocalMechanic = mechanics.some(m => m.id === 'local-mechanic');
-      const profileZipMatches = localProfile.zipCode === zipCode;
+    if (currentUserRole === 'customer' && mechanics.length === 0 && zipCode) {
+      console.log('Customer searching with zip code but no results, suggesting to clear zip code');
       
-      console.log('Local mechanic in results?', hasLocalMechanic);
-      console.log('Profile zip matches search?', profileZipMatches);
-      
-      // Alert if profile should be included but isn't
-      if (!hasLocalMechanic && profileZipMatches && zipCode === '01605') {
-        console.log('WARNING: Local mechanic profile should be in results but is missing!');
-        console.log('Local profile:', localProfile);
-        console.log('Search mechanics:', mechanics);
-        
-        // Show a toast with debugging info
-        if (mechanics.length > 0) {
-          toast({
-            title: "Debug info",
-            description: `Your profile (zip: ${localProfile.zipCode}) should appear in search for ${zipCode}`,
-            duration: 5000
-          });
-        }
+      if (!sessionStorage.getItem('zipCodeSuggestionShown')) {
+        toast({
+          title: "No mechanics found in this area",
+          description: "Try clearing the zip code to see all available mechanics.",
+          duration: 5000
+        });
+        sessionStorage.setItem('zipCodeSuggestionShown', 'true');
       }
     }
-  }, [mechanics, currentUserRole, zipCode, localProfile]);
+  }, [mechanics.length, zipCode, currentUserRole]);
   
   // Special case for 01605
   const displayMechanics = mechanics.length > 0 
@@ -165,7 +154,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
           <h3 className="text-lg font-medium mb-2">No mechanics found</h3>
           <p className="text-gray-500 mb-6">
             {zipCode 
-              ? `No mechanics found in the ${locationDisplay} area. Please try a different zip code.`
+              ? `No mechanics found in the ${locationDisplay} area. Please try a different zip code or clear the zip code to see all mechanics.`
               : 'Try adjusting your search criteria.'}
           </p>
         </div>
