@@ -23,7 +23,7 @@ interface AuthButtonsProps {
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, currentUserName, currentUserRole, getFirstName } = useAuth();
+  const { isLoggedIn, currentUserRole } = useAuth();
   const { getProfileRoute } = useAuthRedirect();
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -33,7 +33,11 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     };
     
     window.addEventListener('storage-event', handleStorageEvent);
-    return () => window.removeEventListener('storage-event', handleStorageEvent);
+    window.addEventListener('storage', handleStorageEvent);
+    return () => {
+      window.removeEventListener('storage-event', handleStorageEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   const getProfileImage = (): string => {
@@ -76,25 +80,26 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     }
   };
 
-  // Extract user info directly from localStorage for consistent real-time data
+  // Get user information directly from localStorage for real-time access
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-  const userRole = localStorage.getItem('userRole') as 'customer' | 'mechanic' | null;
-  const userName = localStorage.getItem('userName') || '';
+  const userRole = localStorage.getItem('userRole');
+  const fullName = localStorage.getItem('userName') || '';
   
-  // Get just the first name for display
-  const extractFirstName = (name: string): string => {
-    if (!name) return '';
-    // Handle email addresses - if contains @ symbol, extract username portion
-    if (name.includes('@')) {
-      const username = name.split('@')[0];
-      // Convert first letter to uppercase for better display
+  // Extract first name from either a regular name or email address
+  const getDisplayName = (): string => {
+    if (!fullName) return '';
+    
+    // For email addresses, extract and capitalize the part before @
+    if (fullName.includes('@')) {
+      const username = fullName.split('@')[0];
       return username.charAt(0).toUpperCase() + username.slice(1);
     }
-    // Regular name - just return first part
-    return name.split(' ')[0] || '';
+    
+    // For regular names, use the first part
+    return fullName.split(' ')[0];
   };
   
-  const firstName = extractFirstName(userName);
+  const displayName = getDisplayName();
   const profileImage = getProfileImage();
 
   if (userLoggedIn) {
@@ -103,12 +108,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         <div className="text-sm">
           {isMobile ? (
             <div className="pb-2">
-              <p className="font-medium">Hello, {firstName}</p>
-              <p className="text-muted-foreground capitalize">{userRole || currentUserRole}</p>
+              <p className="font-medium">Hello, {displayName}</p>
+              <p className="text-muted-foreground capitalize">{userRole}</p>
             </div>
           ) : (
             <p className="hidden md:block text-right mr-2">
-              Hello, <span className="font-medium">{firstName}</span>
+              Hello, <span className="font-medium">{displayName}</span>
             </p>
           )}
         </div>
@@ -117,9 +122,9 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profileImage} alt={firstName} />
+                <AvatarImage src={profileImage} alt={displayName} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {firstName ? firstName.charAt(0).toUpperCase() : 'U'}
+                  {displayName ? displayName.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
               </Avatar>
             </Button>

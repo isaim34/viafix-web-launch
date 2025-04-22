@@ -62,6 +62,22 @@ export function useCustomerAuth() {
     setUserName(newName);
   }, [auth]);
   
+  // Helper to get first name from email or regular name
+  const getFirstName = useCallback((fullName: string) => {
+    if (!fullName) return '';
+    
+    // Handle email addresses - extract username portion before @ symbol
+    if (fullName.includes('@')) {
+      const username = fullName.split('@')[0];
+      // Capitalize first letter for better display
+      return username.charAt(0).toUpperCase() + username.slice(1);
+    }
+    
+    // Regular name - just take first part
+    const parts = fullName.trim().split(' ');
+    return parts[0] || '';
+  }, []);
+  
   return {
     ...auth,
     isCustomerLoggedIn: isCustomerLoggedIn,
@@ -69,5 +85,6 @@ export function useCustomerAuth() {
     currentUserName: userName,
     currentUserRole: currentUserRole,
     updateUserName,
+    getFirstName,
   };
 }
