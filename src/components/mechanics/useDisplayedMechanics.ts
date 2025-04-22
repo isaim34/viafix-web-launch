@@ -63,19 +63,33 @@ export function useDisplayedMechanics(
       }
     }
 
-    // Customer-specific: Only show mechanics (including vendors/local-mechanic) that match the search zip code if filtering by zip code.
-    if (currentUserRole === 'customer' && zipCode) {
-      displayMechanics = displayMechanics.filter(m => m.zipCode && m.zipCode.startsWith(zipCode.substring(0, 3)));
-    }
-
-    // (OPTIONAL: If you want to prevent "local-mechanic" from showing at all to customers, uncomment below.
-    // But as per the request, we now allow it to show if the zip code matches.)
-    // if (currentUserRole === 'customer') {
-    //   displayMechanics = displayMechanics.filter(m => m.id !== 'local-mechanic');
-    // }
+    // Always include the local mechanic for customers if no zip code filtering or if it matches the zip search
+    // This ensures vendor accounts pop up in customer searches by zip code
+    let filteredMechanics = displayMechanics;
     
-    console.log('Displaying mechanics:', displayMechanics.map(m => m.name));
-    return displayMechanics;
+    if (zipCode) {
+      // When filtering by zip code, include all mechanics that match the zip prefix
+      filteredMechanics = displayMechanics.filter(mechanic => {
+        // If mechanic has a zip code that matches the search, include it
+        if (mechanic.zipCode && mechanic.zipCode.startsWith(zipCode.substring(0, 3))) {
+          return true;
+        }
+        
+        // Special case for Isai Mercado (or any vendor) - ensure it's always included when zip matches
+        if (mechanic.id === 'local-mechanic' && mechanic.zipCode === zipCode) {
+          return true;
+        }
+        
+        return false;
+      });
+      
+      // Log information about the filtering process
+      console.log('Zip code search:', zipCode);
+      console.log('Mechanics before zip filtering:', displayMechanics.map(m => `${m.name} (${m.zipCode})`));
+      console.log('Mechanics after zip filtering:', filteredMechanics.map(m => `${m.name} (${m.zipCode})`));
+    }
+    
+    console.log('Displaying mechanics:', filteredMechanics.map(m => m.name));
+    return filteredMechanics;
   }, [mechanics, zipCode, currentUserRole]);
 }
-

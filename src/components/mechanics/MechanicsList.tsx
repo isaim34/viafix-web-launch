@@ -46,6 +46,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
       try {
         const profile = JSON.parse(storedProfile);
         setLocalProfile(profile);
+        console.log('MechanicsList - Loaded local profile with zip:', profile.zipCode);
       } catch (error) {
         console.error('Error parsing mechanic profile:', error);
       }
@@ -68,7 +69,10 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
       if (storedProfileData) {
         try {
           const parsedData = JSON.parse(storedProfileData);
-          if (parsedData.zipCode) setZipCode(parsedData.zipCode);
+          if (parsedData.zipCode) {
+            console.log('Auto-populating zip code from profile:', parsedData.zipCode);
+            setZipCode(parsedData.zipCode);
+          }
         } catch (error) {
           console.error('Error parsing profile data from localStorage:', error);
         }
