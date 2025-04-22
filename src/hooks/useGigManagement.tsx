@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Gig, GigFormValues } from '@/components/gig/types';
@@ -28,6 +29,16 @@ export function useGigManagement() {
   const [gigs, setGigs] = useState<Gig[]>(sampleGigs);
   const [isCreating, setIsCreating] = useState(false);
   const [editingGig, setEditingGig] = useState<Gig | null>(null);
+
+  // Reset editing state when a new gig is selected for editing
+  const handleSetEditingGig = (gig: Gig | null) => {
+    // Clear creating state when editing
+    if (gig !== null) {
+      setIsCreating(false);
+    }
+    // Update the editing gig state
+    setEditingGig(gig);
+  };
 
   // Mock function to simulate image upload
   const uploadImage = async (file: File): Promise<string> => {
@@ -104,7 +115,7 @@ export function useGigManagement() {
     isCreating,
     editingGig,
     setIsCreating,
-    setEditingGig,
+    setEditingGig: handleSetEditingGig, // Use the new handler
     handleCreateGig,
     handleEditGig,
     handleDeleteGig

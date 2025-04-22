@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,29 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
       image: gig?.image || '',
     },
   });
+
+  // Reset form values when the gig prop changes
+  useEffect(() => {
+    if (gig) {
+      form.reset({
+        title: gig.title,
+        description: gig.description,
+        price: gig.price,
+        duration: gig.duration,
+        image: gig.image,
+      });
+      setPreviewImage(gig.image);
+    } else {
+      form.reset({
+        title: '',
+        description: '',
+        price: 0,
+        duration: '',
+        image: '',
+      });
+      setPreviewImage(null);
+    }
+  }, [gig, form]);
 
   const handleSubmit = (values: GigFormValues) => {
     onSubmit({ 

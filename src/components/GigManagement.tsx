@@ -18,6 +18,12 @@ const GigManagement = () => {
     handleDeleteGig
   } = useGigManagement();
 
+  // Helper to cancel all editing/creating states
+  const handleCancel = () => {
+    setIsCreating(false);
+    setEditingGig(null);
+  };
+
   return (
     <div>
       <GigManagementHeader onAddClick={() => setIsCreating(true)} />
@@ -27,10 +33,7 @@ const GigManagement = () => {
           <GigForm 
             gig={editingGig} 
             onSubmit={editingGig ? handleEditGig : handleCreateGig} 
-            onCancel={() => {
-              setIsCreating(false);
-              setEditingGig(null);
-            }} 
+            onCancel={handleCancel} 
           />
         </div>
       )}
