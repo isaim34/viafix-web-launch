@@ -103,12 +103,40 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     }
   }, [mechanics.length, zipCode, currentUserRole]);
   
-  // Special case for 01605
-  const displayMechanics = mechanics.length > 0 
+  // Check if user is a customer searching for mechanics
+  const isCustomerSearching = currentUserRole === 'customer';
+  
+  // Ensure we have mechanics to display, use special case for 01605
+  let displayMechanics = mechanics.length > 0 
     ? mechanics 
     : (zipCode === '01605' ? mechanicsData.filter(m => m.zipCode === '01605') : []);
+  
+  // If customer is logged in, check if we need to add the vendor mechanic
+  if (isCustomerSearching) {
+    // Check if vendor mechanic is already included
+    const hasVendorMechanic = displayMechanics.some(m => m.id === 'local-mechanic');
+    
+    if (!hasVendorMechanic) {
+      console.log('Adding vendor mechanic for customer view');
+      // Add a default vendor mechanic for customer view
+      const defaultVendorMechanic = {
+        id: 'local-mechanic',
+        name: 'Isai Mercado',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+        specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
+        rating: 5.0,
+        reviewCount: 12,
+        location: 'Worcester, MA',
+        hourlyRate: 75,
+        zipCode: '01605'
+      };
+      
+      // Add to beginning of list for better visibility
+      displayMechanics = [defaultVendorMechanic, ...displayMechanics];
+    }
+  }
 
-  // Determine if we need to force include the local mechanic
+  // Determine if user is a logged in mechanic
   const userRole = localStorage.getItem('userRole');
   const isLoggedInMechanic = userRole === 'mechanic';
   
@@ -119,6 +147,9 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
           `Showing ${displayMechanics.length} mechanics near ${locationDisplay}` : 
           `Showing ${displayMechanics.length} mechanics`
         }
+        {isCustomerSearching && displayMechanics.some(m => m.id === 'local-mechanic') && (
+          <span className="ml-2 text-primary">(Including your preferred vendor)</span>
+        )}
       </p>
       
       {displayMechanics.length > 0 ? (

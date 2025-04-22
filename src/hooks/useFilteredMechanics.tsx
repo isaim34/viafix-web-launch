@@ -23,6 +23,7 @@ export const useFilteredMechanics = (
   localMechanicProfile: BasicProfileFormValues | null
 ) => {
   return useMemo(() => {
+    console.log('useFilteredMechanics running with:', { searchTerm, zipCode, locationName });
     // Start with all mechanics from the data
     const allMechanics = [...mechanicsData];
     const userRole = localStorage.getItem('userRole');
@@ -69,16 +70,36 @@ export const useFilteredMechanics = (
       }
     }
     
-    // Ensure the mechanic profile with ID "local-mechanic" from mechanicsData is always included
-    // This ensures that a vendor account is always searchable when a customer is looking for it
-    const localMechanicInData = mechanicsData.find(m => m.id === 'local-mechanic');
-    if (localMechanicInData && !allMechanics.some(m => m.id === 'local-mechanic')) {
-      allMechanics.push(localMechanicInData);
+    // ALWAYS include the default vendor mechanic for all searches
+    // Find if there's already a mechanic with id 'local-mechanic' in our list
+    const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
+    
+    // If not, add a default one that will always show up for customer searches
+    if (!hasLocalMechanic) {
+      console.log('Adding default vendor mechanic to results');
+      const defaultVendorMechanic = {
+        id: 'local-mechanic',
+        name: 'Isai Mercado',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+        specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
+        rating: 5.0,
+        reviewCount: 12,
+        location: 'Worcester, MA',
+        hourlyRate: 75,
+        zipCode: '01605'
+      };
+      allMechanics.push(defaultVendorMechanic);
     }
     
     // Filter mechanics
-    const filteredMechanics = allMechanics.filter(mechanic => {
+    let filteredMechanics = allMechanics.filter(mechanic => {
       console.log(`Filtering mechanic: ${mechanic.name}, id: ${mechanic.id}, zipCode: ${mechanic.zipCode}`);
+      
+      // Always include the local mechanic for customers regardless of search or zip
+      if (userRole === 'customer' && mechanic.id === 'local-mechanic') {
+        console.log('Including vendor account for customer');
+        return true;
+      }
       
       const matchesSearch = !searchTerm ? true : (
         mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,24 +109,12 @@ export const useFilteredMechanics = (
         mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
       
-      // Special case for the local mechanic when logged in as a customer
-      // Always include it in search results regardless of zip code
-      if (userRole === 'customer' && mechanic.id === 'local-mechanic') {
-        console.log('Customer searching for local mechanic, including it regardless of zip');
-        return matchesSearch;
-      }
-      
       // If no zipcode filter, return based on search term only
       if (!zipCode) return matchesSearch;
       
       // Special handling for local mechanic
       if (mechanic.id === 'local-mechanic') {
-        const zipCodeMatches = mechanic.zipCode === zipCode;
-        console.log(`Local mechanic zip match? ${zipCodeMatches} (${mechanic.zipCode} === ${zipCode})`);
-        // For local mechanic, be more lenient with zip code matching
-        if (zipCodeMatches) return matchesSearch;
-        // When user is searching specifically for this mechanic, include it
-        if (searchTerm && mechanic.name.toLowerCase().includes(searchTerm.toLowerCase())) return true;
+        return true; // Always include local mechanic
       }
       
       if (zipCode === '01605') {
@@ -127,36 +136,16 @@ export const useFilteredMechanics = (
       return matchesSearch && mechanic.zipCode === zipCode;
     });
     
-    // Special case for 01605
-    if (zipCode === '01605' && userRole === 'mechanic' && 
-        localMechanicProfile && localMechanicProfile.zipCode === '01605' && 
-        !filteredMechanics.some(m => m.id === 'local-mechanic')) {
-      
-      console.log('SPECIAL CASE: Forcing inclusion of local mechanic for 01605 search');
-      
-      const specialtiesArray = typeof localMechanicProfile.specialties === 'string'
-        ? localMechanicProfile.specialties.split(',').map(s => s.trim())
-        : localMechanicProfile.specialties || [];
-      
-      const localUserName = localStorage.getItem('userName');
-      const userAvatar = localStorage.getItem('mechanicAvatar') || localStorage.getItem('mechanic-avatar');
-      
-      const forcedLocalMechanic = {
-        id: 'local-mechanic',
-        name: localUserName || `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`,
-        avatar: userAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
-        specialties: specialtiesArray,
-        rating: 5.0,
-        reviewCount: 0,
-        location: 'Worcester, MA',
-        hourlyRate: localMechanicProfile.hourlyRate || 75,
-        zipCode: '01605'
-      };
-      
-      filteredMechanics.push(forcedLocalMechanic);
+    // Ensure the vendor account is at the top of the list for customers
+    if (userRole === 'customer') {
+      const vendorIndex = filteredMechanics.findIndex(m => m.id === 'local-mechanic');
+      if (vendorIndex > 0) {
+        const vendorAccount = filteredMechanics.splice(vendorIndex, 1)[0];
+        filteredMechanics.unshift(vendorAccount);
+      }
     }
     
-    console.log('Final filtered mechanics:', filteredMechanics);
+    console.log('Final filtered mechanics:', filteredMechanics.map(m => m.name));
     return filteredMechanics;
   }, [searchTerm, zipCode, locationName, localMechanicProfile]);
 };
