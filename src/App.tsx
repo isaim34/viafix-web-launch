@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -8,10 +9,10 @@ import { HelmetProvider } from 'react-helmet-async';
 import './App.css';
 
 // Import core pages directly for immediate loading
-import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 
 // Lazy load other pages for better performance
+const Index = lazy(() => import('./pages/Index'));
 const Mechanics = lazy(() => import('./pages/Mechanics'));
 const MechanicProfile = lazy(() => import('./pages/MechanicProfile'));
 const CustomerProfile = lazy(() => import('./pages/CustomerProfile'));
@@ -41,7 +42,8 @@ function App() {
         <Router>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/mechanics" replace />} />
+              <Route path="/welcome" element={<Index />} />
               <Route path="/mechanics" element={<Mechanics />} />
               <Route path="/mechanics/:id" element={<MechanicProfile />} />
               <Route path="/profile" element={<CustomerProfile />} />
