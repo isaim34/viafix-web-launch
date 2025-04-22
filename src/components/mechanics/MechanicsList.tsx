@@ -1,10 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
-import { MechanicCard } from '@/components/MechanicCard';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
-import { mechanicsData } from '@/data/mechanicsPageData';
-import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { MechanicCardWrapper } from './MechanicCardWrapper';
+import { useDisplayedMechanics } from './useDisplayedMechanics';
 
 interface Mechanic {
   id: string;
@@ -31,8 +30,8 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   const locationDisplay = locationName || zipCode;
   const { currentUserId, currentUserRole, currentUserName } = useCustomerAuth();
   const [localProfile, setLocalProfile] = useState<any>(null);
-  
-  // Enhanced logging for debugging
+
+  // Log info for debugging, plus save customer name for vendor display
   useEffect(() => {
     console.log('MechanicsList - Current user info:', {
       role: currentUserRole,
@@ -41,55 +40,35 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     });
     console.log('MechanicsList - Mechanics provided:', mechanics.length, mechanics.map(m => m.id));
     console.log('MechanicsList - Current zip code:', zipCode);
-    
-    // Check if the local mechanic profile exists in localStorage
+
     const storedProfile = localStorage.getItem('mechanicProfile');
     if (storedProfile) {
       try {
         const profile = JSON.parse(storedProfile);
-        console.log('MechanicsList - Local mechanic profile found:', profile);
-        console.log('MechanicsList - Local mechanic profile zip code:', profile.zipCode);
         setLocalProfile(profile);
       } catch (error) {
         console.error('Error parsing mechanic profile:', error);
       }
-    } else {
-      console.log('MechanicsList - No local mechanic profile found in localStorage');
     }
-    
-    // Save customer name to help with vendor display for mechanics list
+
     if (currentUserRole === 'customer' && currentUserName) {
-      // This lets us remember the customer's name on the vendor card
       localStorage.setItem('lastCustomerName', currentUserName);
     }
   }, [currentUserRole, mechanics, zipCode, currentUserName, currentUserId]);
-  
-  // Auto-populate zip code from profile for mechanics
+
+  // Auto-populate zip for mechanics
   useEffect(() => {
-    // Check if component is mounting and if the zip code should be auto-populated
     const shouldAutoPopulate = () => {
-      // Don't auto-populate if zip code is already set
       if (zipCode) return false;
-      
-      // Don't auto-populate if user manually cleared zip code
-      if (sessionStorage.getItem('zipCodeManuallyCleared') === 'true') {
-        console.log('Zip code was manually cleared, not auto-populating');
-        return false;
-      }
-      
+      if (sessionStorage.getItem('zipCodeManuallyCleared') === 'true') return false;
       return true;
     };
-    
-    // Only auto-populate zip code for mechanics
     if (shouldAutoPopulate() && currentUserRole === 'mechanic') {
       const storedProfileData = localStorage.getItem('mechanicProfile');
       if (storedProfileData) {
         try {
           const parsedData = JSON.parse(storedProfileData);
-          if (parsedData.zipCode) {
-            console.log('Found profile zip code:', parsedData.zipCode);
-            setZipCode(parsedData.zipCode);
-          }
+          if (parsedData.zipCode) setZipCode(parsedData.zipCode);
         } catch (error) {
           console.error('Error parsing profile data from localStorage:', error);
         }
@@ -97,11 +76,9 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     }
   }, [zipCode, setZipCode, currentUserRole]);
 
-  // Ensure mechanics are visible across zip codes when customer is searching
+  // Suggest clearing zipcode for customers if no results
   useEffect(() => {
     if (currentUserRole === 'customer' && mechanics.length === 0 && zipCode) {
-      console.log('Customer searching with zip code but no results, suggesting to clear zip code');
-      
       if (!sessionStorage.getItem('zipCodeSuggestionShown')) {
         toast({
           title: "No mechanics found in this area",
@@ -112,63 +89,36 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
       }
     }
   }, [mechanics.length, zipCode, currentUserRole]);
-  
-  // Ensure we have mechanics to display
-  let displayMechanics = mechanics.length > 0 
-    ? mechanics 
-    : (zipCode ? mechanicsData.filter(m => m.zipCode?.startsWith(zipCode.substring(0, 3))) : mechanicsData);
-  
-  // Filter out the customer's own account from the mechanics list
-  if (currentUserRole === 'customer') {
-    displayMechanics = displayMechanics.filter(m => m.id !== 'local-mechanic');
-  }
 
-  // Determine if user is a logged in mechanic
-  const userRole = localStorage.getItem('userRole');
-  const isLoggedInMechanic = userRole === 'mechanic';
-  
+  // Use refactored hook for display list
+  const displayMechanics = useDisplayedMechanics(mechanics, zipCode, currentUserRole);
+  const isLoggedInMechanic = localStorage.getItem('userRole') === 'mechanic';
+
   return (
     <div className="w-full">
       <p className="text-gray-500 mb-6">
-        {zipCode ? 
-          `Showing ${displayMechanics.length} mechanics near ${locationDisplay}` : 
+        {zipCode ?
+          `Showing ${displayMechanics.length} mechanics near ${locationDisplay}` :
           `Showing ${displayMechanics.length} mechanics`
         }
       </p>
-      
+
       {displayMechanics.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayMechanics.map((mechanic, index) => {
-            // Check if this is the logged-in mechanic's profile
-            const isCurrentMechanic = mechanic.id === 'local-mechanic';
-            
-            // For the local mechanic card, we'll wrap it in a Link to the dashboard
-            if (isCurrentMechanic && isLoggedInMechanic) {
-              return (
-                <Link to="/mechanic-dashboard" key={mechanic.id} className="block h-full">
-                  <MechanicCard 
-                    {...mechanic} 
-                    delay={index * 0.1}
-                  />
-                </Link>
-              );
-            }
-            
-            // For all other mechanics, use the normal MechanicCard with its built-in link
-            return (
-              <MechanicCard 
-                key={mechanic.id} 
-                {...mechanic} 
-                delay={index * 0.1}
-              />
-            );
-          })}
+          {displayMechanics.map((mechanic, index) => (
+            <MechanicCardWrapper
+              mechanic={mechanic}
+              index={index}
+              key={mechanic.id}
+              isLoggedInMechanic={isLoggedInMechanic}
+            />
+          ))}
         </div>
       ) : (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium mb-2">No mechanics found</h3>
           <p className="text-gray-500 mb-6">
-            {zipCode 
+            {zipCode
               ? `No mechanics found in the ${locationDisplay} area. Please try a different zip code or clear the zip code to see all mechanics.`
               : 'Try adjusting your search criteria.'}
           </p>
