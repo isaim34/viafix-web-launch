@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,17 +43,31 @@ const CustomerSigninForm = () => {
   const onSubmit = (data: CustomerFormValues) => {
     console.log('Customer signin data:', data);
     
+    // Get the stored name from localStorage - directly use the customer's email
+    // to look up their stored name from registration
     const storedName = localStorage.getItem(`registered_${data.email}`);
+    
+    // If no stored name is found, try to get the first part of the email as a fallback
+    const userName = storedName || (data.email.split('@')[0].charAt(0).toUpperCase() + data.email.split('@')[0].slice(1));
     
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'customer');
     localStorage.setItem('userId', 'customer-123');
-    localStorage.setItem('userName', storedName || 'Customer');
+    localStorage.setItem('userName', userName);
+    
+    // Make sure to update any customer-specific profile data
+    const customerProfile = {
+      firstName: userName.split(' ')[0] || '',
+      lastName: userName.split(' ').slice(1).join(' ') || '',
+      profileImage: localStorage.getItem('customerAvatar') || ''
+    };
+    
+    localStorage.setItem('customerProfile', JSON.stringify(customerProfile));
     
     window.dispatchEvent(new Event('storage-event'));
     
     toast({
-      title: `Welcome back${storedName ? `, ${storedName}` : ''}!`,
+      title: `Welcome back, ${userName}!`,
       description: "You have successfully signed in.",
     });
     

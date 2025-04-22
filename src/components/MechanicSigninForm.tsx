@@ -39,18 +39,30 @@ const MechanicSigninForm = () => {
   const onSubmit = (data: MechanicFormValues) => {
     console.log('Mechanic signin data:', data);
     
+    // Get the stored name from localStorage - directly use the mechanic's email
+    // to look up their stored name from registration
+    const storedName = localStorage.getItem(`registered_${data.email}`);
+    
+    // If no stored name is found, use the email username as fallback
+    const emailUsername = data.email.split('@')[0];
+    const formattedUsername = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1);
+    const userName = storedName || formattedUsername;
+    
     // Store auth data in localStorage
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'mechanic');
-    localStorage.setItem('userName', data.email.split('@')[0]); // We will remove this
+    localStorage.setItem('userName', userName);
     localStorage.setItem('userId', Math.random().toString(36).substring(2, 9));
+    
+    // Also update vendor name for consistency
+    localStorage.setItem('vendorName', userName);
     
     // Dispatch storage event to notify all components
     window.dispatchEvent(new Event('storage-event'));
     
     // Simulate successful login
     toast({
-      title: "Welcome back!",
+      title: `Welcome back, ${userName}!`,
       description: "You have successfully signed in.",
     });
     

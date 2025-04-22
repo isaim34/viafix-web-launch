@@ -37,6 +37,7 @@ export const useMechanicProfileSync = () => {
       syncMechanicProfileData();
     } else if (userRole === 'customer') {
       ensureVendorData();
+      syncCustomerProfileData(); // Add customer profile sync
     }
   };
   
@@ -90,6 +91,70 @@ export const useMechanicProfileSync = () => {
       }
     } catch (error) {
       console.error('Error syncing mechanic profile data:', error);
+    }
+  };
+  
+  // New function to synchronize customer profile data
+  const syncCustomerProfileData = () => {
+    try {
+      const profileData = localStorage.getItem('customerProfile');
+      const userName = localStorage.getItem('userName');
+      const userId = localStorage.getItem('userId');
+      
+      if (profileData) {
+        const profile = JSON.parse(profileData);
+        
+        // Ensure customer avatar is consistent
+        const avatarSources = [
+          localStorage.getItem('customerAvatar'),
+          localStorage.getItem('customer-avatar'),
+          profile.profileImage
+        ].filter(Boolean);
+        
+        if (avatarSources.length > 0) {
+          const primaryAvatar = avatarSources[0];
+          
+          // Set avatar in all storage locations
+          localStorage.setItem('customerAvatar', primaryAvatar);
+          localStorage.setItem('customer-avatar', primaryAvatar);
+          
+          // Update profile image
+          if (profile.profileImage !== primaryAvatar) {
+            profile.profileImage = primaryAvatar;
+            localStorage.setItem('customerProfile', JSON.stringify(profile));
+          }
+          
+          // Store with user-specific key
+          if (userId) {
+            localStorage.setItem(`customer-${userId}-profileImage`, primaryAvatar);
+          }
+        }
+        
+        // Ensure customer name is consistent
+        if (userName && (userName !== `${profile.firstName} ${profile.lastName}`.trim())) {
+          // Split userName into first and last name
+          const nameParts = userName.split(' ');
+          profile.firstName = nameParts[0] || '';
+          profile.lastName = nameParts.slice(1).join(' ') || '';
+          localStorage.setItem('customerProfile', JSON.stringify(profile));
+        } else if (profile.firstName && !userName) {
+          const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+          if (fullName) {
+            localStorage.setItem('userName', fullName);
+          }
+        }
+      } else if (userName) {
+        // If no profile exists but we have userName, create a basic profile
+        const nameParts = userName.split(' ');
+        const basicProfile = {
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          profileImage: localStorage.getItem('customerAvatar') || ''
+        };
+        localStorage.setItem('customerProfile', JSON.stringify(basicProfile));
+      }
+    } catch (error) {
+      console.error('Error syncing customer profile data:', error);
     }
   };
   
