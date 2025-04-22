@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,6 +50,8 @@ export const useMechanicProfileSync = () => {
       // Get profile data
       const profileData = localStorage.getItem('mechanicProfile');
       const userName = localStorage.getItem('userName');
+      const userEmail = localStorage.getItem('userEmail');
+      const userId = localStorage.getItem('userId');
       
       if (profileData) {
         const profile = JSON.parse(profileData);
@@ -72,24 +75,36 @@ export const useMechanicProfileSync = () => {
           if (profile.profileImage !== primaryAvatar) {
             profile.profileImage = primaryAvatar;
             localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+            
+            // Also update email-keyed storage for persistence
+            if (userEmail) {
+              localStorage.setItem(`mechanic_profile_${userEmail}`, JSON.stringify(profile));
+            }
           }
           
-          console.log('Synced mechanic avatar:', primaryAvatar.substring(0, 30) + '...');
+          // If userId exists, store avatar with user-specific key
+          if (userId) {
+            localStorage.setItem(`mechanic-${userId}-profileImage`, primaryAvatar);
+          }
         }
         
         // Ensure mechanic name is consistent
         if (userName) {
           localStorage.setItem('vendorName', userName);
+          
+          // Store the name with email for future retrieval
+          if (userEmail) {
+            localStorage.setItem(`registered_${userEmail}`, userName);
+          }
         } else if (profile.firstName && profile.lastName) {
           const fullName = `${profile.firstName} ${profile.lastName}`.trim();
           localStorage.setItem('userName', fullName);
           localStorage.setItem('vendorName', fullName);
-        }
-        
-        // If userId exists, store avatar with user-specific key
-        const userId = localStorage.getItem('userId');
-        if (userId && avatarSources.length > 0) {
-          localStorage.setItem(`mechanic-${userId}-profileImage`, avatarSources[0]);
+          
+          // Store the name with email for future retrieval
+          if (userEmail) {
+            localStorage.setItem(`registered_${userEmail}`, fullName);
+          }
         }
       }
     } catch (error) {
@@ -103,12 +118,24 @@ export const useMechanicProfileSync = () => {
       const userName = localStorage.getItem('userName');
       const userId = localStorage.getItem('userId');
       
-      // If we have email and updated profile data, save it for persistence
+      // If we have email and profile update was made, prioritize the changes
       if (userEmail && profileData) {
+        // Store the updated profile by email for persistence
         localStorage.setItem(`customer_profile_${userEmail}`, profileData);
+        
+        // Parse the current profile
+        const profile = JSON.parse(profileData);
+        
+        // If this is a profile update (not initial login), store the name mapping
+        if (profile.firstName && profile.lastName) {
+          const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+          if (fullName) {
+            localStorage.setItem(`registered_${userEmail}`, fullName);
+          }
+        }
       }
       
-      // If customer profile exists in localStorage, use it
+      // Check for customer profile in localStorage
       if (profileData) {
         const profile = JSON.parse(profileData);
         
@@ -143,8 +170,19 @@ export const useMechanicProfileSync = () => {
           }
         }
         
-        // Ensure customer name is consistent
-        if (userName && (userName !== `${profile.firstName} ${profile.lastName}`.trim())) {
+        // If profile exists but userName doesn't match profile name, prioritize profile
+        const profileFullName = `${profile.firstName} ${profile.lastName}`.trim();
+        if (profileFullName && (!userName || userName !== profileFullName)) {
+          // Update userName to match profile
+          localStorage.setItem('userName', profileFullName);
+          
+          // Store name mapping for this email
+          if (userEmail) {
+            localStorage.setItem(`registered_${userEmail}`, profileFullName);
+          }
+        }
+        // If userName exists but doesn't match profile, update profile
+        else if (userName && userName !== profileFullName && profile.firstName) {
           // Split userName into first and last name
           const nameParts = userName.split(' ');
           profile.firstName = nameParts[0] || '';
@@ -154,14 +192,10 @@ export const useMechanicProfileSync = () => {
           // Also update email-keyed storage
           if (userEmail) {
             localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(profile));
-          }
-        } else if (profile.firstName && !userName) {
-          const fullName = `${profile.firstName} ${profile.lastName}`.trim();
-          if (fullName) {
-            localStorage.setItem('userName', fullName);
+            localStorage.setItem(`registered_${userEmail}`, userName);
           }
         }
-      } else if (userName) {
+      } else if (userName && userEmail) {
         // If no profile exists but we have userName, create a basic profile
         const nameParts = userName.split(' ');
         const basicProfile = {
@@ -171,10 +205,9 @@ export const useMechanicProfileSync = () => {
         };
         localStorage.setItem('customerProfile', JSON.stringify(basicProfile));
         
-        // Also save to email-keyed storage
-        if (userEmail) {
-          localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(basicProfile));
-        }
+        // Store profile and mapping by email
+        localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(basicProfile));
+        localStorage.setItem(`registered_${userEmail}`, userName);
       }
     } catch (error) {
       console.error('Error syncing customer profile data:', error);

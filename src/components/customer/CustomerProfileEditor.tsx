@@ -88,9 +88,13 @@ const CustomerProfileEditor = () => {
       // Ensure profile data is synced properly
       localStorage.setItem('customerProfile', JSON.stringify(profileData));
       
-      // Store profile data by email for persistence across sessions
+      // This is critical - store the profile by email to persist across sessions
       if (userEmail) {
         localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(profileData));
+        
+        // Create a mapping from userId to email for future retrieval
+        localStorage.setItem(`registered_${userEmail}`, formattedName);
+        localStorage.setItem(`userId_to_email_${userId}`, userEmail);
       }
       
       // Trigger a storage event to update all components

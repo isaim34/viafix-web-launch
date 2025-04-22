@@ -43,19 +43,22 @@ const CustomerSigninForm = () => {
   const onSubmit = (data: CustomerFormValues) => {
     console.log('Customer signin data:', data);
     
-    // Get the stored name from localStorage - directly use the customer's email
-    // to look up their stored name from registration
-    const storedName = localStorage.getItem(`registered_${data.email}`);
+    // Generate a consistent userId based on email
+    const userId = `customer-${btoa(data.email).replace(/[=+/]/g, '').substring(0, 10)}`;
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('userEmail', data.email);
     
-    // Check if there's a saved customer profile for this user
-    let userName = storedName;
+    // Try to get the stored customer profile data first
+    let userName = '';
+    let profileData = null;
     
     try {
       // Look for previously saved profile data for this email
-      const customerProfileData = localStorage.getItem(`customer_profile_${data.email}`);
-      if (customerProfileData) {
-        const profileData = JSON.parse(customerProfileData);
+      const storedProfileData = localStorage.getItem(`customer_profile_${data.email}`);
+      if (storedProfileData) {
+        profileData = JSON.parse(storedProfileData);
         if (profileData.firstName) {
+          // Use the stored name from profile
           userName = `${profileData.firstName} ${profileData.lastName || ''}`.trim();
         }
       }
@@ -63,28 +66,33 @@ const CustomerSigninForm = () => {
       console.error("Error parsing saved profile data:", error);
     }
     
-    // If no stored name is found, try to get the first part of the email as a fallback
+    // If no profile data found, check for registered name
+    if (!userName) {
+      userName = localStorage.getItem(`registered_${data.email}`) || '';
+    }
+    
+    // If still no name, use email as fallback
     if (!userName) {
       userName = data.email.split('@')[0].charAt(0).toUpperCase() + data.email.split('@')[0].slice(1);
     }
     
-    // Generate a consistent userId based on email
-    const userId = `customer-${btoa(data.email).replace(/[=+/]/g, '').substring(0, 10)}`;
-    
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'customer');
-    localStorage.setItem('userId', userId);
     localStorage.setItem('userName', userName);
-    localStorage.setItem('userEmail', data.email);
     
-    // Make sure to update any customer-specific profile data
-    const customerProfile = {
-      firstName: userName.split(' ')[0] || '',
-      lastName: userName.split(' ').slice(1).join(' ') || '',
-      profileImage: localStorage.getItem(`customer-${userId}-profileImage`) || ''
-    };
+    // Set up the customer profile
+    if (!profileData) {
+      profileData = {
+        firstName: userName.split(' ')[0] || '',
+        lastName: userName.split(' ').slice(1).join(' ') || '',
+        profileImage: localStorage.getItem(`customer-${userId}-profileImage`) || ''
+      };
+    }
     
-    localStorage.setItem('customerProfile', JSON.stringify(customerProfile));
+    localStorage.setItem('customerProfile', JSON.stringify(profileData));
+    
+    // Make sure email to userId mapping is stored
+    localStorage.setItem(`userId_to_email_${userId}`, data.email);
     
     window.dispatchEvent(new Event('storage-event'));
     
