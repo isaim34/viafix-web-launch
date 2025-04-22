@@ -39,6 +39,9 @@ const MechanicSigninForm = () => {
   const onSubmit = (data: MechanicFormValues) => {
     console.log('Mechanic signin data:', data);
     
+    // Store the email for profile sync
+    localStorage.setItem('userEmail', data.email);
+    
     // Get the stored name from localStorage - directly use the mechanic's email
     // to look up their stored name from registration
     const storedName = localStorage.getItem(`registered_${data.email}`);
@@ -52,7 +55,11 @@ const MechanicSigninForm = () => {
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'mechanic');
     localStorage.setItem('userName', userName);
-    localStorage.setItem('userId', Math.random().toString(36).substring(2, 9));
+    const userId = Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('userId', userId);
+    
+    // Create user ID to email mapping
+    localStorage.setItem(`userId_to_email_${userId}`, data.email);
     
     // Also update vendor name for consistency
     localStorage.setItem('vendorName', userName);

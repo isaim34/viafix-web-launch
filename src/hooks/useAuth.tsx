@@ -6,6 +6,7 @@ export function useAuth() {
   const [isMechanicLoggedIn, setIsMechanicLoggedIn] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('');
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   
   // Enhanced getFirstName function that handles both regular names and email addresses
   const getFirstName = useCallback((fullName: string) => {
@@ -28,6 +29,7 @@ export function useAuth() {
       const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
       const userRole = localStorage.getItem('userRole');
       const userName = localStorage.getItem('userName');
+      const email = localStorage.getItem('userEmail');
       
       // Get user name or use default if not found
       const storedName = userName || '';
@@ -36,8 +38,9 @@ export function useAuth() {
       setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
       setCurrentUserName(storedName);
       setCurrentUserRole(userRole);
+      setUserEmail(email);
       
-      console.log('Auth state checked:', { userLoggedIn, userRole, userName: storedName });
+      console.log('Auth state checked:', { userLoggedIn, userRole, userName: storedName, email });
     };
     
     // Initial auth check
@@ -64,6 +67,27 @@ export function useAuth() {
     localStorage.setItem('userName', trimmedName);
     setCurrentUserName(trimmedName);
     
+    // If we have an email, update the registered name mapping
+    const email = localStorage.getItem('userEmail');
+    if (email) {
+      localStorage.setItem(`registered_${email}`, trimmedName);
+      
+      // Try to update the profile if it exists
+      try {
+        const profileData = localStorage.getItem(`customer_profile_${email}`);
+        if (profileData) {
+          const profile = JSON.parse(profileData);
+          const nameParts = trimmedName.split(' ');
+          profile.firstName = nameParts[0] || '';
+          profile.lastName = nameParts.slice(1).join(' ') || '';
+          localStorage.setItem(`customer_profile_${email}`, JSON.stringify(profile));
+          localStorage.setItem('customerProfile', JSON.stringify(profile));
+        }
+      } catch (e) {
+        console.error('Error updating profile with new name:', e);
+      }
+    }
+    
     // Dispatch storage event for cross-component updates
     window.dispatchEvent(new Event('storage-event'));
     
@@ -76,6 +100,7 @@ export function useAuth() {
     isLoggedIn: isCustomerLoggedIn || isMechanicLoggedIn,
     currentUserName,
     currentUserRole,
+    userEmail,
     updateUserName,
     getFirstName,
   };

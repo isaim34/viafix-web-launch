@@ -9,7 +9,23 @@ export const getUserNameFromEmail = (email: string): string => {
 
 export const getStoredCustomerProfile = (email: string) => {
   try {
-    const storedProfileData = localStorage.getItem(`customer_profile_${email}`);
+    // First try with the exact email
+    let storedProfileData = localStorage.getItem(`customer_profile_${email}`);
+    
+    if (!storedProfileData) {
+      // If not found with exact email, check if we have a mapping from email to userId
+      const allKeys = Object.keys(localStorage);
+      const userIdMappingKey = allKeys.find(key => key.startsWith(`userId_to_email_`) && 
+        localStorage.getItem(key) === email);
+      
+      if (userIdMappingKey) {
+        // Extract userId from the mapping key format "userId_to_email_[userId]"
+        const userId = userIdMappingKey.replace('userId_to_email_', '');
+        // Try to get profile by userId
+        storedProfileData = localStorage.getItem(`customer-${userId}-profile`);
+      }
+    }
+    
     if (storedProfileData) {
       return JSON.parse(storedProfileData);
     }
@@ -46,6 +62,8 @@ export const setupCustomerProfile = (email: string, userId: string) => {
     };
   }
   
+  // Always create the userId to email mapping to improve retrieval
+  localStorage.setItem(`userId_to_email_${userId}`, email);
+  
   return { userName, profileData };
 };
-

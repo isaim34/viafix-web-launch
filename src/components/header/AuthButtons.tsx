@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, UserCircle, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileSync';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
@@ -57,10 +58,17 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
 
   const handleLogout = () => {
     try {
+      // Sync profile data before logging out to ensure it persists
+      const userEmail = localStorage.getItem('userEmail');
+      if (userEmail) {
+        syncCustomerProfileData(userEmail);
+      }
+      
+      // Clear auth related localStorage entries
       localStorage.removeItem('userLoggedIn');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userName');
-      localStorage.removeItem('userId');
+      // Don't remove userId and userEmail immediately to allow profile sync
       
       window.dispatchEvent(new Event('storage-event'));
       
@@ -70,6 +78,12 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
       });
       
       navigate('/', { replace: true });
+      
+      // Clear remaining user data after a short delay to ensure sync completes
+      setTimeout(() => {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+      }, 500);
     } catch (error) {
       console.error('Error during logout:', error);
       toast({

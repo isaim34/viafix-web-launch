@@ -18,6 +18,13 @@ export const syncCustomerProfileData = (userEmail?: string | null) => {
         const fullName = `${profile.firstName} ${profile.lastName}`.trim();
         if (fullName) {
           localStorage.setItem(`registered_${userEmail}`, fullName);
+          
+          // Update localStorage userName to ensure consistency
+          if (fullName !== userName) {
+            localStorage.setItem('userName', fullName);
+            // Dispatch event to notify components
+            window.dispatchEvent(new Event('storage-event'));
+          }
         }
       }
       
@@ -36,6 +43,8 @@ export const syncCustomerProfileData = (userEmail?: string | null) => {
         
         if (userId) {
           localStorage.setItem(`customer-${userId}-profileImage`, primaryAvatar);
+          // Also save a profile copy by userId for cross-login retrieval
+          localStorage.setItem(`customer-${userId}-profile`, profileData);
         }
         
         if (profile.profileImage !== primaryAvatar) {
@@ -43,6 +52,11 @@ export const syncCustomerProfileData = (userEmail?: string | null) => {
           localStorage.setItem('customerProfile', JSON.stringify(profile));
           localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(profile));
         }
+      }
+      
+      // Always ensure we have the userId to email mapping
+      if (userId && userEmail) {
+        localStorage.setItem(`userId_to_email_${userId}`, userEmail);
       }
     }
   } catch (error) {
