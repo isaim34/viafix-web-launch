@@ -12,11 +12,9 @@ import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import MechanicSpecificFields from './mechanic/MechanicSpecificFields';
-import { useAuth } from '@/contexts/AuthContext';
 
 const MechanicSignupForm = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -32,30 +30,22 @@ const MechanicSignupForm = () => {
     },
   });
 
-  const onSubmit = async (data: MechanicFormValues) => {
-    try {
-      await signUp(
-        data.email, 
-        data.password, 
-        'mechanic',
-        data.firstName,
-        data.lastName
-      );
-      
-      toast({
-        title: "Account created successfully",
-        description: "Welcome to ViaFix!",
-      });
-      
-      navigate('/mechanic-dashboard');
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      toast({
-        title: "Error creating account",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const onSubmit = (data: MechanicFormValues) => {
+    console.log('Mechanic signup data:', data);
+    
+    // Simulate API call for account creation
+    toast({
+      title: "Account created!",
+      description: "Now let's set up two-factor authentication for your security.",
+    });
+    
+    // Navigate to 2FA setup with user data
+    navigate('/two-factor-auth', { 
+      state: { 
+        userData: data,
+        userType: 'mechanic' 
+      } 
+    });
   };
 
   return (
