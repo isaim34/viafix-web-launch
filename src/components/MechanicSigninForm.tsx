@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { getUserNameFromEmail } from '@/utils/authUtils';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -67,9 +68,12 @@ const MechanicSigninForm = () => {
     // Dispatch storage event to notify all components
     window.dispatchEvent(new Event('storage-event'));
     
+    // Get just the first name for the welcome message
+    const firstName = userName.split(' ')[0];
+    
     // Simulate successful login
     toast({
-      title: `Welcome back, ${userName}!`,
+      title: `Welcome back, ${firstName}!`,
       description: "You have successfully signed in.",
     });
     

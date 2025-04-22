@@ -31,8 +31,18 @@ export function useAuth() {
       const userName = localStorage.getItem('userName');
       const email = localStorage.getItem('userEmail');
       
-      // Get user name or use default if not found
-      const storedName = userName || '';
+      // If the stored name is an email, check if we have a registered name for this email
+      let storedName = userName || '';
+      
+      if (storedName.includes('@') && email) {
+        // Try to get a registered name for this email
+        const registeredName = localStorage.getItem(`registered_${email}`);
+        if (registeredName) {
+          storedName = registeredName;
+          // Update localStorage immediately to fix the display for future renders
+          localStorage.setItem('userName', registeredName);
+        }
+      }
       
       setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
       setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');

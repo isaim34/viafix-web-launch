@@ -24,7 +24,7 @@ interface AuthButtonsProps {
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, currentUserRole } = useAuth();
+  const { isLoggedIn, currentUserRole, getFirstName } = useAuth();
   const { getProfileRoute } = useAuthRedirect();
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -98,22 +98,26 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole');
   const fullName = localStorage.getItem('userName') || '';
+  const userEmail = localStorage.getItem('userEmail');
   
-  // Extract first name from either a regular name or email address
-  const getDisplayName = (): string => {
-    if (!fullName) return '';
-    
-    // For email addresses, extract and capitalize the part before @
-    if (fullName.includes('@')) {
-      const username = fullName.split('@')[0];
-      return username.charAt(0).toUpperCase() + username.slice(1);
+  // If the fullName looks like an email and we have a registered name, use that instead
+  let displayName = '';
+  
+  if (fullName.includes('@') && userEmail) {
+    // Try to get a registered name for this email
+    const registeredName = localStorage.getItem(`registered_${userEmail}`);
+    if (registeredName) {
+      // Just get the first name from the registered name
+      displayName = registeredName.split(' ')[0];
+    } else {
+      // Fall back to extracting from email
+      displayName = getFirstName(fullName);
     }
-    
-    // For regular names, use the first part
-    return fullName.split(' ')[0];
-  };
+  } else {
+    // Regular name - just take first part
+    displayName = getFirstName(fullName);
+  }
   
-  const displayName = getDisplayName();
   const profileImage = getProfileImage();
 
   if (userLoggedIn) {

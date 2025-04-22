@@ -45,8 +45,11 @@ export const useCustomerSignin = () => {
     
     window.dispatchEvent(new Event('storage-event'));
     
+    // Get just the first name for the welcome message
+    const firstName = userName.split(' ')[0];
+    
     toast({
-      title: `Welcome back, ${userName}!`,
+      title: `Welcome back, ${firstName}!`,
       description: "You have successfully signed in.",
     });
     
