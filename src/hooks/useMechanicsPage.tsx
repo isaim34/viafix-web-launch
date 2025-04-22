@@ -1,8 +1,10 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useZipcode } from '@/hooks/useZipcode';
 import { useLocalMechanicProfile } from '@/hooks/useLocalMechanicProfile';
 import { useFilteredMechanics } from '@/hooks/useFilteredMechanics';
+import { useMechanicProfileSync } from '@/hooks/useMechanicProfileSync';
 
 export const useMechanicsPage = () => {
   const location = useLocation();
@@ -16,6 +18,9 @@ export const useMechanicsPage = () => {
   
   // Get the local mechanic profile
   const { localMechanicProfile } = useLocalMechanicProfile();
+  
+  // Sync mechanic profile data across the app
+  useMechanicProfileSync();
   
   // Get filtered mechanics
   const filteredMechanics = useFilteredMechanics(
@@ -32,6 +37,11 @@ export const useMechanicsPage = () => {
     if (!newZipCode) {
       setLocationName('');
       reset();
+      // Clear manual flag when zip is explicitly cleared
+      sessionStorage.removeItem('zipCodeManuallyCleared');
+    } else {
+      // Set flag to indicate user has set a zip code
+      sessionStorage.removeItem('zipCodeManuallyCleared');
     }
   }, [reset]);
   

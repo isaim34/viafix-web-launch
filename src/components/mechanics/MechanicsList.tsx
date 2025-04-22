@@ -29,12 +29,16 @@ interface MechanicsListProps {
 
 const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: MechanicsListProps) => {
   const locationDisplay = locationName || zipCode;
-  const { currentUserId, currentUserRole } = useCustomerAuth();
+  const { currentUserId, currentUserRole, currentUserName } = useCustomerAuth();
   const [localProfile, setLocalProfile] = useState<any>(null);
   
   // Enhanced logging for debugging
   useEffect(() => {
-    console.log('MechanicsList - Current user role:', currentUserRole);
+    console.log('MechanicsList - Current user info:', {
+      role: currentUserRole,
+      name: currentUserName,
+      id: currentUserId
+    });
     console.log('MechanicsList - Mechanics provided:', mechanics.length, mechanics.map(m => m.id));
     console.log('MechanicsList - Current zip code:', zipCode);
     
@@ -52,7 +56,13 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     } else {
       console.log('MechanicsList - No local mechanic profile found in localStorage');
     }
-  }, [currentUserRole, mechanics, zipCode]);
+    
+    // Save customer name to help with vendor display for mechanics list
+    if (currentUserRole === 'customer' && currentUserName) {
+      // This lets us remember the customer's name on the vendor card
+      localStorage.setItem('lastCustomerName', currentUserName);
+    }
+  }, [currentUserRole, mechanics, zipCode, currentUserName, currentUserId]);
   
   // Auto-populate zip code from profile for mechanics
   useEffect(() => {
@@ -106,10 +116,10 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
   // Check if user is a customer searching for mechanics
   const isCustomerSearching = currentUserRole === 'customer';
   
-  // Ensure we have mechanics to display, use special case for 01605
+  // Ensure we have mechanics to display
   let displayMechanics = mechanics.length > 0 
     ? mechanics 
-    : (zipCode === '01605' ? mechanicsData.filter(m => m.zipCode === '01605') : []);
+    : (zipCode ? mechanicsData.filter(m => m.zipCode?.startsWith(zipCode.substring(0, 3))) : mechanicsData);
   
   // If customer is logged in, check if we need to add the vendor mechanic
   if (isCustomerSearching) {
@@ -118,17 +128,22 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     
     if (!hasVendorMechanic) {
       console.log('Adding vendor mechanic for customer view');
+      
+      // Get stored vendor name and avatar if available
+      const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+      const vendorAvatar = localStorage.getItem('vendorAvatar') || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
+      
       // Add a default vendor mechanic for customer view
       const defaultVendorMechanic = {
         id: 'local-mechanic',
-        name: 'Isai Mercado',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+        name: vendorName,
+        avatar: vendorAvatar,
         specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
         rating: 5.0,
         reviewCount: 12,
-        location: 'Worcester, MA',
+        location: locationName || 'Worcester, MA',
         hourlyRate: 75,
-        zipCode: '01605'
+        zipCode: zipCode || '01605'
       };
       
       // Add to beginning of list for better visibility

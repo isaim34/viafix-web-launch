@@ -41,12 +41,12 @@ const ProfileEditor = () => {
     let firstName = '';
     let lastName = '';
     
-    if (currentUserName.includes('@')) {
+    if (currentUserName && currentUserName.includes('@')) {
       // If username is an email, use the part before @ as first name
       firstName = currentUserName.split('@')[0];
       // Capitalize first letter
       firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-    } else {
+    } else if (currentUserName) {
       // Normal name handling
       const nameParts = currentUserName.split(' ');
       firstName = nameParts[0] || '';
@@ -93,6 +93,11 @@ const ProfileEditor = () => {
         localStorage.setItem(`${currentUserRole === 'mechanic' ? 'mechanic' : 'customer'}-${userId}-profileImage`, data.profileImage);
       }
       
+      // For mechanics, also save as vendor data
+      if (currentUserRole === 'mechanic') {
+        localStorage.setItem('vendorAvatar', data.profileImage);
+      }
+      
       console.log('Avatar saved to localStorage with keys:', avatarKey, legacyAvatarKey);
     }
     
@@ -104,6 +109,11 @@ const ProfileEditor = () => {
         // Use the updateUserName function from useAuth to ensure proper updates
         updateUserName(fullName);
         console.log('Updated userName in localStorage to:', fullName);
+        
+        // For mechanics, also save as vendor name
+        if (currentUserRole === 'mechanic') {
+          localStorage.setItem('vendorName', fullName);
+        }
         
         // Force refresh for mechanic dashboard header
         window.dispatchEvent(new Event('storage-event'));

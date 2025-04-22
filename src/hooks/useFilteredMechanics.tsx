@@ -70,8 +70,15 @@ export const useFilteredMechanics = (
       }
     }
     
-    // ALWAYS include the default vendor mechanic for all searches
-    // Find if there's already a mechanic with id 'local-mechanic' in our list
+    // Get default vendor name and avatar for customers
+    const defaultVendorName = 'Isai Mercado';
+    const defaultVendorAvatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
+    
+    // Try to get personalized vendor info if available
+    let vendorName = localStorage.getItem('vendorName') || defaultVendorName;
+    let vendorAvatar = localStorage.getItem('vendorAvatar') || defaultVendorAvatar;
+    
+    // Check if already exists in our list
     const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
     
     // If not, add a default one that will always show up for customer searches
@@ -79,14 +86,14 @@ export const useFilteredMechanics = (
       console.log('Adding default vendor mechanic to results');
       const defaultVendorMechanic = {
         id: 'local-mechanic',
-        name: 'Isai Mercado',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+        name: vendorName,
+        avatar: vendorAvatar,
         specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
         rating: 5.0,
         reviewCount: 12,
-        location: 'Worcester, MA',
+        location: locationName || 'Worcester, MA',
         hourlyRate: 75,
-        zipCode: '01605'
+        zipCode: zipCode || '01605' // Use customer's current zip code or default
       };
       allMechanics.push(defaultVendorMechanic);
     }
@@ -112,27 +119,31 @@ export const useFilteredMechanics = (
       // If no zipcode filter, return based on search term only
       if (!zipCode) return matchesSearch;
       
-      // Special handling for local mechanic
-      if (mechanic.id === 'local-mechanic') {
-        return true; // Always include local mechanic
-      }
-      
+      // Special case for Worcester, MA
       if (zipCode === '01605') {
+        if (mechanic.id === 'local-mechanic') return true;
         const zipCodeMatches = mechanic.zipCode === '01605';
         const result = matchesSearch && zipCodeMatches;
         console.log(`Mechanic ${mechanic.name} included in 01605 results: ${result}`);
         return result;
       }
       
+      // For any other zip code, include mechanics in that area
+      // Check if mechanic has zipCode property and it matches the requested zipCode
+      if (mechanic.zipCode === zipCode) {
+        return matchesSearch;
+      }
+      
+      // Also check for city/location matches when we have a location name
       if (locationName) {
         const cityName = locationName.split(',')[0].toLowerCase().trim();
         const mechanicCity = mechanic.location.toLowerCase();
         const isInSameCity = mechanicCity.includes(cityName);
-        const hasMatchingZip = mechanic.zipCode === zipCode;
         
-        return matchesSearch && (isInSameCity || hasMatchingZip);
+        return matchesSearch && isInSameCity;
       }
       
+      // Default behavior - must match both search and zipcode
       return matchesSearch && mechanic.zipCode === zipCode;
     });
     
@@ -142,6 +153,19 @@ export const useFilteredMechanics = (
       if (vendorIndex > 0) {
         const vendorAccount = filteredMechanics.splice(vendorIndex, 1)[0];
         filteredMechanics.unshift(vendorAccount);
+      }
+    }
+    
+    // Get nearby mechanics if we have few results
+    if (zipCode && filteredMechanics.length < 3) {
+      // Add some mechanics from the dataset if filtered results are too few
+      const nearbyMechanics = mechanicsData
+        .filter(m => !filteredMechanics.some(fm => fm.id === m.id)) // Exclude already included mechanics
+        .slice(0, 5); // Take up to 5 mechanics
+      
+      if (nearbyMechanics.length > 0) {
+        console.log('Adding nearby mechanics to results');
+        filteredMechanics = [...filteredMechanics, ...nearbyMechanics];
       }
     }
     
