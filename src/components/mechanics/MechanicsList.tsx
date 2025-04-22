@@ -92,7 +92,7 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
 
   // Use refactored hook for display list
   const displayMechanics = useDisplayedMechanics(mechanics, zipCode, currentUserRole);
-  const isLoggedInMechanic = localStorage.getItem('userRole') === 'mechanic';
+  const isLoggedInMechanic = currentUserRole === 'mechanic';
 
   return (
     <div className="w-full">
