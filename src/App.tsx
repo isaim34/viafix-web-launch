@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Toaster } from './components/ui/toaster';
@@ -42,8 +42,7 @@ function App() {
         <Router>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={<Navigate to="/mechanics" replace />} />
-              <Route path="/welcome" element={<Index />} />
+              <Route path="/" element={<Index />} />
               <Route path="/mechanics" element={<Mechanics />} />
               <Route path="/mechanics/:id" element={<MechanicProfile />} />
               <Route path="/profile" element={<CustomerProfile />} />
