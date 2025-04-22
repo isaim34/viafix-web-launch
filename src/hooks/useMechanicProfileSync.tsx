@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +11,7 @@ export const useMechanicProfileSync = () => {
   useEffect(() => {
     // Get user role to determine what data to sync
     const userRole = localStorage.getItem('userRole');
+    const userEmail = localStorage.getItem('userEmail');
     
     if (userRole === 'mechanic') {
       // For mechanics, ensure their profile data is synchronized
@@ -19,6 +19,7 @@ export const useMechanicProfileSync = () => {
     } else if (userRole === 'customer') {
       // For customers, ensure vendor data is available
       ensureVendorData();
+      syncCustomerProfileData(userEmail); // Add customer profile sync with email
     }
     
     // Add event listener for storage changes to ensure real-time updates
@@ -33,11 +34,13 @@ export const useMechanicProfileSync = () => {
   const handleStorageEvent = () => {
     // Re-sync data when storage changes
     const userRole = localStorage.getItem('userRole');
+    const userEmail = localStorage.getItem('userEmail');
+    
     if (userRole === 'mechanic') {
       syncMechanicProfileData();
     } else if (userRole === 'customer') {
       ensureVendorData();
-      syncCustomerProfileData(); // Add customer profile sync
+      syncCustomerProfileData(userEmail); // Add customer profile sync with email
     }
   };
   
@@ -94,13 +97,18 @@ export const useMechanicProfileSync = () => {
     }
   };
   
-  // New function to synchronize customer profile data
-  const syncCustomerProfileData = () => {
+  const syncCustomerProfileData = (userEmail?: string | null) => {
     try {
       const profileData = localStorage.getItem('customerProfile');
       const userName = localStorage.getItem('userName');
       const userId = localStorage.getItem('userId');
       
+      // If we have email and updated profile data, save it for persistence
+      if (userEmail && profileData) {
+        localStorage.setItem(`customer_profile_${userEmail}`, profileData);
+      }
+      
+      // If customer profile exists in localStorage, use it
       if (profileData) {
         const profile = JSON.parse(profileData);
         
@@ -122,6 +130,11 @@ export const useMechanicProfileSync = () => {
           if (profile.profileImage !== primaryAvatar) {
             profile.profileImage = primaryAvatar;
             localStorage.setItem('customerProfile', JSON.stringify(profile));
+            
+            // Also update email-keyed storage
+            if (userEmail) {
+              localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(profile));
+            }
           }
           
           // Store with user-specific key
@@ -137,6 +150,11 @@ export const useMechanicProfileSync = () => {
           profile.firstName = nameParts[0] || '';
           profile.lastName = nameParts.slice(1).join(' ') || '';
           localStorage.setItem('customerProfile', JSON.stringify(profile));
+          
+          // Also update email-keyed storage
+          if (userEmail) {
+            localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(profile));
+          }
         } else if (profile.firstName && !userName) {
           const fullName = `${profile.firstName} ${profile.lastName}`.trim();
           if (fullName) {
@@ -152,6 +170,11 @@ export const useMechanicProfileSync = () => {
           profileImage: localStorage.getItem('customerAvatar') || ''
         };
         localStorage.setItem('customerProfile', JSON.stringify(basicProfile));
+        
+        // Also save to email-keyed storage
+        if (userEmail) {
+          localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(basicProfile));
+        }
       }
     } catch (error) {
       console.error('Error syncing customer profile data:', error);

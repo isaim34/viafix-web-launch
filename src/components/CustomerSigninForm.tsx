@@ -47,19 +47,41 @@ const CustomerSigninForm = () => {
     // to look up their stored name from registration
     const storedName = localStorage.getItem(`registered_${data.email}`);
     
+    // Check if there's a saved customer profile for this user
+    let userName = storedName;
+    
+    try {
+      // Look for previously saved profile data for this email
+      const customerProfileData = localStorage.getItem(`customer_profile_${data.email}`);
+      if (customerProfileData) {
+        const profileData = JSON.parse(customerProfileData);
+        if (profileData.firstName) {
+          userName = `${profileData.firstName} ${profileData.lastName || ''}`.trim();
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing saved profile data:", error);
+    }
+    
     // If no stored name is found, try to get the first part of the email as a fallback
-    const userName = storedName || (data.email.split('@')[0].charAt(0).toUpperCase() + data.email.split('@')[0].slice(1));
+    if (!userName) {
+      userName = data.email.split('@')[0].charAt(0).toUpperCase() + data.email.split('@')[0].slice(1);
+    }
+    
+    // Generate a consistent userId based on email
+    const userId = `customer-${btoa(data.email).replace(/[=+/]/g, '').substring(0, 10)}`;
     
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'customer');
-    localStorage.setItem('userId', 'customer-123');
+    localStorage.setItem('userId', userId);
     localStorage.setItem('userName', userName);
+    localStorage.setItem('userEmail', data.email);
     
     // Make sure to update any customer-specific profile data
     const customerProfile = {
       firstName: userName.split(' ')[0] || '',
       lastName: userName.split(' ').slice(1).join(' ') || '',
-      profileImage: localStorage.getItem('customerAvatar') || ''
+      profileImage: localStorage.getItem(`customer-${userId}-profileImage`) || ''
     };
     
     localStorage.setItem('customerProfile', JSON.stringify(customerProfile));

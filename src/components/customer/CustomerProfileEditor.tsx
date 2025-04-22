@@ -68,6 +68,8 @@ const CustomerProfileEditor = () => {
       
       // Use a consistent userId for storage
       const userId = localStorage.getItem('userId') || currentUserId;
+      const userEmail = localStorage.getItem('userEmail');
+      
       if (data.profileImage) {
         localStorage.setItem(`customer-${userId}-profileImage`, data.profileImage);
         
@@ -76,12 +78,20 @@ const CustomerProfileEditor = () => {
         localStorage.setItem('customer-avatar', data.profileImage);
       }
       
-      // Ensure profile data is synced properly
-      localStorage.setItem('customerProfile', JSON.stringify({
+      // Save to profile storage
+      const profileData = {
         firstName: data.firstName,
         lastName: data.lastName,
         profileImage: data.profileImage
-      }));
+      };
+      
+      // Ensure profile data is synced properly
+      localStorage.setItem('customerProfile', JSON.stringify(profileData));
+      
+      // Store profile data by email for persistence across sessions
+      if (userEmail) {
+        localStorage.setItem(`customer_profile_${userEmail}`, JSON.stringify(profileData));
+      }
       
       // Trigger a storage event to update all components
       window.dispatchEvent(new Event('storage-event'));
