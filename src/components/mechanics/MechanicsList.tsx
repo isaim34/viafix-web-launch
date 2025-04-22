@@ -113,42 +113,14 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
     }
   }, [mechanics.length, zipCode, currentUserRole]);
   
-  // Check if user is a customer searching for mechanics
-  const isCustomerSearching = currentUserRole === 'customer';
-  
   // Ensure we have mechanics to display
   let displayMechanics = mechanics.length > 0 
     ? mechanics 
     : (zipCode ? mechanicsData.filter(m => m.zipCode?.startsWith(zipCode.substring(0, 3))) : mechanicsData);
   
-  // If customer is logged in, check if we need to add the vendor mechanic
-  if (isCustomerSearching) {
-    // Check if vendor mechanic is already included
-    const hasVendorMechanic = displayMechanics.some(m => m.id === 'local-mechanic');
-    
-    if (!hasVendorMechanic) {
-      console.log('Adding vendor mechanic for customer view');
-      
-      // Get stored vendor name and avatar if available
-      const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
-      const vendorAvatar = localStorage.getItem('vendorAvatar') || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
-      
-      // Add a default vendor mechanic for customer view
-      const defaultVendorMechanic = {
-        id: 'local-mechanic',
-        name: vendorName,
-        avatar: vendorAvatar,
-        specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
-        rating: 5.0,
-        reviewCount: 12,
-        location: locationName || 'Worcester, MA',
-        hourlyRate: 75,
-        zipCode: zipCode || '01605'
-      };
-      
-      // Add to beginning of list for better visibility
-      displayMechanics = [defaultVendorMechanic, ...displayMechanics];
-    }
+  // Filter out the customer's own account from the mechanics list
+  if (currentUserRole === 'customer') {
+    displayMechanics = displayMechanics.filter(m => m.id !== 'local-mechanic');
   }
 
   // Determine if user is a logged in mechanic
@@ -162,9 +134,6 @@ const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: Mechani
           `Showing ${displayMechanics.length} mechanics near ${locationDisplay}` : 
           `Showing ${displayMechanics.length} mechanics`
         }
-        {isCustomerSearching && displayMechanics.some(m => m.id === 'local-mechanic') && (
-          <span className="ml-2 text-primary">(Including your preferred vendor)</span>
-        )}
       </p>
       
       {displayMechanics.length > 0 ? (

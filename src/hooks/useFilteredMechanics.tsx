@@ -37,7 +37,7 @@ export const useFilteredMechanics = (
     localStorage.setItem('vendorName', vendorName);
     localStorage.setItem('vendorAvatar', vendorAvatar);
     
-    // For mechanic users, add their profile to the list
+    // Only add mechanic's own profile to the list if they are logged in as a mechanic
     if (localMechanicProfile && localMechanicProfile.firstName && 
         localMechanicProfile.lastName && userRole === 'mechanic') {
       
@@ -86,33 +86,40 @@ export const useFilteredMechanics = (
       localStorage.setItem('vendorAvatar', localMechanic.avatar);
     }
     
-    // Add default vendor mechanic for customers
-    const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
-    
-    if (!hasLocalMechanic) {
-      console.log('Adding default vendor mechanic to results with avatar:', vendorAvatar?.substring(0, 30) + '...');
-      const defaultVendorMechanic = {
-        id: 'local-mechanic',
-        name: vendorName,
-        avatar: vendorAvatar,
-        specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
-        rating: 5.0,
-        reviewCount: 12,
-        location: locationName || 'Worcester, MA',
-        hourlyRate: 75,
-        zipCode: zipCode || '01605' // Use customer's current zip code or default
-      };
-      allMechanics.push(defaultVendorMechanic);
+    // Add default vendor mechanic ONLY for viewing by customers, not when customers themselves are logged in
+    if (userRole === 'customer') {
+      // For customers who are logged in, don't add the vendor mechanic
+      // They should only see others' profiles, not appear as a vendor themselves
+      console.log('Customer is logged in, not adding them as a vendor mechanic');
+    } else {
+      // For non-logged in users or mechanics, add the vendor mechanic
+      const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
+      
+      if (!hasLocalMechanic) {
+        console.log('Adding default vendor mechanic to results with avatar:', vendorAvatar?.substring(0, 30) + '...');
+        const defaultVendorMechanic = {
+          id: 'local-mechanic',
+          name: vendorName,
+          avatar: vendorAvatar,
+          specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
+          rating: 5.0,
+          reviewCount: 12,
+          location: locationName || 'Worcester, MA',
+          hourlyRate: 75,
+          zipCode: zipCode || '01605' // Use customer's current zip code or default
+        };
+        allMechanics.push(defaultVendorMechanic);
+      }
     }
     
     // Filter mechanics
     let filteredMechanics = allMechanics.filter(mechanic => {
       console.log(`Filtering mechanic: ${mechanic.name}, id: ${mechanic.id}, zipCode: ${mechanic.zipCode}`);
       
-      // Always include the local mechanic for customers regardless of search or zip
+      // For logged-in customers, never include their own profile as a mechanic
       if (userRole === 'customer' && mechanic.id === 'local-mechanic') {
-        console.log('Including vendor account for customer');
-        return true;
+        console.log('Excluding customer\'s own account from mechanic results');
+        return false;
       }
       
       const matchesSearch = !searchTerm ? true : (
@@ -128,7 +135,7 @@ export const useFilteredMechanics = (
       
       // Special case for Worcester, MA
       if (zipCode === '01605') {
-        if (mechanic.id === 'local-mechanic') return true;
+        if (mechanic.id === 'local-mechanic' && userRole !== 'customer') return true;
         const zipCodeMatches = mechanic.zipCode === '01605';
         const result = matchesSearch && zipCodeMatches;
         console.log(`Mechanic ${mechanic.name} included in 01605 results: ${result}`);
@@ -153,15 +160,6 @@ export const useFilteredMechanics = (
       // Default behavior - must match both search and zipcode
       return matchesSearch && mechanic.zipCode === zipCode;
     });
-    
-    // Ensure the vendor account is at the top of the list for customers
-    if (userRole === 'customer') {
-      const vendorIndex = filteredMechanics.findIndex(m => m.id === 'local-mechanic');
-      if (vendorIndex > 0) {
-        const vendorAccount = filteredMechanics.splice(vendorIndex, 1)[0];
-        filteredMechanics.unshift(vendorAccount);
-      }
-    }
     
     // Get nearby mechanics if we have few results
     if (zipCode && filteredMechanics.length < 3) {
