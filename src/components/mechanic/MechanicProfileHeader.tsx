@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { MechanicDetail } from '@/types/mechanic';
 import { FavoriteButton } from './FavoriteButton';
 import { ShareButton } from './ShareButton';
@@ -40,11 +39,7 @@ export const MechanicProfileHeader = ({ mechanic, isCustomerLoggedIn }: Mechanic
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold">{mechanic.name}</h1>
                 <div className="flex items-center bg-green-50 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                  <img 
-                    src="/lovable-uploads/256afad2-72bd-41cb-9ecb-46d31194ed52.png" 
-                    alt="FixIQ" 
-                    className="h-3 w-auto mr-1" 
-                  />
+                  <Check className="h-4 w-4 mr-1 text-green-600" />
                   Verified
                 </div>
               </div>
