@@ -28,12 +28,23 @@ export const useFilteredMechanics = (
     const allMechanics = [...mechanicsData];
     const userRole = localStorage.getItem('userRole');
     
-    // Add local mechanic profile if it exists
+    // Get vendor information ensuring consistency
+    const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+    const vendorAvatar = localStorage.getItem('vendorAvatar') || 
+                         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
+    
+    // Always store these values for consistency
+    localStorage.setItem('vendorName', vendorName);
+    localStorage.setItem('vendorAvatar', vendorAvatar);
+    
+    // For mechanic users, add their profile to the list
     if (localMechanicProfile && localMechanicProfile.firstName && 
         localMechanicProfile.lastName && userRole === 'mechanic') {
       
       const localUserName = localStorage.getItem('userName');
-      const userAvatar = localStorage.getItem('mechanicAvatar') || localStorage.getItem('mechanic-avatar');
+      const userAvatar = localStorage.getItem('mechanicAvatar') || 
+                         localStorage.getItem('mechanic-avatar') || 
+                         localMechanicProfile.profileImage;
       
       console.log('Local mechanic profile details:');
       console.log('- Profile data:', localMechanicProfile);
@@ -42,6 +53,7 @@ export const useFilteredMechanics = (
       console.log('- Profile zip code:', localMechanicProfile.zipCode);
       console.log('- Search zip code:', zipCode);
       
+      // Check if the mechanic already exists in the list
       const existingMechanicIndex = allMechanics.findIndex(m => 
         m.name === `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}` || 
         m.id === 'local-mechanic'
@@ -68,22 +80,17 @@ export const useFilteredMechanics = (
       } else {
         allMechanics.push(localMechanic);
       }
+      
+      // Store consistent vendor information
+      localStorage.setItem('vendorName', localMechanic.name);
+      localStorage.setItem('vendorAvatar', localMechanic.avatar);
     }
     
-    // Get default vendor name and avatar for customers
-    const defaultVendorName = 'Isai Mercado';
-    const defaultVendorAvatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
-    
-    // Try to get personalized vendor info if available
-    let vendorName = localStorage.getItem('vendorName') || defaultVendorName;
-    let vendorAvatar = localStorage.getItem('vendorAvatar') || defaultVendorAvatar;
-    
-    // Check if already exists in our list
+    // Add default vendor mechanic for customers
     const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
     
-    // If not, add a default one that will always show up for customer searches
     if (!hasLocalMechanic) {
-      console.log('Adding default vendor mechanic to results');
+      console.log('Adding default vendor mechanic to results with avatar:', vendorAvatar?.substring(0, 30) + '...');
       const defaultVendorMechanic = {
         id: 'local-mechanic',
         name: vendorName,

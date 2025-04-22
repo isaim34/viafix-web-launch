@@ -1,11 +1,14 @@
 
 import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * Hook to synchronize mechanic profile data across different parts of the application
  * Ensures name and avatar are consistently available for the vendor account
  */
 export const useMechanicProfileSync = () => {
+  const { toast } = useToast();
+
   useEffect(() => {
     // Get user role to determine what data to sync
     const userRole = localStorage.getItem('userRole');
@@ -17,7 +20,25 @@ export const useMechanicProfileSync = () => {
       // For customers, ensure vendor data is available
       ensureVendorData();
     }
+    
+    // Add event listener for storage changes to ensure real-time updates
+    window.addEventListener('storage-event', handleStorageEvent);
+    
+    // Clean up event listener when component unmounts
+    return () => {
+      window.removeEventListener('storage-event', handleStorageEvent);
+    };
   }, []);
+  
+  const handleStorageEvent = () => {
+    // Re-sync data when storage changes
+    const userRole = localStorage.getItem('userRole');
+    if (userRole === 'mechanic') {
+      syncMechanicProfileData();
+    } else if (userRole === 'customer') {
+      ensureVendorData();
+    }
+  };
   
   const syncMechanicProfileData = () => {
     try {
@@ -37,11 +58,19 @@ export const useMechanicProfileSync = () => {
         
         if (avatarSources.length > 0) {
           const primaryAvatar = avatarSources[0];
+          
+          // Set avatar in all storage locations
           localStorage.setItem('mechanicAvatar', primaryAvatar);
           localStorage.setItem('mechanic-avatar', primaryAvatar);
-          
-          // Also save as vendor data for consistent display
           localStorage.setItem('vendorAvatar', primaryAvatar);
+          
+          // Also update profile image in the stored profile if it differs
+          if (profile.profileImage !== primaryAvatar) {
+            profile.profileImage = primaryAvatar;
+            localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+          }
+          
+          console.log('Synced mechanic avatar:', primaryAvatar.substring(0, 30) + '...');
         }
         
         // Ensure mechanic name is consistent
@@ -51,6 +80,12 @@ export const useMechanicProfileSync = () => {
           const fullName = `${profile.firstName} ${profile.lastName}`.trim();
           localStorage.setItem('userName', fullName);
           localStorage.setItem('vendorName', fullName);
+        }
+        
+        // If userId exists, store avatar with user-specific key
+        const userId = localStorage.getItem('userId');
+        if (userId && avatarSources.length > 0) {
+          localStorage.setItem(`mechanic-${userId}-profileImage`, avatarSources[0]);
         }
       }
     } catch (error) {
@@ -66,6 +101,18 @@ export const useMechanicProfileSync = () => {
     
     if (!localStorage.getItem('vendorAvatar')) {
       localStorage.setItem('vendorAvatar', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80');
+    }
+    
+    // Also ensure the vendor is in mechanic list results by storing in specific keys
+    const vendorAvatar = localStorage.getItem('vendorAvatar');
+    const vendorName = localStorage.getItem('vendorName');
+    
+    if (vendorAvatar) {
+      localStorage.setItem('local-mechanic-avatar', vendorAvatar);
+    }
+    
+    if (vendorName) {
+      localStorage.setItem('local-mechanic-name', vendorName);
     }
   };
   

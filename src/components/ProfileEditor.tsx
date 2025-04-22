@@ -5,6 +5,7 @@ import { BasicProfileFormValues, sampleMechanicProfile } from '@/schemas/profile
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { useMechanicProfileSync } from '@/hooks/useMechanicProfileSync';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
@@ -12,6 +13,9 @@ const ProfileEditor = () => {
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
+  
+  // Use profile sync hook to ensure data consistency
+  useMechanicProfileSync();
 
   // Load profile data from localStorage on component mount
   useEffect(() => {
@@ -96,6 +100,18 @@ const ProfileEditor = () => {
       // For mechanics, also save as vendor data
       if (currentUserRole === 'mechanic') {
         localStorage.setItem('vendorAvatar', data.profileImage);
+        
+        // For consistency, update the profileImage in their mechanic profile too
+        try {
+          const mechanicProfile = localStorage.getItem('mechanicProfile');
+          if (mechanicProfile) {
+            const profile = JSON.parse(mechanicProfile);
+            profile.profileImage = data.profileImage;
+            localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+          }
+        } catch (e) {
+          console.error('Error updating profile image in mechanic profile:', e);
+        }
       }
       
       console.log('Avatar saved to localStorage with keys:', avatarKey, legacyAvatarKey);
@@ -113,9 +129,22 @@ const ProfileEditor = () => {
         // For mechanics, also save as vendor name
         if (currentUserRole === 'mechanic') {
           localStorage.setItem('vendorName', fullName);
+          
+          // For consistency, update the name in their mechanic profile too
+          try {
+            const mechanicProfile = localStorage.getItem('mechanicProfile');
+            if (mechanicProfile) {
+              const profile = JSON.parse(mechanicProfile);
+              profile.firstName = data.firstName;
+              profile.lastName = data.lastName;
+              localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+            }
+          } catch (e) {
+            console.error('Error updating name in mechanic profile:', e);
+          }
         }
         
-        // Force refresh for mechanic dashboard header
+        // Force refresh for mechanic dashboard header and trigger sync
         window.dispatchEvent(new Event('storage-event'));
       }
     }
@@ -127,6 +156,9 @@ const ProfileEditor = () => {
       title: "Profile updated",
       description: "Your profile has been successfully updated and saved",
     });
+    
+    // Trigger profile sync to ensure consistency
+    window.dispatchEvent(new Event('storage-event'));
   };
 
   if (isLoading) {
