@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -25,6 +24,7 @@ const HowItWorks = lazy(() => import('./pages/HowItWorks'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const ZipcodeTest = lazy(() => import('./pages/ZipcodeTest'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
 
 // Loading component for Suspense fallback
 const PageLoader = () => (
@@ -70,6 +70,7 @@ function App() {
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />
+            <Route path="/settings" element={<AccountSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

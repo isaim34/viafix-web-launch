@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, UserCircle, User } from 'lucide-react';
+import { LogOut, UserCircle, User, Settings } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -69,6 +69,13 @@ export const UserMenuItems = () => {
               <span>Dashboard</span>
             </>
           )}
+        </Link>
+      </DropdownMenuItem>
+
+      <DropdownMenuItem asChild>
+        <Link to="/settings" className="flex items-center cursor-pointer">
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Account Settings</span>
         </Link>
       </DropdownMenuItem>
       
