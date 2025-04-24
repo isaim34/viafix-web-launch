@@ -16,7 +16,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/signin`
+          redirectTo: 'https://www.tryviafix.com/signin'
         }
       });
       
