@@ -36,9 +36,11 @@ export const post: BlogPost = {
     </blockquote>
     
     <h2>Building Partnerships for Better Service</h2>
-    
-    <p>Moving forward, we're exploring relationships with tool suppliers, parts distributors, and service providers to enhance the experience for both mechanics and customers. These partnerships will eventually help our mechanics access quality parts and tools at competitive prices, allowing them to provide better service at fair rates.</p>
-    
+
+    <p>As we grow in Austin, we're actively exploring relationships with tool suppliers, parts distributors, and service providers to enhance the experience for both mechanics and customers. We're gathering feedback from our community to understand which partnerships would be most valuable.</p>
+
+    <p>We welcome your input on potential partnerships that could help our mechanics provide better service at fair rates.</p>
+
     <h2>What's Next for ViaFix?</h2>
     
     <p>As we continue to grow, we're developing features like:</p>

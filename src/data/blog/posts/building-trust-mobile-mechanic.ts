@@ -85,7 +85,7 @@ export const post: BlogPost = {
 
     <h2>Growing with ViaFix</h2>
 
-    <p>As ViaFix continues to develop, we're working on features to help mechanics build trust:</p>
+    <p>As ViaFix develops in the Austin area, we're actively exploring features to help mechanics build trust:</p>
 
     <ul>
       <li>Enhanced profile verification systems</li>
@@ -93,6 +93,8 @@ export const post: BlogPost = {
       <li>Customer communication platforms</li>
       <li>Reputation management features</li>
     </ul>
+
+    <p>We're also gathering feedback from mechanics and customers about potential partnerships with tool suppliers, parts distributors, and insurance providers. Your input helps shape these future offerings.</p>
 
     <h2>Conclusion</h2>
 

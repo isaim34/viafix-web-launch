@@ -10,17 +10,21 @@ export const post: BlogPost = {
   content: `
     <h1>Essential Car Maintenance Basics Every Owner Should Know</h1>
 
-    <p>Understanding basic car maintenance can save you time, money, and prevent unexpected breakdowns. This guide covers the essential maintenance tasks that every car owner should be familiar with.</p>
+    <p>Understanding basic car maintenance can save you time, money, and prevent unexpected breakdowns. While we provide general guidelines, always consult your vehicle's owner's manual for manufacturer-specific maintenance schedules and requirements.</p>
 
-    <h2>Regular Maintenance Schedule</h2>
+    <h2>Maintenance Guidelines</h2>
 
-    <p>Following a regular maintenance schedule is crucial for your vehicle's longevity:</p>
+    <p>While maintenance intervals can vary by vehicle make, model, and driving conditions, here are some general guidelines to consider:</p>
+
+    <blockquote>
+      "Always check your owner's manual for the manufacturer's recommended maintenance schedule specific to your vehicle. These recommendations supersede any general guidelines." — Experienced Mechanic
+    </blockquote>
 
     <ul>
-      <li><strong>Oil Changes:</strong> Typically every 5,000-7,500 miles</li>
-      <li><strong>Tire Rotation:</strong> Every 5,000-8,000 miles</li>
-      <li><strong>Brake Inspection:</strong> Every 12,000 miles</li>
-      <li><strong>Air Filter:</strong> Every 15,000-30,000 miles</li>
+      <li><strong>Oil Changes:</strong> Varies by vehicle - check owner's manual</li>
+      <li><strong>Tire Rotation:</strong> Generally every 5,000-8,000 miles</li>
+      <li><strong>Tire Pressure:</strong> Check monthly (this is crucial for safety and efficiency)</li>
+      <li><strong>Air Filter:</strong> Check owner's manual for replacement intervals</li>
     </ul>
 
     <h2>Fluid Checks</h2>
@@ -64,13 +68,13 @@ export const post: BlogPost = {
 
     <h2>ViaFix Solutions</h2>
 
-    <p>Through ViaFix, you can:</p>
+    <p>Through ViaFix in Austin, TX, you can:</p>
 
     <ul>
-      <li>Schedule regular maintenance</li>
-      <li>Track your vehicle's service history</li>
-      <li>Get expert advice from certified mechanics</li>
+      <li>Schedule maintenance with verified mechanics</li>
+      <li>Get expert advice tailored to your vehicle</li>
       <li>Have services performed at your location</li>
+      <li>Maintain digital service records</li>
     </ul>
 
     <h2>Conclusion</h2>
