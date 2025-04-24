@@ -37,6 +37,7 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
   // Reset form values when the gig prop changes
   useEffect(() => {
     if (gig) {
+      console.log("Editing gig:", gig);
       form.reset({
         title: gig.title,
         description: gig.description,
@@ -58,11 +59,15 @@ const GigForm = ({ gig, onSubmit, onCancel }: GigFormProps) => {
   }, [gig, form]);
 
   const handleSubmit = (values: GigFormValues) => {
-    onSubmit({ 
-      ...values, 
+    // Pass existing id and status when editing
+    const submissionData = {
+      ...values,
       id: gig?.id,
       status: gig?.status
-    });
+    };
+    
+    console.log("Submitting gig data:", submissionData);
+    onSubmit(submissionData);
   };
 
   const handleImageChange = (file: File | string) => {

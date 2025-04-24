@@ -26,9 +26,29 @@ const sampleGigs = [
 ];
 
 export function useGigManagement() {
-  const [gigs, setGigs] = useState<Gig[]>(sampleGigs);
+  // Initialize gigs from localStorage or use sample data if none exists
+  const getInitialGigs = (): Gig[] => {
+    try {
+      const savedGigs = localStorage.getItem('mechanic-gigs');
+      return savedGigs ? JSON.parse(savedGigs) : sampleGigs;
+    } catch (error) {
+      console.error('Error loading gigs from localStorage:', error);
+      return sampleGigs;
+    }
+  };
+
+  const [gigs, setGigs] = useState<Gig[]>(getInitialGigs());
   const [isCreating, setIsCreating] = useState(false);
   const [editingGig, setEditingGig] = useState<Gig | null>(null);
+
+  // Save gigs to localStorage whenever they change
+  const saveGigsToLocalStorage = (updatedGigs: Gig[]) => {
+    try {
+      localStorage.setItem('mechanic-gigs', JSON.stringify(updatedGigs));
+    } catch (error) {
+      console.error('Error saving gigs to localStorage:', error);
+    }
+  };
 
   // Reset editing state when a new gig is selected for editing
   const handleSetEditingGig = (gig: Gig | null) => {
@@ -73,7 +93,9 @@ export function useGigManagement() {
         status: 'active'
       } as Gig;
       
-      setGigs([...gigs, gigToAdd]);
+      const updatedGigs = [...gigs, gigToAdd];
+      setGigs(updatedGigs);
+      saveGigsToLocalStorage(updatedGigs);
       setIsCreating(false);
       toast.success('Gig created successfully');
     } catch (error) {
@@ -84,6 +106,10 @@ export function useGigManagement() {
 
   const handleEditGig = async (updatedGig: GigFormValues & { id?: string; status?: string }) => {
     try {
+      if (!updatedGig.id) {
+        throw new Error('Gig ID is missing');
+      }
+      
       // Handle file upload if image is a File object
       let imageUrl = updatedGig.image;
       
@@ -96,7 +122,12 @@ export function useGigManagement() {
         image: imageUrl || updatedGig.image // Keep existing image if no new one
       } as Gig;
       
-      setGigs(gigs.map(gig => gig.id === updatedGig.id ? finalUpdatedGig : gig));
+      const updatedGigs = gigs.map(gig => 
+        gig.id === updatedGig.id ? finalUpdatedGig : gig
+      );
+      
+      setGigs(updatedGigs);
+      saveGigsToLocalStorage(updatedGigs);
       setEditingGig(null);
       toast.success('Gig updated successfully');
     } catch (error) {
@@ -106,7 +137,9 @@ export function useGigManagement() {
   };
 
   const handleDeleteGig = (id: string) => {
-    setGigs(gigs.filter(gig => gig.id !== id));
+    const updatedGigs = gigs.filter(gig => gig.id !== id);
+    setGigs(updatedGigs);
+    saveGigsToLocalStorage(updatedGigs);
     toast.success('Gig deleted successfully');
   };
 
@@ -115,7 +148,7 @@ export function useGigManagement() {
     isCreating,
     editingGig,
     setIsCreating,
-    setEditingGig: handleSetEditingGig, // Use the new handler
+    setEditingGig: handleSetEditingGig,
     handleCreateGig,
     handleEditGig,
     handleDeleteGig
