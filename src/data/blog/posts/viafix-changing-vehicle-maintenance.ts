@@ -1,3 +1,4 @@
+
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -5,7 +6,7 @@ export const post: BlogPost = {
   date: '2025-04-18',
   author: 'ViaFix Team',
   category: 'Service',
-  image: '/lovable-uploads/viafix-service.jpg',
+  image: '/lovable-uploads/mobile-mechanic-service.jpg', // Changed to show actual mobile mechanic service
   metaDescription: 'Discover how ViaFix is transforming vehicle maintenance with on-demand mobile mechanic services that bring convenient, quality repairs directly to your location.',
   content: `
     <h1>How ViaFix is Changing the Way People Access Vehicle Maintenance</h1>

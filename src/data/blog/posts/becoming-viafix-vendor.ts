@@ -6,7 +6,7 @@ export const post: BlogPost = {
   date: '2025-04-17',
   author: 'Alex Morgan',
   category: 'Vendor',
-  image: '/lovable-uploads/4915728c-953e-47f3-b79d-40efb1ce4950.png',
+  image: '/lovable-uploads/professional-mechanic-tools.jpg', // Changed to show professional tools setup
   metaDescription: 'Learn about becoming a vendor on ViaFix, requirements for mechanics, and how our platform helps independent auto technicians build sustainable mobile businesses.',
   content: `
     <h1>What to Expect as a Vendor on ViaFix</h1>

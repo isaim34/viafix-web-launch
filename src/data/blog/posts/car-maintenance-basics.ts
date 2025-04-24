@@ -1,3 +1,4 @@
+
 import { BlogPost } from '@/types/blog';
 
 export const post: BlogPost = {
@@ -5,7 +6,7 @@ export const post: BlogPost = {
   date: '2024-01-05',
   author: 'John Smith',
   category: 'Maintenance',
-  image: '/lovable-uploads/basic-car-maintenance.jpg',
+  image: '/lovable-uploads/oil-dipstick-check.jpg', // Changed to show actual maintenance being performed
   metaDescription: 'Learn the fundamental aspects of car maintenance that every vehicle owner should understand to keep their car running smoothly and avoid costly repairs.',
   content: `
     <h1>Essential Car Maintenance Basics Every Owner Should Know</h1>
