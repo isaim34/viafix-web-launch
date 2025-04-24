@@ -27,49 +27,31 @@ export const useProfileDisplay = () => {
 
   const getDisplayName = (): string => {
     const userRole = localStorage.getItem('userRole');
-    const userEmail = localStorage.getItem('userEmail');
     let displayName = '';
 
-    // First check for mechanic-specific name
-    if (userRole === 'mechanic') {
-      const vendorName = localStorage.getItem('vendorName');
-      if (vendorName) {
-        displayName = vendorName.split(' ')[0];
+    // First try to get name from profile
+    try {
+      const profileKey = userRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
+      const profileData = localStorage.getItem(profileKey);
+      if (profileData) {
+        const profile = JSON.parse(profileData);
+        if (profile.firstName) {
+          displayName = profile.firstName;
+        }
       }
+    } catch (e) {
+      console.error('Error getting name from profile:', e);
     }
 
-    // If no vendor name found, check other sources
+    // If no name found in profile, try the registered name
     if (!displayName) {
-      const fullName = localStorage.getItem('userName') || '';
-      if (fullName.includes('@') && userEmail) {
-        const registeredName = localStorage.getItem(`registered_${userEmail}`);
-        if (registeredName) {
-          displayName = registeredName.split(' ')[0];
-        } else {
-          displayName = getFirstName(fullName);
-        }
-      } else if (fullName) {
-        displayName = getFirstName(fullName);
+      const fullName = localStorage.getItem('userName');
+      if (fullName && !fullName.includes('@')) {
+        displayName = fullName.split(' ')[0];
       }
     }
 
-    // Check profile data as last resort
-    if (!displayName && userRole) {
-      try {
-        const profileKey = userRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
-        const profileData = localStorage.getItem(profileKey);
-        if (profileData) {
-          const profile = JSON.parse(profileData);
-          if (profile.firstName) {
-            displayName = profile.firstName;
-          }
-        }
-      } catch (e) {
-        console.error('Error getting name from profile:', e);
-      }
-    }
-
-    // Fallback to role-based default
+    // Fallback to role-based default if no name found
     if (!displayName && userRole) {
       displayName = userRole === 'mechanic' ? 'Mechanic' : 'Customer';
     }
