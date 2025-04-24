@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, UserCircle, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileData';
+import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileSync';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
