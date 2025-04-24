@@ -3,15 +3,51 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 type SocialLoginButtonsProps = {
   className?: string;
 };
 
 const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/signin`
+        }
+      });
+      
+      if (error) {
+        console.error('Google login error:', error);
+        toast({
+          title: "Login Failed",
+          description: "There was an error logging in with Google. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      toast({
+        title: "Login Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSocialLogin = (provider: string) => {
-    console.log(`Logging in with ${provider}`);
-    // Implementation for social login would go here
+    if (provider === 'google') {
+      handleGoogleLogin();
+    } else {
+      console.log(`${provider} login not implemented yet`);
+      toast({
+        title: "Coming Soon",
+        description: `${provider} login will be available soon!`,
+      });
+    }
   };
 
   return (
