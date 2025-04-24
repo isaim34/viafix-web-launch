@@ -19,7 +19,7 @@ export function useAuth() {
       return username.charAt(0).toUpperCase() + username.slice(1);
     }
     
-    // Regular name - just take first part
+    // Regular name - just take first part, ensure it's properly separated
     const parts = fullName.trim().split(' ');
     return parts[0] || '';
   }, []);
@@ -88,8 +88,13 @@ export function useAuth() {
         if (profileData) {
           const profile = JSON.parse(profileData);
           const nameParts = trimmedName.split(' ');
-          profile.firstName = nameParts[0] || '';
-          profile.lastName = nameParts.slice(1).join(' ') || '';
+          
+          // Ensure proper name separation
+          if (nameParts.length >= 1) {
+            profile.firstName = nameParts[0] || '';
+            profile.lastName = nameParts.slice(1).join(' ') || '';
+          }
+          
           localStorage.setItem(`customer_profile_${email}`, JSON.stringify(profile));
           localStorage.setItem('customerProfile', JSON.stringify(profile));
         }

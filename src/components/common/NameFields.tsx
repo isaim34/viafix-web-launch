@@ -12,9 +12,15 @@ import { Control } from 'react-hook-form';
 
 interface NameFieldsProps {
   control: Control<any>;
+  firstNameLabel?: string;
+  lastNameLabel?: string;
 }
 
-const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
+const NameFields: React.FC<NameFieldsProps> = ({ 
+  control, 
+  firstNameLabel = "First Name", 
+  lastNameLabel = "Last Name" 
+}) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
@@ -22,12 +28,17 @@ const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
         name="firstName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>First Name<span className="text-destructive ml-1">*</span></FormLabel>
+            <FormLabel>{firstNameLabel}<span className="text-destructive ml-1">*</span></FormLabel>
             <FormControl>
               <Input 
                 placeholder="Enter your first name" 
                 {...field} 
                 value={field.value || ''}
+                onChange={(e) => {
+                  // Ensure first name doesn't contain any spaces
+                  const value = e.target.value.trim();
+                  field.onChange(value);
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -39,7 +50,7 @@ const NameFields: React.FC<NameFieldsProps> = ({ control }) => {
         name="lastName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Last Name<span className="text-destructive ml-1">*</span></FormLabel>
+            <FormLabel>{lastNameLabel}<span className="text-destructive ml-1">*</span></FormLabel>
             <FormControl>
               <Input 
                 placeholder="Enter your last name" 

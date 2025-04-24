@@ -15,10 +15,26 @@ const CustomerProfileEditor = () => {
   const { currentUserName, currentUserId, updateUserName } = useCustomerAuth();
   const [isSaving, setIsSaving] = useState(false);
   
-  // Parse first and last name from currentUserName
-  const nameParts = currentUserName.split(' ');
-  const firstName = nameParts[0] || '';
-  const lastName = nameParts.slice(1).join(' ') || '';
+  // Parse first and last name from currentUserName with better handling
+  const parseUserName = () => {
+    if (!currentUserName) return { firstName: '', lastName: '' };
+    
+    // Handle combined names by attempting to split on spaces
+    const nameParts = currentUserName.trim().split(' ');
+    
+    if (nameParts.length === 1) {
+      // If there's only one part, treat it as first name
+      return { firstName: nameParts[0], lastName: '' };
+    } else {
+      // First part is firstName, rest is lastName
+      return { 
+        firstName: nameParts[0], 
+        lastName: nameParts.slice(1).join(' ') 
+      };
+    }
+  };
+  
+  const { firstName, lastName } = parseUserName();
   
   // Get stored profile image from localStorage, if any
   const userId = localStorage.getItem('userId') || currentUserId;
@@ -36,12 +52,11 @@ const CustomerProfileEditor = () => {
   // Synchronize form with user data when currentUserName changes
   useEffect(() => {
     if (currentUserName) {
-      const parts = currentUserName.split(' ');
-      const first = parts[0] || '';
-      const last = parts.slice(1).join(' ') || '';
+      const { firstName, lastName } = parseUserName();
+      console.log('Setting name fields from currentUserName:', { firstName, lastName });
       
-      form.setValue('firstName', first);
-      form.setValue('lastName', last);
+      form.setValue('firstName', firstName);
+      form.setValue('lastName', lastName);
     }
     
     // Re-fetch profile image when user ID changes
@@ -58,8 +73,12 @@ const CustomerProfileEditor = () => {
     try {
       console.log('Updated customer profile data:', data);
       
+      // Ensure both names are properly trimmed
+      const trimmedFirstName = data.firstName.trim();
+      const trimmedLastName = data.lastName.trim();
+      
       // Store the updated profile in localStorage with consistent keys
-      const formattedName = `${data.firstName} ${data.lastName}`.trim();
+      const formattedName = `${trimmedFirstName} ${trimmedLastName}`.trim();
       if (formattedName) {
         localStorage.setItem('userName', formattedName);
         // Update the user name in the auth context
@@ -78,10 +97,10 @@ const CustomerProfileEditor = () => {
         localStorage.setItem('customer-avatar', data.profileImage);
       }
       
-      // Save to profile storage
+      // Save to profile storage with trimmed values
       const profileData = {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
         profileImage: data.profileImage
       };
       
