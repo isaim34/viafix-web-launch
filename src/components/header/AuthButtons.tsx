@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, UserCircle, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileSync';
+import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileData';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
@@ -47,7 +47,13 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         const userId = localStorage.getItem('userId');
         return localStorage.getItem(`customer-${userId}-profileImage`) || '';
       } else if (currentUserRole === 'mechanic') {
-        return localStorage.getItem('mechanicAvatar') || '';
+        // For mechanics, check multiple possible locations for the avatar
+        return (
+          localStorage.getItem('mechanicAvatar') || 
+          localStorage.getItem('mechanic-avatar') || 
+          localStorage.getItem('vendorAvatar') || 
+          ''
+        );
       }
       return '';
     } catch (error) {
@@ -97,25 +103,60 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   // Get user information directly from localStorage for real-time access
   const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
   const userRole = localStorage.getItem('userRole');
-  const fullName = localStorage.getItem('userName') || '';
   const userEmail = localStorage.getItem('userEmail');
   
-  // If the fullName looks like an email and we have a registered name, use that instead
+  // Get proper name with priority checks - look in multiple places for the name
   let displayName = '';
   
-  if (fullName.includes('@') && userEmail) {
-    // Try to get a registered name for this email
-    const registeredName = localStorage.getItem(`registered_${userEmail}`);
-    if (registeredName) {
-      // Just get the first name from the registered name
-      displayName = registeredName.split(' ')[0];
-    } else {
-      // Fall back to extracting from email
+  // First check for mechanic-specific name (vendorName)
+  if (userRole === 'mechanic') {
+    const vendorName = localStorage.getItem('vendorName');
+    if (vendorName) {
+      // Just get the first name for display
+      displayName = vendorName.split(' ')[0];
+    }
+  }
+  
+  // If no vendor name found, check the regular userName
+  if (!displayName) {
+    const fullName = localStorage.getItem('userName') || '';
+    
+    // If fullName is an email and we have a registered name, use that instead
+    if (fullName.includes('@') && userEmail) {
+      // Try to get a registered name for this email
+      const registeredName = localStorage.getItem(`registered_${userEmail}`);
+      if (registeredName) {
+        // Just get the first name from the registered name
+        displayName = registeredName.split(' ')[0];
+      } else {
+        // Fall back to extracting from email
+        displayName = getFirstName(fullName);
+      }
+    } else if (fullName) {
+      // Regular name - just take first part
       displayName = getFirstName(fullName);
     }
-  } else {
-    // Regular name - just take first part
-    displayName = getFirstName(fullName);
+  }
+  
+  // Check profile data as a last resort
+  if (!displayName && userRole) {
+    try {
+      const profileKey = userRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
+      const profileData = localStorage.getItem(profileKey);
+      if (profileData) {
+        const profile = JSON.parse(profileData);
+        if (profile.firstName) {
+          displayName = profile.firstName;
+        }
+      }
+    } catch (e) {
+      console.error('Error getting name from profile:', e);
+    }
+  }
+  
+  // If we still don't have a name, use a role-based default
+  if (!displayName && userRole) {
+    displayName = userRole === 'mechanic' ? 'Mechanic' : 'Customer';
   }
   
   const profileImage = getProfileImage();

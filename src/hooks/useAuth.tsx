@@ -34,9 +34,26 @@ export function useAuth() {
       // If the stored name is an email, check if we have a registered name for this email
       let storedName = userName || '';
       
-      if (storedName.includes('@') && email) {
+      // For mechanics, we need to be even more aggressive about finding a proper name
+      if ((storedName.includes('@') || !storedName) && email) {
         // Try to get a registered name for this email
-        const registeredName = localStorage.getItem(`registered_${email}`);
+        let registeredName = localStorage.getItem(`registered_${email}`);
+        
+        // If we're a mechanic, also check the mechanicProfile
+        if (userRole === 'mechanic' && !registeredName) {
+          try {
+            const mechanicProfile = localStorage.getItem('mechanicProfile');
+            if (mechanicProfile) {
+              const profile = JSON.parse(mechanicProfile);
+              if (profile.firstName) {
+                registeredName = `${profile.firstName} ${profile.lastName || ''}`.trim();
+              }
+            }
+          } catch (e) {
+            console.error('Error checking mechanic profile for name:', e);
+          }
+        }
+        
         if (registeredName) {
           storedName = registeredName;
           // Update localStorage immediately to fix the display for future renders
@@ -97,6 +114,23 @@ export function useAuth() {
           
           localStorage.setItem(`customer_profile_${email}`, JSON.stringify(profile));
           localStorage.setItem('customerProfile', JSON.stringify(profile));
+        }
+        
+        // For mechanics, sync to the mechanicProfile as well
+        if (localStorage.getItem('userRole') === 'mechanic') {
+          const mechanicProfileData = localStorage.getItem('mechanicProfile');
+          if (mechanicProfileData) {
+            const mechanicProfile = JSON.parse(mechanicProfileData);
+            const nameParts = trimmedName.split(' ');
+            
+            if (nameParts.length >= 1) {
+              mechanicProfile.firstName = nameParts[0] || '';
+              mechanicProfile.lastName = nameParts.slice(1).join(' ') || '';
+            }
+            
+            localStorage.setItem('mechanicProfile', JSON.stringify(mechanicProfile));
+            localStorage.setItem('vendorName', trimmedName);
+          }
         }
       } catch (e) {
         console.error('Error updating profile with new name:', e);

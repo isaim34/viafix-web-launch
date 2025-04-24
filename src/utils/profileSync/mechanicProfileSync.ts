@@ -33,20 +33,46 @@ export const syncMechanicAvatar = (profile: any, userId?: string) => {
 
 export const syncMechanicName = (profile: any, userName: string | null, userEmail: string | null) => {
   try {
-    if (userName) {
-      localStorage.setItem('vendorName', userName);
-      
-      // Store the name with email for future retrieval
-      if (userEmail) {
-        localStorage.setItem(`registered_${userEmail}`, userName);
+    // First, determine the best name to use
+    let bestName = '';
+    
+    // Check if profile has name fields
+    if (profile.firstName) {
+      bestName = `${profile.firstName} ${profile.lastName || ''}`.trim();
+    }
+    
+    // If userName is already set, use that if it's not an email
+    if (userName && !userName.includes('@')) {
+      bestName = bestName || userName;
+    }
+    
+    // If userEmail exists and we have a registered name, use that
+    if (userEmail) {
+      const registeredName = localStorage.getItem(`registered_${userEmail}`);
+      if (registeredName) {
+        bestName = bestName || registeredName;
       }
-    } else if (profile.firstName && profile.lastName) {
-      const fullName = `${profile.firstName} ${profile.lastName}`.trim();
-      localStorage.setItem('userName', fullName);
-      localStorage.setItem('vendorName', fullName);
+    }
+    
+    // If we found a good name, sync it everywhere
+    if (bestName) {
+      // Always store as userName
+      localStorage.setItem('userName', bestName);
+      localStorage.setItem('vendorName', bestName);
       
+      // Store the name with email mapping for future retrieval
       if (userEmail) {
-        localStorage.setItem(`registered_${userEmail}`, fullName);
+        localStorage.setItem(`registered_${userEmail}`, bestName);
+      }
+      
+      // Make sure profile has the correct names
+      if (profile) {
+        const nameParts = bestName.split(' ');
+        if (nameParts.length > 0) {
+          profile.firstName = nameParts[0];
+          profile.lastName = nameParts.slice(1).join(' ');
+          localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+        }
       }
     }
   } catch (error) {
@@ -74,6 +100,9 @@ export const syncMechanicProfileData = () => {
       if (userEmail) {
         localStorage.setItem(`mechanic_profile_${userEmail}`, JSON.stringify(profile));
       }
+      
+      // Update local mechanic data
+      localStorage.setItem('mechanicProfile', JSON.stringify(profile));
     }
   } catch (error) {
     console.error('Error syncing mechanic profile data:', error);

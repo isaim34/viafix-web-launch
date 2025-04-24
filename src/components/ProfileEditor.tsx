@@ -45,16 +45,28 @@ const ProfileEditor = () => {
     let firstName = '';
     let lastName = '';
     
-    if (currentUserName && currentUserName.includes('@')) {
-      // If username is an email, use the part before @ as first name
-      firstName = currentUserName.split('@')[0];
-      // Capitalize first letter
-      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-    } else if (currentUserName) {
-      // Normal name handling
-      const nameParts = currentUserName.split(' ');
-      firstName = nameParts[0] || '';
-      lastName = nameParts.slice(1).join(' ') || '';
+    if (currentUserName) {
+      if (currentUserName.includes('@')) {
+        // If username is an email, use the part before @ as first name
+        firstName = currentUserName.split('@')[0];
+        // Capitalize first letter
+        firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+      } else {
+        // Normal name handling
+        const nameParts = currentUserName.split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ') || '';
+      }
+    }
+    
+    // For mechanics/vendors, check if there's a vendor name already set
+    if (currentUserRole === 'mechanic') {
+      const vendorName = localStorage.getItem('vendorName');
+      if (vendorName && vendorName !== currentUserName) {
+        const nameParts = vendorName.split(' ');
+        firstName = nameParts[0] || firstName;
+        lastName = nameParts.slice(1).join(' ') || lastName;
+      }
     }
     
     const initialProfile = {
