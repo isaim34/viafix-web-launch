@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
@@ -21,8 +22,8 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         options: {
           redirectTo: `${window.location.origin}/signin`,
           queryParams: {
+            prompt: 'select_account', // Forces account selection, helping with new signups
             access_type: 'offline',
-            prompt: 'consent',
           }
         }
       });
