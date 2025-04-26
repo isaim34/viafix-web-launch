@@ -4,12 +4,16 @@ import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
 
 type SocialLoginButtonsProps = {
   className?: string;
 };
 
 const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
+  const location = useLocation();
+  const isSignUp = location.pathname === '/signup';
+
   const handleGoogleAuth = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -27,7 +31,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         console.error('Google auth error:', error);
         toast({
           title: "Authentication Failed",
-          description: "There was an error with Google authentication. Please try again.",
+          description: `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}. Please try again.`,
           variant: "destructive"
         });
       }
@@ -68,7 +72,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
             <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
           </g>
         </svg>
-        Google
+        {isSignUp ? 'Sign up with Google' : 'Continue with Google'}
       </Button>
       <Button 
         variant="outline" 
@@ -76,7 +80,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         className="flex items-center justify-center gap-2"
       >
         <Facebook className="h-4 w-4" />
-        Facebook
+        {isSignUp ? 'Sign up with Facebook' : 'Continue with Facebook'}
       </Button>
       <Button 
         variant="outline" 
@@ -84,7 +88,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         className="flex items-center justify-center gap-2"
       >
         <Apple className="h-4 w-4" />
-        Apple
+        {isSignUp ? 'Sign up with Apple' : 'Continue with Apple'}
       </Button>
       <Button 
         variant="outline" 
@@ -92,7 +96,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         className="flex items-center justify-center gap-2"
       >
         <Instagram className="h-4 w-4" />
-        Instagram
+        {isSignUp ? 'Sign up with Instagram' : 'Continue with Instagram'}
       </Button>
       <Button 
         variant="outline" 
@@ -100,7 +104,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         className="col-span-2 flex items-center justify-center gap-2"
       >
         <Mail className="h-4 w-4" />
-        Continue with Email
+        {isSignUp ? 'Sign up with Email' : 'Continue with Email'}
       </Button>
     </div>
   );
