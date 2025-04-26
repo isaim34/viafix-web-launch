@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
@@ -17,7 +18,14 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
 
   const handleGoogleAuth = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Show a loading toast to indicate authentication is in progress
+      toast({
+        title: "Connecting to Google",
+        description: "Please wait while we connect to Google...",
+      });
+      
+      console.log("Starting Google auth process...");
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           queryParams: {
@@ -27,12 +35,19 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         }
       });
       
+      console.log("Google auth response:", { data, error });
+      
       if (error) {
         console.error('Google auth error:', error);
         toast({
           title: "Authentication Failed",
           description: error.message || `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}. Please try again.`,
           variant: "destructive"
+        });
+      } else if (data) {
+        toast({
+          title: "Authentication Started",
+          description: "You'll be redirected to Google for authentication.",
         });
       }
     } catch (error) {
