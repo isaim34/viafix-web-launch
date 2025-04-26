@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
@@ -11,7 +10,7 @@ type SocialLoginButtonsProps = {
 };
 
 const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
-  const handleGoogleLogin = async () => {
+  const handleGoogleAuth = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -25,31 +24,31 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       });
       
       if (error) {
-        console.error('Google login error:', error);
+        console.error('Google auth error:', error);
         toast({
-          title: "Login Failed",
-          description: "There was an error logging in with Google. Please try again.",
+          title: "Authentication Failed",
+          description: "There was an error with Google authentication. Please try again.",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error('Google auth error:', error);
       toast({
-        title: "Login Error",
+        title: "Authentication Error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
+  const handleSocialAuth = (provider: string) => {
     if (provider === 'google') {
-      handleGoogleLogin();
+      handleGoogleAuth();
     } else {
-      console.log(`${provider} login not implemented yet`);
+      console.log(`${provider} auth not implemented yet`);
       toast({
         title: "Coming Soon",
-        description: `${provider} login will be available soon!`,
+        description: `${provider} authentication will be available soon!`,
       });
     }
   };
@@ -58,7 +57,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
     <div className={cn("grid grid-cols-2 gap-3 w-full", className)}>
       <Button 
         variant="outline" 
-        onClick={() => handleSocialLogin('google')}
+        onClick={() => handleSocialAuth('google')}
         className="flex items-center justify-center gap-2"
       >
         <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
@@ -73,7 +72,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       </Button>
       <Button 
         variant="outline" 
-        onClick={() => handleSocialLogin('facebook')}
+        onClick={() => handleSocialAuth('facebook')}
         className="flex items-center justify-center gap-2"
       >
         <Facebook className="h-4 w-4" />
@@ -81,7 +80,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       </Button>
       <Button 
         variant="outline" 
-        onClick={() => handleSocialLogin('apple')}
+        onClick={() => handleSocialAuth('apple')}
         className="flex items-center justify-center gap-2"
       >
         <Apple className="h-4 w-4" />
@@ -89,7 +88,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       </Button>
       <Button 
         variant="outline" 
-        onClick={() => handleSocialLogin('instagram')}
+        onClick={() => handleSocialAuth('instagram')}
         className="flex items-center justify-center gap-2"
       >
         <Instagram className="h-4 w-4" />
@@ -97,7 +96,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       </Button>
       <Button 
         variant="outline" 
-        onClick={() => handleSocialLogin('email')}
+        onClick={() => handleSocialAuth('email')}
         className="col-span-2 flex items-center justify-center gap-2"
       >
         <Mail className="h-4 w-4" />
