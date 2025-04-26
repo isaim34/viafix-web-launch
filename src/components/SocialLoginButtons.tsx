@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type SocialLoginButtonsProps = {
   className?: string;
@@ -13,6 +12,7 @@ type SocialLoginButtonsProps = {
 
 const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isSignUp = location.pathname === '/signup';
 
   const handleGoogleAuth = async () => {
@@ -20,7 +20,6 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/signin`,
           queryParams: {
             prompt: 'select_account', // Forces account selection, helping with new signups
             access_type: 'offline',
@@ -32,7 +31,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         console.error('Google auth error:', error);
         toast({
           title: "Authentication Failed",
-          description: `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}. Please try again.`,
+          description: error.message || `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}. Please try again.`,
           variant: "destructive"
         });
       }
