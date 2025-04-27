@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { getCustomerPortal } from '@/lib/stripe';
 import { Settings, AlertCircle, ExternalLink, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -47,9 +47,11 @@ export const SubscriptionManagementSection = () => {
         setNeedsConfiguration(!!configNeeded);
         
         toast({
-          title: "Unable to Access Portal",
-          description: responseError,
-          variant: "destructive"
+          variant: configNeeded ? "default" : "destructive",
+          title: configNeeded ? "Portal Configuration Required" : "Unable to Access Portal",
+          description: configNeeded ? 
+            "The Stripe Customer Portal needs to be configured" : 
+            responseError
         });
         return;
       }
@@ -84,31 +86,33 @@ export const SubscriptionManagementSection = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {error && (
-          <Alert variant={needsConfiguration ? "default" : "destructive"} className="mb-4">
-            {needsConfiguration ? (
-              <Info className="h-4 w-4" />
-            ) : (
-              <AlertCircle className="h-4 w-4" />
-            )}
-            <AlertDescription>
-              {error}
-              {needsConfiguration && (
-                <div className="mt-2">
-                  <a 
-                    href="https://dashboard.stripe.com/test/settings/billing/portal" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline flex items-center"
-                  >
-                    Configure Stripe Portal
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </a>
-                </div>
-              )}
+        {needsConfiguration ? (
+          <Alert variant="default" className="mb-4 bg-amber-50 border-amber-200">
+            <Info className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="text-amber-800">
+              <div className="font-medium mb-1">Portal Configuration Required</div>
+              <p className="text-sm mb-2">
+                The Stripe Customer Portal needs to be configured before you can access it.
+              </p>
+              <a 
+                href="https://dashboard.stripe.com/test/settings/billing/portal" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline flex items-center text-sm w-fit"
+              >
+                Configure Stripe Portal
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
             </AlertDescription>
           </Alert>
-        )}
+        ) : error && !needsConfiguration ? (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        ) : null}
         
         <div className="flex flex-col sm:flex-row gap-3">
           <Button 
@@ -132,6 +136,17 @@ export const SubscriptionManagementSection = () => {
           </Button>
         </div>
       </CardContent>
+      {needsConfiguration && (
+        <CardFooter className="bg-gray-50 border-t px-6 py-4">
+          <div className="text-sm text-gray-600 flex items-start">
+            <Info className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
+            <p>
+              Once configured, the Stripe Customer Portal allows your customers to manage their 
+              subscriptions, update payment methods, and view billing history.
+            </p>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };

@@ -55,13 +55,15 @@ serve(async (req) => {
       console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
     }
 
-    // Create the portal session with configuration parameter
+    // Try to get the portal configuration ID
+    const portalConfigId = Deno.env.get('STRIPE_PORTAL_CONFIG_ID');
+    
+    // Create the portal session
     try {
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: customerId,
         return_url: `${req.headers.get('origin') || 'https://viafix-web.com'}/mechanic-dashboard`,
-        // The configuration parameter is now optional
-        configuration: Deno.env.get('STRIPE_PORTAL_CONFIG_ID') || undefined
+        configuration: portalConfigId || undefined
       });
 
       console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
@@ -84,13 +86,16 @@ serve(async (req) => {
       
       // Check if it's the specific configuration error and provide a more helpful message
       const isConfigError = errorMessage.includes('No configuration provided') || 
-                          errorMessage.includes('configuration has not been created');
+                          errorMessage.includes('configuration has not been created') ||
+                          errorMessage.includes('portal settings');
+      
+      const friendlyMessage = isConfigError
+        ? 'Your Stripe Customer Portal needs to be configured. Please visit https://dashboard.stripe.com/test/settings/billing/portal to set it up.'
+        : errorMessage;
       
       return new Response(JSON.stringify({ 
         url: null,
-        error: isConfigError ? 
-          'Your Stripe Customer Portal needs to be configured. Please visit https://dashboard.stripe.com/test/settings/billing/portal to set it up.' : 
-          errorMessage,
+        error: friendlyMessage,
         customerExists: !!customerId,
         needsConfiguration: isConfigError
       }), {

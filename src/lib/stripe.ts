@@ -62,7 +62,7 @@ export const getCustomerPortal = async () => {
     }
     
     // Check if the response contains a URL
-    if (data.url) {
+    if (data?.url) {
       return { 
         url: data.url, 
         error: null,
@@ -70,13 +70,18 @@ export const getCustomerPortal = async () => {
       };
     }
     
-    // Handle the case where there's an application error in the response
-    if (data.error) {
+    // Handle case where there's an application error in the response
+    if (data?.error) {
       console.error("Customer portal application error:", data.error);
+      
+      // Check if it's a configuration error
+      const isConfigError = data.error.includes('configuration') || 
+                            data.error.includes('portal settings');
+      
       return {
         url: null,
         error: data.error,
-        needsConfiguration: data.needsConfiguration || false
+        needsConfiguration: isConfigError || data.needsConfiguration || false
       };
     }
     
