@@ -8,13 +8,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper for improved logging
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    console.log('[CUSTOMER-PORTAL] Function started');
+    logStep('Function started');
     
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
@@ -28,7 +34,7 @@ serve(async (req) => {
       throw new Error('User email is required');
     }
     
-    console.log(`[CUSTOMER-PORTAL] Processing request for email: ${userEmail}`);
+    logStep(`Processing request for email: ${userEmail}`);
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
     
@@ -39,7 +45,7 @@ serve(async (req) => {
 
     let customerId;
     if (customers.data.length === 0) {
-      console.log(`[CUSTOMER-PORTAL] No customer found for email ${userEmail}, creating new customer`);
+      logStep(`No customer found for email ${userEmail}, creating new customer`);
       
       const newCustomer = await stripe.customers.create({
         email: userEmail,
@@ -49,22 +55,25 @@ serve(async (req) => {
       });
       
       customerId = newCustomer.id;
-      console.log(`[CUSTOMER-PORTAL] Created new customer with ID: ${customerId}`);
+      logStep(`Created new customer with ID: ${customerId}`);
     } else {
       customerId = customers.data[0].id;
-      console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
+      logStep(`Found existing customer with ID: ${customerId}`);
     }
 
-    // Create the portal session without any configuration ID
-    // Let Stripe use the default configuration
     try {
+      // Create the return URL dynamically based on request origin
+      const origin = req.headers.get('origin') || 'https://viafix-web.com';
+      const returnUrl = `${origin}/mechanic-dashboard`;
+      
+      logStep('Creating portal session', { customerId, returnUrl });
+      
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: `${req.headers.get('origin') || 'https://viafix-web.com'}/mechanic-dashboard`
-        // Remove the configuration parameter entirely to use the default configuration
+        return_url: returnUrl
       });
 
-      console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
+      logStep(`Created portal session: ${portalSession.url}`);
 
       return new Response(JSON.stringify({ 
         url: portalSession.url,
@@ -77,7 +86,7 @@ serve(async (req) => {
         status: 200,
       });
     } catch (portalError) {
-      console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
+      logStep('Portal creation error', { message: portalError instanceof Error ? portalError.message : String(portalError) });
       
       // Extract the helpful message from the error
       const errorMessage = portalError instanceof Error ? portalError.message : 'Failed to create portal session';
@@ -85,7 +94,8 @@ serve(async (req) => {
       // Check if it's a specific configuration error
       const isConfigError = errorMessage.includes('No configuration provided') || 
                           errorMessage.includes('configuration has not been created') ||
-                          errorMessage.includes('portal settings');
+                          errorMessage.includes('portal settings') ||
+                          errorMessage.includes('portal configuration');
       
       const friendlyMessage = isConfigError
         ? 'Your Stripe Customer Portal needs to be configured. Please visit https://dashboard.stripe.com/test/settings/billing/portal to set it up.'
@@ -106,11 +116,12 @@ serve(async (req) => {
       });
     }
   } catch (error) {
-    console.error('[CUSTOMER-PORTAL] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    logStep('Error', { message: errorMessage });
     
     return new Response(JSON.stringify({ 
       url: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
+      error: errorMessage,
       needsConfiguration: false
     }), {
       headers: { 

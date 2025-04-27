@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink, Info, AlertCircle } from 'lucide-react';
+import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink, Info, AlertCircle, CalendarClock } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -21,6 +21,11 @@ export const UserMenuItems = () => {
   const { getProfileRoute } = useAuthRedirect();
   const userRole = localStorage.getItem('userRole');
   const { toast } = useToast();
+  
+  // Get subscription status from localStorage
+  const subscriptionStatus = localStorage.getItem('subscription_status');
+  const subscriptionPlan = localStorage.getItem('subscription_plan');
+  const isSubscribed = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
 
   const handleSubscriptionManagement = async () => {
     try {
@@ -86,6 +91,9 @@ export const UserMenuItems = () => {
       localStorage.removeItem('userLoggedIn');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userName');
+      localStorage.removeItem('subscription_status');
+      localStorage.removeItem('subscription_plan');
+      localStorage.removeItem('subscription_end');
       
       window.dispatchEvent(new Event('storage-event'));
       
@@ -114,6 +122,22 @@ export const UserMenuItems = () => {
     <>
       <DropdownMenuLabel>My Account</DropdownMenuLabel>
       <DropdownMenuSeparator />
+      
+      {isSubscribed && (
+        <div className="px-2 py-1.5 mb-1">
+          <div className="p-2 bg-green-50 border border-green-200 rounded-md text-xs flex items-start gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="text-green-800">
+              <span className="font-medium">
+                {subscriptionPlan?.charAt(0).toUpperCase() + subscriptionPlan?.slice(1)} Plan Active
+              </span>
+              <p className="text-xs mt-0.5">
+                Access to all premium features
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       
       {showConfigAlert && (
         <div className="px-2 py-1.5 mb-1">
