@@ -18,6 +18,7 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
 })
 
 serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -25,25 +26,43 @@ serve(async (req) => {
   try {
     console.log('[CUSTOMER-PORTAL] Function started');
     
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Initialize Supabase client with service role key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    // Validate authentication
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw logError('Environment configuration', 'Missing Supabase configuration');
+    }
+    
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Extract JWT from Authorization header
     const authHeader = req.headers.get('Authorization');
+    
     if (!authHeader) {
-      throw new Error('Missing authorization header');
+      throw logError('Auth validation', 'Missing authorization header');
     }
     
     const token = authHeader.replace('Bearer ', '');
-    console.log('[CUSTOMER-PORTAL] Authenticating user');
+    console.log('[CUSTOMER-PORTAL] Authenticating user with token');
     
+    // Get user from token
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
-    if (userError || !user) {
-      throw logError('Authentication failed', userError || 'No user found');
+    if (userError) {
+      // Check if we have access to the current session instead
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+      
+      if (sessionError || !sessionData.session?.user) {
+        throw logError('Authentication failed', userError || 'No user found in session');
+      }
+      
+      // Use the session user if available
+      user = sessionData.session.user;
+    }
+    
+    if (!user?.email) {
+      throw logError('User validation', 'No email found for authenticated user');
     }
     
     console.log('[CUSTOMER-PORTAL] User authenticated:', user.email);
@@ -60,7 +79,9 @@ serve(async (req) => {
       throw logError('Stripe customer search failed', error);
     }
 
-    if (customers.length === 0) {
+    let customerId;
+    
+    if (customers.data.length === 0) {
       console.log('[CUSTOMER-PORTAL] No Stripe customer found, creating one');
       try {
         // Create a customer if none exists
@@ -71,29 +92,21 @@ serve(async (req) => {
           }
         });
         
-        console.log('[CUSTOMER-PORTAL] Created new customer:', newCustomer.id);
-        
-        // Create a Billing Portal session for the new customer
-        const session = await stripe.billingPortal.sessions.create({
-          customer: newCustomer.id,
-          return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
-        });
-        
-        return new Response(JSON.stringify({ url: session.url }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        customerId = newCustomer.id;
+        console.log('[CUSTOMER-PORTAL] Created new customer:', customerId);
       } catch (error) {
         throw logError('Customer creation failed', error);
       }
+    } else {
+      customerId = customers.data[0].id;
+      console.log('[CUSTOMER-PORTAL] Found existing customer:', customerId);
     }
 
-    const customerId = customers.data[0].id;
-    console.log('[CUSTOMER-PORTAL] Found customer:', customerId);
-
     try {
+      const origin = req.headers.get('origin') || 'http://localhost:3000';
       const session = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
+        return_url: `${origin}/mechanic-dashboard`,
       });
       
       console.log('[CUSTOMER-PORTAL] Created portal session:', session.id);
@@ -118,4 +131,4 @@ serve(async (req) => {
       }
     );
   }
-})
+});

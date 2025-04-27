@@ -4,18 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { getCustomerPortal } from '@/lib/stripe';
 import { toast } from '@/hooks/use-toast';
-import { Settings, AlertCircle } from 'lucide-react';
+import { Settings, AlertCircle, ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleManageSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const { url } = await getCustomerPortal();
+      const { url, error: responseError } = await getCustomerPortal();
+      
+      if (responseError) {
+        throw new Error(responseError);
+      }
       
       if (url) {
         window.location.href = url;
@@ -24,7 +30,13 @@ export const SubscriptionManagementSection = () => {
       }
     } catch (error) {
       console.error("Failed to open subscription portal:", error);
-      setError("Failed to open subscription management portal. Please try again later or contact support.");
+      
+      // More descriptive error message
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Unknown error connecting to subscription portal";
+      
+      setError("Unable to access subscription portal. Please try again later or contact support.");
       
       toast({
         title: "Unable to Access Portal",
@@ -58,8 +70,18 @@ export const SubscriptionManagementSection = () => {
           variant="outline"
           disabled={isLoading}
         >
-          <Settings className="mr-2 h-4 w-4" />
-          {isLoading ? "Opening Portal..." : "Manage Subscription"}
+          {isLoading ? (
+            <>
+              <span className="animate-pulse mr-2">Loading...</span>
+              <Settings className="h-4 w-4 animate-spin" />
+            </>
+          ) : (
+            <>
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Subscription
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </>
+          )}
         </Button>
       </CardContent>
     </Card>

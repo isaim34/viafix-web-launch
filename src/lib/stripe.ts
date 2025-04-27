@@ -29,20 +29,42 @@ export const createCheckoutSession = async (options: {
 
 export const getCustomerPortal = async () => {
   try {
+    console.log("Requesting customer portal access");
+    const session = supabase.auth.session();
+    
+    if (!session) {
+      console.error("No active session found");
+      return { 
+        url: null, 
+        error: "You must be logged in to access subscription management" 
+      };
+    }
+    
     const { data, error } = await supabase.functions.invoke('customer-portal');
     
     if (error) {
       console.error("Customer portal error:", error);
-      throw new Error(`Failed to access customer portal: ${error.message || "Unknown error"}`);
+      return { 
+        url: null, 
+        error: `Failed to access customer portal: ${error.message || "Unknown error"}` 
+      };
     }
     
-    if (!data) {
-      throw new Error("No data returned from customer portal");
+    if (!data || !data.url) {
+      console.error("No portal URL returned", data);
+      return { 
+        url: null, 
+        error: "No portal URL returned from server" 
+      };
     }
     
-    return data;
+    console.log("Successfully obtained customer portal URL");
+    return { url: data.url, error: null };
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
-    throw err;
+    return { 
+      url: null, 
+      error: err instanceof Error ? err.message : String(err) 
+    };
   }
 };
