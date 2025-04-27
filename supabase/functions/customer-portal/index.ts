@@ -8,7 +8,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,13 +15,11 @@ serve(async (req) => {
   try {
     console.log('[CUSTOMER-PORTAL] Function started');
     
-    // Validate Stripe key is available
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
       throw new Error('Stripe secret key is not configured');
     }
     
-    // Extract email from the request body
     const requestBody = await req.json();
     const userEmail = requestBody?.email;
     
@@ -34,13 +31,11 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
     
-    // First check if a customer exists with this email
     const customers = await stripe.customers.list({ 
       email: userEmail,
       limit: 1 
     });
 
-    // If customer doesn't exist, create one
     let customerId;
     if (customers.data.length === 0) {
       console.log(`[CUSTOMER-PORTAL] No customer found for email ${userEmail}, creating new customer`);
@@ -60,7 +55,6 @@ serve(async (req) => {
     }
     
     try {
-      // Create Stripe Billing Portal session with the customer ID
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: customerId,
         return_url: 'https://billing.stripe.com/p/login/test_9AQaFn1V82Ur8lW3cc',
@@ -79,14 +73,11 @@ serve(async (req) => {
         status: 200,
       });
     } catch (portalError) {
-      // Handle the specific error about missing customer portal configuration
       console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
       
-      // Create a checkout session instead if portal fails
       if (portalError.message && portalError.message.includes('No configuration provided')) {
         console.log('[CUSTOMER-PORTAL] Falling back to checkout session due to missing portal configuration');
         
-        // Create a subscription checkout session instead
         const checkoutSession = await stripe.checkout.sessions.create({
           customer: customerId,
           payment_method_types: ['card'],
@@ -125,7 +116,6 @@ serve(async (req) => {
         });
       }
       
-      // If it's any other error, throw it
       throw portalError;
     }
 
