@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React from 'react';
+import { SubscriptionManagementSection } from './SubscriptionManagementSection';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Send, CreditCard } from 'lucide-react';
@@ -9,7 +9,6 @@ import { FeaturedPlansSection } from './FeaturedPlansSection';
 import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 
-// Sample pricing - in a real app, this would come from an API
 const FEATURED_DAILY_PRICE = 24.99;
 const MASS_MESSAGE_PRICE = 0.10; // per recipient
 
@@ -21,7 +20,6 @@ const AdvertisingTab = () => {
   const [messagesRemaining, setMessagesRemaining] = useState(0);
   
   const handlePurchaseFeatured = (days: number) => {
-    // In a real app, this would process payment and update the backend
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
     
@@ -35,7 +33,6 @@ const AdvertisingTab = () => {
   };
   
   const handleBuyMessages = (quantity: number) => {
-    // In a real app, this would process payment and update the backend
     setMessagesRemaining(prev => prev + quantity);
     
     toast({
@@ -46,6 +43,8 @@ const AdvertisingTab = () => {
 
   return (
     <div className="space-y-8">
+      <SubscriptionManagementSection />
+      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold">Advertising & Promotion</h2>
