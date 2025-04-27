@@ -32,7 +32,7 @@ export const UserMenuItems = () => {
       }
       
       if (url) {
-        window.location.href = url;
+        window.open(url, '_blank') || window.location.assign(url);
       } else {
         throw new Error("No portal URL returned");
       }

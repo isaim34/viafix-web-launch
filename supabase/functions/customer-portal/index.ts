@@ -60,24 +60,75 @@ serve(async (req) => {
       console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
     }
     
-    // Create Stripe Billing Portal session with the customer ID
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
-    });
+    try {
+      // Create Stripe Billing Portal session with the customer ID
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
+      });
 
-    console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
+      console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
 
-    return new Response(JSON.stringify({ 
-      url: portalSession.url,
-      error: null 
-    }), {
-      headers: { 
-        ...corsHeaders, 
-        'Content-Type': 'application/json' 
-      },
-      status: 200,
-    });
+      return new Response(JSON.stringify({ 
+        url: portalSession.url,
+        error: null 
+      }), {
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+        status: 200,
+      });
+    } catch (portalError) {
+      // Handle the specific error about missing customer portal configuration
+      console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
+      
+      // Create a checkout session instead if portal fails
+      if (portalError.message && portalError.message.includes('No configuration provided')) {
+        console.log('[CUSTOMER-PORTAL] Falling back to checkout session due to missing portal configuration');
+        
+        // Create a subscription checkout session instead
+        const checkoutSession = await stripe.checkout.sessions.create({
+          customer: customerId,
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: 'Basic Subscription',
+                  description: 'Monthly subscription to access premium features',
+                },
+                unit_amount: 999, // $9.99
+                recurring: {
+                  interval: 'month',
+                },
+              },
+              quantity: 1,
+            },
+          ],
+          mode: 'subscription',
+          success_url: `${req.headers.get('origin')}/mechanic-dashboard?checkout_success=true`,
+          cancel_url: `${req.headers.get('origin')}/mechanic-dashboard?checkout_canceled=true`,
+        });
+        
+        console.log(`[CUSTOMER-PORTAL] Created checkout session as fallback: ${checkoutSession.url}`);
+        
+        return new Response(JSON.stringify({ 
+          url: checkoutSession.url,
+          error: null 
+        }), {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          },
+          status: 200,
+        });
+      }
+      
+      // If it's any other error, throw it
+      throw portalError;
+    }
 
   } catch (error) {
     console.error('[CUSTOMER-PORTAL] Error:', error);

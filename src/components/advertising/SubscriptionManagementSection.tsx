@@ -40,11 +40,12 @@ export const SubscriptionManagementSection = () => {
       const { url, error: responseError } = await getCustomerPortal();
       
       if (responseError) {
+        console.error("Portal access error:", responseError);
         throw new Error(responseError);
       }
       
       if (url) {
-        window.location.href = url;
+        window.open(url, '_blank') || window.location.assign(url);
       } else {
         throw new Error("No portal URL returned");
       }
