@@ -41,7 +41,14 @@ export const SubscriptionManagementSection = () => {
       
       if (responseError) {
         console.error("Portal access error:", responseError);
-        throw new Error(responseError);
+        setError(`Unable to access subscription portal: ${responseError}`);
+        
+        toast({
+          title: "Unable to Access Portal",
+          description: responseError,
+          variant: "destructive"
+        });
+        return;
       }
       
       if (url) {
@@ -52,8 +59,8 @@ export const SubscriptionManagementSection = () => {
     } catch (error) {
       console.error("Failed to open subscription portal:", error);
       
-      // More descriptive error message
-      setError("Unable to access subscription portal. Please try again later or contact support.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setError(`Unable to access subscription portal: ${errorMessage}`);
       
       toast({
         title: "Unable to Access Portal",

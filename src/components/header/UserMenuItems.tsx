@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink } from 'lucide-react';
@@ -8,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileSync';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getCustomerPortal } from '@/lib/stripe';
 
@@ -17,6 +18,7 @@ export const UserMenuItems = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
   const userRole = localStorage.getItem('userRole');
+  const { toast } = useToast();
 
   const handleSubscriptionManagement = async () => {
     try {
@@ -30,12 +32,14 @@ export const UserMenuItems = () => {
       const { url, error } = await getCustomerPortal();
       
       if (error) {
+        console.error("Portal access error:", error);
+        
         toast({
           title: "Unable to Access Portal",
           description: error,
           variant: "destructive"
         });
-        throw new Error(error);
+        return;
       }
       
       if (url) {
@@ -45,6 +49,11 @@ export const UserMenuItems = () => {
       }
     } catch (error) {
       console.error("Failed to open subscription portal:", error);
+      toast({
+        title: "Portal Access Error",
+        description: error instanceof Error ? error.message : "Failed to open the portal",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

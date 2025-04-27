@@ -53,10 +53,19 @@ export const getCustomerPortal = async () => {
     });
     
     if (error) {
-      console.error("Customer portal error:", error);
+      console.error("Customer portal supabase error:", error);
       return { 
         url: null, 
         error: error.message || "Failed to access customer portal"
+      };
+    }
+    
+    // Check if there's an application error in the response
+    if (data.error) {
+      console.error("Customer portal application error:", data.error);
+      return {
+        url: null,
+        error: data.error
       };
     }
     
