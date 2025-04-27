@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, UserCircle, User, Settings, CreditCard } from 'lucide-react';
+import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -28,15 +28,26 @@ export const UserMenuItems = () => {
         description: "Opening subscription management portal...",
       });
 
-      const { url, error, adminAction } = await getCustomerPortal();
+      const { url, error, adminAction, setupUrl } = await getCustomerPortal();
       
       if (error) {
         if (adminAction) {
           toast({
             title: "Configuration Required",
-            description: "The Stripe Customer Portal needs configuration in the Stripe Dashboard.",
+            description: "The Stripe Customer Portal needs to be configured in your Stripe Dashboard.",
             variant: "destructive"
           });
+          
+          // If we have a setup URL, open it for admin
+          if (setupUrl) {
+            const openSetup = window.confirm(
+              "Would you like to open the Stripe Dashboard to configure the Customer Portal now?"
+            );
+            
+            if (openSetup) {
+              window.open(setupUrl, '_blank');
+            }
+          }
         } else {
           toast({
             title: "Unable to Access Portal",
@@ -128,6 +139,7 @@ export const UserMenuItems = () => {
       >
         <CreditCard className="mr-2 h-4 w-4" />
         <span>{isLoading ? "Loading..." : "Manage Subscription"}</span>
+        {!isLoading && <ExternalLink className="ml-1 h-3 w-3" />}
       </DropdownMenuItem>
       
       <DropdownMenuSeparator />

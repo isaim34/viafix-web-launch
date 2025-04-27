@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { getCustomerPortal } from '@/lib/stripe';
-import { Settings, AlertCircle, ExternalLink } from 'lucide-react';
+import { Settings, AlertCircle, ExternalLink, ArrowUpRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +12,7 @@ export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adminAction, setAdminAction] = useState(false);
+  const [setupUrl, setSetupUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const { isLoggedIn, userEmail } = useAuth();
 
@@ -20,6 +21,7 @@ export const SubscriptionManagementSection = () => {
       setIsLoading(true);
       setError(null);
       setAdminAction(false);
+      setSetupUrl(null);
 
       // Comprehensive authentication check
       if (!isLoggedIn || !userEmail) {
@@ -39,11 +41,14 @@ export const SubscriptionManagementSection = () => {
       });
       
       console.log("Attempting to access customer portal for:", userEmail);
-      const { url, error: responseError, adminAction: isAdminAction } = await getCustomerPortal();
+      const { url, error: responseError, adminAction: isAdminAction, setupUrl: portalSetupUrl } = await getCustomerPortal();
       
       if (responseError) {
         console.error("Portal access error:", responseError);
         setAdminAction(!!isAdminAction);
+        if (isAdminAction && portalSetupUrl) {
+          setSetupUrl(portalSetupUrl);
+        }
         throw new Error(responseError);
       }
       
@@ -73,6 +78,14 @@ export const SubscriptionManagementSection = () => {
       setIsLoading(false);
     }
   };
+  
+  const handleOpenStripeSetup = () => {
+    if (setupUrl) {
+      window.open(setupUrl, '_blank');
+    } else {
+      window.open('https://dashboard.stripe.com/test/settings/billing/portal', '_blank');
+    }
+  };
 
   return (
     <Card>
@@ -90,41 +103,56 @@ export const SubscriptionManagementSection = () => {
               {error}
               {adminAction && (
                 <div className="mt-2">
-                  <strong>Admin Action Required:</strong> You need to configure the Customer Portal in your 
-                  <a 
-                    href="https://dashboard.stripe.com/test/settings/billing/portal" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="ml-1 text-blue-600 underline"
-                  >
-                    Stripe Dashboard
-                  </a>.
+                  <strong>Admin Action Required:</strong> You need to configure the Customer Portal in your Stripe Dashboard before it can be used.
                 </div>
               )}
             </AlertDescription>
           </Alert>
         )}
         
-        <Button 
-          onClick={handleManageSubscription}
-          className="w-full sm:w-auto"
-          variant="outline"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <span className="animate-pulse mr-2">Loading...</span>
-              <Settings className="h-4 w-4 animate-spin" />
-            </>
-          ) : (
-            <>
-              <Settings className="mr-2 h-4 w-4" />
-              Manage Subscription
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button 
+            onClick={handleManageSubscription}
+            className="w-full sm:w-auto"
+            variant="outline"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="animate-pulse mr-2">Loading...</span>
+                <Settings className="h-4 w-4 animate-spin" />
+              </>
+            ) : (
+              <>
+                <Settings className="mr-2 h-4 w-4" />
+                Manage Subscription
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </>
+            )}
+          </Button>
+          
+          {adminAction && setupUrl && (
+            <Button 
+              onClick={handleOpenStripeSetup} 
+              variant="secondary" 
+              className="w-full sm:w-auto"
+            >
+              Configure in Stripe
+              <ArrowUpRight className="ml-2 h-4 w-4" />
+            </Button>
           )}
-        </Button>
+        </div>
       </CardContent>
+      
+      {adminAction && (
+        <CardFooter className="bg-muted/50 px-6 py-4 border-t">
+          <div className="text-xs text-muted-foreground">
+            <p className="font-medium">Administrator Notice:</p>
+            <p>The Stripe Customer Portal requires configuration in the Stripe Dashboard before it can be used. 
+            Click the "Configure in Stripe" button above to set it up.</p>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };
