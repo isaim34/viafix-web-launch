@@ -49,19 +49,11 @@ serve(async (req) => {
     // Get user from token
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
-    if (userError) {
-      // Check if we have access to the current session instead
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
-      
-      if (sessionError || !sessionData.session?.user) {
-        throw logError('Authentication failed', userError || 'No user found in session');
-      }
-      
-      // Use the session user if available
-      user = sessionData.session.user;
+    if (userError || !user) {
+      throw logError('Authentication failed', userError || 'No user found in token');
     }
     
-    if (!user?.email) {
+    if (!user.email) {
       throw logError('User validation', 'No email found for authenticated user');
     }
     

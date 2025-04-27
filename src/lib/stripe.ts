@@ -30,10 +30,12 @@ export const createCheckoutSession = async (options: {
 export const getCustomerPortal = async () => {
   try {
     console.log("Requesting customer portal access");
-    const session = supabase.auth.session();
     
-    if (!session) {
-      console.error("No active session found");
+    // Updated to use getSession() instead of session()
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      console.error("No active session found:", sessionError);
       return { 
         url: null, 
         error: "You must be logged in to access subscription management" 
