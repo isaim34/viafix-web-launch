@@ -47,11 +47,13 @@ serve(async (req) => {
     console.log('[CUSTOMER-PORTAL] Authenticating user with token');
     
     // Get user from token
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
-    if (userError || !user) {
+    if (userError || !userData.user) {
       throw logError('Authentication failed', userError || 'No user found in token');
     }
+    
+    const user = userData.user;
     
     if (!user.email) {
       throw logError('User validation', 'No email found for authenticated user');

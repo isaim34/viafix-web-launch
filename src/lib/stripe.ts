@@ -31,7 +31,7 @@ export const getCustomerPortal = async () => {
   try {
     console.log("Requesting customer portal access");
     
-    // Updated to use getSession() instead of session()
+    // Check if the user is authenticated
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError || !sessionData.session) {
@@ -41,8 +41,13 @@ export const getCustomerPortal = async () => {
         error: "You must be logged in to access subscription management" 
       };
     }
-    
-    const { data, error } = await supabase.functions.invoke('customer-portal');
+
+    // Add the authentication token to the request
+    const { data, error } = await supabase.functions.invoke('customer-portal', {
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`
+      }
+    });
     
     if (error) {
       console.error("Customer portal error:", error);

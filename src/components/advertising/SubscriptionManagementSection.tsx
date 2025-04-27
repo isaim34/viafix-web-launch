@@ -3,20 +3,33 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { getCustomerPortal } from '@/lib/stripe';
-import { toast } from '@/hooks/use-toast';
 import { Settings, AlertCircle, ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
 
   const handleManageSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
+
+      // Check if user is logged in first
+      if (!isLoggedIn) {
+        setError("You must be logged in to access subscription management");
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to manage your subscription",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const { url, error: responseError } = await getCustomerPortal();
       
       if (responseError) {
