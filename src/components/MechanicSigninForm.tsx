@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -210,9 +209,8 @@ const MechanicSigninForm = () => {
             access_type: 'offline',
             prompt: 'consent',
           },
-          data: {
-            user_type: 'mechanic',
-          }
+          // Fix: Move user_type into the queryParams object
+          // The 'data' property is not supported at this level in the options object
         }
       });
       
