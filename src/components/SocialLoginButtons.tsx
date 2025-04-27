@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
@@ -25,13 +24,20 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       });
       
       console.log("Starting Google auth process...");
+      
+      // Get the current URL for troubleshooting
+      const currentUrl = window.location.origin;
+      console.log("Current app URL:", currentUrl);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           queryParams: {
             prompt: 'select_account', // Forces account selection, helping with new signups
             access_type: 'offline',
-          }
+          },
+          // Explicitly specify redirectTo to match what's in Supabase
+          redirectTo: `${window.location.origin}/**`,
         }
       });
       
@@ -41,8 +47,14 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         console.error('Google auth error:', error);
         toast({
           title: "Authentication Failed",
-          description: error.message || `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}. Please try again.`,
+          description: `${error.message || `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}`}. Please check the console for details.`,
           variant: "destructive"
+        });
+        
+        // Show troubleshooting information
+        toast({
+          title: "Troubleshooting Tips",
+          description: "Ensure Google OAuth is configured correctly in both Google Cloud Console and Supabase.",
         });
       } else if (data) {
         toast({
