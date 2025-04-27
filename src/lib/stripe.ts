@@ -60,16 +60,29 @@ export const getCustomerPortal = async () => {
       };
     }
     
+    if (data.adminAction) {
+      return {
+        url: null,
+        error: data.error || "Stripe Customer Portal configuration required",
+        adminAction: true
+      };
+    }
+    
     if (!data.url) {
       throw new Error("No portal URL returned");
     }
     
-    return { url: data.url, error: null };
+    return { 
+      url: data.url, 
+      error: null,
+      adminAction: false 
+    };
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
     return { 
       url: null, 
-      error: err instanceof Error ? err.message : String(err) 
+      error: err instanceof Error ? err.message : String(err),
+      adminAction: false
     };
   }
 };

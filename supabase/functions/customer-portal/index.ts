@@ -55,24 +55,44 @@ serve(async (req) => {
       console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
     }
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: 'https://billing.stripe.com/p/login/test_9AQaFn1V82Ur8lW3cc',
-    });
+    try {
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${req.headers.get('origin') || 'https://viafix-web.com'}/mechanic-dashboard`,
+      });
 
-    console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
+      console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
 
-    return new Response(JSON.stringify({ 
-      url: portalSession.url,
-      error: null 
-    }), {
-      headers: { 
-        ...corsHeaders, 
-        'Content-Type': 'application/json' 
-      },
-      status: 200,
-    });
-
+      return new Response(JSON.stringify({ 
+        url: portalSession.url,
+        error: null 
+      }), {
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+        status: 200,
+      });
+    } catch (portalError) {
+      console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
+      
+      // Check if the error is due to missing portal configuration
+      if (portalError.message && portalError.message.includes('No configuration provided')) {
+        return new Response(JSON.stringify({ 
+          url: null,
+          error: 'Stripe Customer Portal is not configured. Please set up your Customer Portal in the Stripe Dashboard at https://dashboard.stripe.com/test/settings/billing/portal',
+          adminAction: true
+        }), {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          },
+          status: 400,
+        });
+      }
+      
+      throw portalError;
+    }
   } catch (error) {
     console.error('[CUSTOMER-PORTAL] Error:', error);
     

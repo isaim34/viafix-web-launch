@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminAction, setAdminAction] = useState(false);
   const { toast } = useToast();
   const { isLoggedIn, userEmail } = useAuth();
 
@@ -18,6 +19,7 @@ export const SubscriptionManagementSection = () => {
     try {
       setIsLoading(true);
       setError(null);
+      setAdminAction(false);
 
       // Comprehensive authentication check
       if (!isLoggedIn || !userEmail) {
@@ -37,10 +39,11 @@ export const SubscriptionManagementSection = () => {
       });
       
       console.log("Attempting to access customer portal for:", userEmail);
-      const { url, error: responseError } = await getCustomerPortal();
+      const { url, error: responseError, adminAction: isAdminAction } = await getCustomerPortal();
       
       if (responseError) {
         console.error("Portal access error:", responseError);
+        setAdminAction(!!isAdminAction);
         throw new Error(responseError);
       }
       
@@ -61,7 +64,9 @@ export const SubscriptionManagementSection = () => {
       
       toast({
         title: "Unable to Access Portal",
-        description: "We couldn't connect to the subscription management portal. Please try again later.",
+        description: adminAction 
+          ? "The Stripe Customer Portal needs to be configured in your Stripe Dashboard." 
+          : "We couldn't connect to the subscription management portal. Please try again later.",
         variant: "destructive"
       });
     } finally {
@@ -81,7 +86,22 @@ export const SubscriptionManagementSection = () => {
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>
+              {error}
+              {adminAction && (
+                <div className="mt-2">
+                  <strong>Admin Action Required:</strong> You need to configure the Customer Portal in your 
+                  <a 
+                    href="https://dashboard.stripe.com/test/settings/billing/portal" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-1 text-blue-600 underline"
+                  >
+                    Stripe Dashboard
+                  </a>.
+                </div>
+              )}
+            </AlertDescription>
           </Alert>
         )}
         

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, UserCircle, User, Settings, CreditCard } from 'lucide-react';
 import {
@@ -14,20 +14,36 @@ import { useNavigate } from 'react-router-dom';
 import { getCustomerPortal } from '@/lib/stripe';
 
 export const UserMenuItems = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
   const userRole = localStorage.getItem('userRole');
 
   const handleSubscriptionManagement = async () => {
     try {
+      setIsLoading(true);
+      
       toast({
         title: "Accessing Portal",
         description: "Opening subscription management portal...",
       });
 
-      const { url, error } = await getCustomerPortal();
+      const { url, error, adminAction } = await getCustomerPortal();
       
       if (error) {
+        if (adminAction) {
+          toast({
+            title: "Configuration Required",
+            description: "The Stripe Customer Portal needs configuration in the Stripe Dashboard.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Unable to Access Portal",
+            description: "We couldn't connect to the subscription management portal. Please try again later.",
+            variant: "destructive"
+          });
+        }
         throw new Error(error);
       }
       
@@ -38,11 +54,8 @@ export const UserMenuItems = () => {
       }
     } catch (error) {
       console.error("Failed to open subscription portal:", error);
-      toast({
-        title: "Unable to Access Portal",
-        description: "We couldn't connect to the subscription management portal. Please try again later.",
-        variant: "destructive"
-      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,9 +121,13 @@ export const UserMenuItems = () => {
         </Link>
       </DropdownMenuItem>
 
-      <DropdownMenuItem onClick={handleSubscriptionManagement} className="cursor-pointer">
+      <DropdownMenuItem 
+        onClick={handleSubscriptionManagement} 
+        className="cursor-pointer"
+        disabled={isLoading}
+      >
         <CreditCard className="mr-2 h-4 w-4" />
-        <span>Manage Subscription</span>
+        <span>{isLoading ? "Loading..." : "Manage Subscription"}</span>
       </DropdownMenuItem>
       
       <DropdownMenuSeparator />
