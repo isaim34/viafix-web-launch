@@ -17,19 +17,11 @@ serve(async (req) => {
   try {
     console.log('[CUSTOMER-PORTAL] Function started');
     
+    // Validate Stripe key is available
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
       throw new Error('Stripe secret key is not configured');
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase configuration is incomplete');
-    }
-    
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
     
     // Extract email from the request body
     const requestBody = await req.json();
@@ -38,26 +30,43 @@ serve(async (req) => {
     if (!userEmail) {
       throw new Error('User email is required');
     }
+    
+    console.log(`[CUSTOMER-PORTAL] Processing request for email: ${userEmail}`);
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
     
-    // Search for Stripe customer by email
+    // First check if a customer exists with this email
     const customers = await stripe.customers.list({ 
       email: userEmail,
       limit: 1 
     });
 
+    // If customer doesn't exist, create one
+    let customerId;
     if (customers.data.length === 0) {
-      throw new Error('No Stripe customer found for this email');
+      console.log(`[CUSTOMER-PORTAL] No customer found for email ${userEmail}, creating new customer`);
+      
+      const newCustomer = await stripe.customers.create({
+        email: userEmail,
+        metadata: {
+          source: 'customer_portal_function'
+        }
+      });
+      
+      customerId = newCustomer.id;
+      console.log(`[CUSTOMER-PORTAL] Created new customer with ID: ${customerId}`);
+    } else {
+      customerId = customers.data[0].id;
+      console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
     }
-
-    const customerId = customers.data[0].id;
     
-    // Create Stripe Billing Portal session
+    // Create Stripe Billing Portal session with the customer ID
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: 'https://npwxxmboagkouafjwhhw.supabase.co/mechanic-dashboard',
+      return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
     });
+
+    console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
 
     return new Response(JSON.stringify({ 
       url: portalSession.url,
@@ -85,4 +94,3 @@ serve(async (req) => {
     });
   }
 });
-

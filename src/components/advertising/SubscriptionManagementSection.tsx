@@ -19,7 +19,7 @@ export const SubscriptionManagementSection = () => {
       setIsLoading(true);
       setError(null);
 
-      // More comprehensive authentication check
+      // Comprehensive authentication check
       if (!isLoggedIn || !userEmail) {
         console.log("Authentication check failed:", { isLoggedIn, userEmail });
         setError("You must be logged in to access subscription management");
@@ -30,6 +30,11 @@ export const SubscriptionManagementSection = () => {
         });
         return;
       }
+      
+      toast({
+        title: "Accessing Portal",
+        description: "Opening subscription management portal...",
+      });
       
       console.log("Attempting to access customer portal for:", userEmail);
       const { url, error: responseError } = await getCustomerPortal();

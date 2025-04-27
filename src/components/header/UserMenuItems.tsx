@@ -20,6 +20,11 @@ export const UserMenuItems = () => {
 
   const handleSubscriptionManagement = async () => {
     try {
+      toast({
+        title: "Accessing Portal",
+        description: "Opening subscription management portal...",
+      });
+
       const { url, error } = await getCustomerPortal();
       
       if (error) {

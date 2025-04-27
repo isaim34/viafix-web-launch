@@ -37,12 +37,17 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
 
 export const getCustomerPortal = async () => {
   try {
+    // Get user email from localStorage or auth context
     const userEmail = localStorage.getItem('userEmail');
     
     if (!userEmail) {
+      console.error("No user email found");
       throw new Error('User email not found. Please log in.');
     }
+    
+    console.log("Attempting to access customer portal for email:", userEmail);
 
+    // Call the customer-portal function with the user's email
     const { data, error } = await supabase.functions.invoke('customer-portal', {
       body: { email: userEmail }
     });
