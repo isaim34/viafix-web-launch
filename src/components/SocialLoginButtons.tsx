@@ -29,6 +29,10 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       const currentUrl = window.location.origin;
       console.log("Current app URL:", currentUrl);
       
+      // Make sure our redirect URL ends with /** to match Supabase settings
+      const redirectUrl = `${window.location.origin}/**`;
+      console.log("Using redirect URL:", redirectUrl);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -36,8 +40,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
             prompt: 'select_account', // Forces account selection, helping with new signups
             access_type: 'offline',
           },
-          // Explicitly specify redirectTo to match what's in Supabase
-          redirectTo: `${window.location.origin}/**`,
+          redirectTo: redirectUrl,
         }
       });
       
@@ -51,10 +54,10 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
           variant: "destructive"
         });
         
-        // Show troubleshooting information
+        // Show detailed troubleshooting information
         toast({
           title: "Troubleshooting Tips",
-          description: "Ensure Google OAuth is configured correctly in both Google Cloud Console and Supabase.",
+          description: "Check Google Console settings and Supabase configuration for redirect URLs.",
         });
       } else if (data) {
         toast({
