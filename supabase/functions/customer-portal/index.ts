@@ -60,7 +60,7 @@ serve(async (req) => {
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: customerId,
         return_url: `${req.headers.get('origin') || 'https://viafix-web.com'}/mechanic-dashboard`,
-        // Optional configuration to ensure it works even if the default isn't set
+        // The configuration parameter is now optional
         configuration: Deno.env.get('STRIPE_PORTAL_CONFIG_ID') || undefined
       });
 
@@ -79,33 +79,41 @@ serve(async (req) => {
     } catch (portalError) {
       console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
       
-      // Return a success response even with error to avoid the non-2xx error
+      // Extract the helpful message from the error
+      const errorMessage = portalError instanceof Error ? portalError.message : 'Failed to create portal session';
+      
+      // Check if it's the specific configuration error and provide a more helpful message
+      const isConfigError = errorMessage.includes('No configuration provided') || 
+                          errorMessage.includes('configuration has not been created');
+      
       return new Response(JSON.stringify({ 
         url: null,
-        error: portalError instanceof Error ? portalError.message : 'Failed to create portal session',
+        error: isConfigError ? 
+          'Your Stripe Customer Portal needs to be configured. Please visit https://dashboard.stripe.com/test/settings/billing/portal to set it up.' : 
+          errorMessage,
         customerExists: !!customerId,
-        customerPortalConfigured: false
+        needsConfiguration: isConfigError
       }), {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
         },
-        status: 200, // Return 200 instead of error status
+        status: 200, // Always return 200 to avoid CORS issues
       });
     }
   } catch (error) {
     console.error('[CUSTOMER-PORTAL] Error:', error);
     
-    // Return a 200 response even with error to avoid the non-2xx error
     return new Response(JSON.stringify({ 
       url: null,
-      error: error instanceof Error ? error.message : 'An unknown error occurred'
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+      needsConfiguration: false
     }), {
       headers: { 
         ...corsHeaders, 
         'Content-Type': 'application/json' 
       },
-      status: 200, // Return 200 instead of error status
+      status: 200, // Always return 200 to avoid CORS issues
     });
   }
 });

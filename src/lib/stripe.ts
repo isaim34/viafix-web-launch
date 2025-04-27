@@ -56,32 +56,43 @@ export const getCustomerPortal = async () => {
       console.error("Customer portal supabase error:", error);
       return { 
         url: null, 
-        error: error.message || "Failed to access customer portal"
+        error: error.message || "Failed to access customer portal",
+        needsConfiguration: false
       };
     }
     
-    // Check if there's an application error in the response
+    // Check if the response contains a URL
+    if (data.url) {
+      return { 
+        url: data.url, 
+        error: null,
+        needsConfiguration: false
+      };
+    }
+    
+    // Handle the case where there's an application error in the response
     if (data.error) {
       console.error("Customer portal application error:", data.error);
       return {
         url: null,
-        error: data.error
+        error: data.error,
+        needsConfiguration: data.needsConfiguration || false
       };
     }
     
-    if (!data.url) {
-      throw new Error("No portal URL returned");
-    }
-    
+    // Fallback for unexpected response format
     return { 
-      url: data.url, 
-      error: null
+      url: null, 
+      error: "Unexpected response from portal service",
+      needsConfiguration: false
     };
+    
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
     return { 
       url: null, 
-      error: err instanceof Error ? err.message : String(err)
+      error: err instanceof Error ? err.message : String(err),
+      needsConfiguration: false
     };
   }
 };

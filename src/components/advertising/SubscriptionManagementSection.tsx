@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { getCustomerPortal } from '@/lib/stripe';
-import { Settings, AlertCircle, ExternalLink } from 'lucide-react';
+import { Settings, AlertCircle, ExternalLink, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsConfiguration, setNeedsConfiguration] = useState(false);
   const { toast } = useToast();
   const { isLoggedIn, userEmail } = useAuth();
 
@@ -18,6 +19,7 @@ export const SubscriptionManagementSection = () => {
     try {
       setIsLoading(true);
       setError(null);
+      setNeedsConfiguration(false);
 
       // Comprehensive authentication check
       if (!isLoggedIn || !userEmail) {
@@ -37,11 +39,12 @@ export const SubscriptionManagementSection = () => {
       });
       
       console.log("Attempting to access customer portal for:", userEmail);
-      const { url, error: responseError } = await getCustomerPortal();
+      const { url, error: responseError, needsConfiguration: configNeeded } = await getCustomerPortal();
       
       if (responseError) {
         console.error("Portal access error:", responseError);
-        setError(`Unable to access subscription portal: ${responseError}`);
+        setError(`${responseError}`);
+        setNeedsConfiguration(!!configNeeded);
         
         toast({
           title: "Unable to Access Portal",
@@ -60,7 +63,7 @@ export const SubscriptionManagementSection = () => {
       console.error("Failed to open subscription portal:", error);
       
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      setError(`Unable to access subscription portal: ${errorMessage}`);
+      setError(`${errorMessage}`);
       
       toast({
         title: "Unable to Access Portal",
@@ -82,10 +85,27 @@ export const SubscriptionManagementSection = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
+          <Alert variant={needsConfiguration ? "default" : "destructive"} className="mb-4">
+            {needsConfiguration ? (
+              <Info className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
             <AlertDescription>
               {error}
+              {needsConfiguration && (
+                <div className="mt-2">
+                  <a 
+                    href="https://dashboard.stripe.com/test/settings/billing/portal" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline flex items-center"
+                  >
+                    Configure Stripe Portal
+                    <ExternalLink className="ml-1 h-3 w-3" />
+                  </a>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}

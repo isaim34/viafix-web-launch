@@ -29,16 +29,25 @@ export const UserMenuItems = () => {
         description: "Opening subscription management portal...",
       });
 
-      const { url, error } = await getCustomerPortal();
+      const { url, error, needsConfiguration } = await getCustomerPortal();
       
       if (error) {
         console.error("Portal access error:", error);
         
-        toast({
-          title: "Unable to Access Portal",
-          description: error,
-          variant: "destructive"
-        });
+        // Show different message based on the error type
+        if (needsConfiguration) {
+          toast({
+            title: "Portal Configuration Required",
+            description: "The Stripe Customer Portal needs to be configured. Please contact support.",
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Unable to Access Portal",
+            description: error,
+            variant: "destructive"
+          });
+        }
         return;
       }
       
