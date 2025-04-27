@@ -57,6 +57,8 @@ const MechanicSigninForm = () => {
   });
 
   const onSubmit = (data: MechanicFormValues) => {
+    // MechanicFormValues now guarantees that both email and password are strings
+    // due to the zod schema validation, so this matches what handleAuthSubmit expects
     handleAuthSubmit(data, isNewAccount);
   };
 
