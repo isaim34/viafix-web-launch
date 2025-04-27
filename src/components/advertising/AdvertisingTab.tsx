@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { SubscriptionManagementSection } from './SubscriptionManagementSection';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Send, CreditCard } from 'lucide-react';
@@ -11,7 +9,7 @@ import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 
 const FEATURED_DAILY_PRICE = 24.99;
-const MASS_MESSAGE_PRICE = 0.10; // per recipient
+const MASS_MESSAGE_PRICE = 0.10;
 
 const AdvertisingTab = () => {
   const { toast } = useToast();
@@ -44,8 +42,6 @@ const AdvertisingTab = () => {
 
   return (
     <div className="space-y-8">
-      <SubscriptionManagementSection />
-      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold">Advertising & Promotion</h2>

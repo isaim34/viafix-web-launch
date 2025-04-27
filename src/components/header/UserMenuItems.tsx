@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, UserCircle, User, Settings } from 'lucide-react';
+import { LogOut, UserCircle, User, Settings, CreditCard } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -11,11 +11,35 @@ import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileSync';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { getCustomerPortal } from '@/lib/stripe';
 
 export const UserMenuItems = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
   const userRole = localStorage.getItem('userRole');
+
+  const handleSubscriptionManagement = async () => {
+    try {
+      const { url, error } = await getCustomerPortal();
+      
+      if (error) {
+        throw new Error(error);
+      }
+      
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("No portal URL returned");
+      }
+    } catch (error) {
+      console.error("Failed to open subscription portal:", error);
+      toast({
+        title: "Unable to Access Portal",
+        description: "We couldn't connect to the subscription management portal. Please try again later.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleLogout = () => {
     try {
@@ -78,6 +102,13 @@ export const UserMenuItems = () => {
           <span>Account Settings</span>
         </Link>
       </DropdownMenuItem>
+
+      <DropdownMenuItem onClick={handleSubscriptionManagement} className="cursor-pointer">
+        <CreditCard className="mr-2 h-4 w-4" />
+        <span>Manage Subscription</span>
+      </DropdownMenuItem>
+      
+      <DropdownMenuSeparator />
       
       <DropdownMenuItem onClick={handleLogout} className="text-red-600">
         <LogOut className="mr-2 h-4 w-4" />
