@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { getUserNameFromEmail } from '@/utils/authUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -28,6 +28,7 @@ type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 const MechanicSigninForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -37,48 +38,54 @@ const MechanicSigninForm = () => {
     },
   });
 
-  const onSubmit = (data: MechanicFormValues) => {
-    console.log('Mechanic signin data:', data);
-    
-    // Store the email for profile sync
-    localStorage.setItem('userEmail', data.email);
-    
-    // Get the stored name from localStorage - directly use the mechanic's email
-    // to look up their stored name from registration
-    const storedName = localStorage.getItem(`registered_${data.email}`);
-    
-    // If no stored name is found, use the email username as fallback
-    const emailUsername = data.email.split('@')[0];
-    const formattedUsername = emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1);
-    const userName = storedName || formattedUsername;
-    
-    // Store auth data in localStorage
-    localStorage.setItem('userLoggedIn', 'true');
-    localStorage.setItem('userRole', 'mechanic');
-    localStorage.setItem('userName', userName);
-    const userId = Math.random().toString(36).substring(2, 9);
-    localStorage.setItem('userId', userId);
-    
-    // Create user ID to email mapping
-    localStorage.setItem(`userId_to_email_${userId}`, data.email);
-    
-    // Also update vendor name for consistency
-    localStorage.setItem('vendorName', userName);
-    
-    // Dispatch storage event to notify all components
-    window.dispatchEvent(new Event('storage-event'));
-    
-    // Get just the first name for the welcome message
-    const firstName = userName.split(' ')[0];
-    
-    // Simulate successful login
-    toast({
-      title: `Welcome back, ${firstName}!`,
-      description: "You have successfully signed in.",
-    });
-    
-    // Navigate to mechanic dashboard with the correct route and replace option
-    navigate('/mechanic-dashboard', { replace: true });
+  const onSubmit = async (data: MechanicFormValues) => {
+    try {
+      setIsLoading(true);
+      
+      // Sign in with Supabase
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
+      
+      if (error) throw error;
+      
+      // Keep localStorage sync for backward compatibility
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'mechanic');
+      
+      // Get stored name from localStorage for compatibility
+      const storedName = localStorage.getItem(`registered_${data.email}`);
+      const formattedUsername = getUserNameFromEmail(data.email);
+      const userName = storedName || formattedUsername;
+      
+      localStorage.setItem('userName', userName);
+      const userId = authData.user?.id || Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('userId', userId);
+      localStorage.setItem(`userId_to_email_${userId}`, data.email);
+      localStorage.setItem('vendorName', userName);
+      
+      window.dispatchEvent(new Event('storage-event'));
+      
+      const firstName = userName.split(' ')[0];
+      
+      toast({
+        title: `Welcome back, ${firstName}!`,
+        description: "You have successfully signed in.",
+      });
+      
+      navigate('/mechanic-dashboard', { replace: true });
+    } catch (error) {
+      console.error('Sign in error:', error);
+      toast({
+        title: "Authentication Error",
+        description: error instanceof Error ? error.message : "Failed to sign in",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -134,8 +141,8 @@ const MechanicSigninForm = () => {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Sign In
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign In"}
         </Button>
         
         <div className="text-center text-sm">

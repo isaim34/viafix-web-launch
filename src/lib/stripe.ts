@@ -11,6 +11,19 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
   try {
     console.log("Creating checkout session with options:", options);
     
+    // Get current session
+    const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !authSession) {
+      console.error("Auth session error:", sessionError);
+      return { 
+        url: null, 
+        error: "Please sign in to continue",
+        authError: true
+      };
+    }
+    
+    // Call the checkout function with proper auth
     const { data, error } = await supabase.functions.invoke('create-checkout', {
       body: options
     });

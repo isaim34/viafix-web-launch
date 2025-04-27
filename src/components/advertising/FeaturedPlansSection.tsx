@@ -5,6 +5,7 @@ import { FeaturedPlanCard } from './FeaturedPlanCard';
 import { Button } from '@/components/ui/button';
 import { createCheckoutSession } from '@/lib/stripe';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export interface SelectedPlan {
   days: number;
@@ -23,6 +24,7 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   
   const handleSelectPlan = (plan: SelectedPlan) => {
     setSelectedPlan(prev => {
@@ -38,10 +40,20 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
       try {
         setIsLoading(true);
         
-        const { url, error } = await createCheckoutSession({
+        const { url, error, authError } = await createCheckoutSession({
           paymentType: 'featured',
           quantity: selectedPlan.days
         });
+
+        if (authError) {
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to purchase a featured plan",
+            variant: "destructive"
+          });
+          navigate('/signin');
+          return;
+        }
 
         if (error) {
           throw new Error(error);
