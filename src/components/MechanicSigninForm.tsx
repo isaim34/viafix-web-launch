@@ -19,6 +19,8 @@ import { getUserNameFromEmail } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import EmailField from './auth/EmailField';
+import PasswordField from './auth/PasswordField';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -29,7 +31,6 @@ type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 
 const MechanicSigninForm = () => {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isNewAccount, setIsNewAccount] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -68,7 +69,31 @@ const MechanicSigninForm = () => {
             title: "Account created successfully!",
             description: "You can now sign in with your new credentials.",
           });
-          setIsNewAccount(false);
+          
+          // Keep localStorage sync for backward compatibility
+          localStorage.setItem('userEmail', data.email);
+          localStorage.setItem('userLoggedIn', 'true');
+          localStorage.setItem('userRole', 'mechanic');
+          
+          // Get stored name from localStorage for compatibility
+          const storedName = localStorage.getItem(`registered_${data.email}`);
+          const formattedUsername = getUserNameFromEmail(data.email);
+          const userName = storedName || formattedUsername;
+          
+          localStorage.setItem('userName', userName);
+          const userId = authData.user?.id || Math.random().toString(36).substring(2, 9);
+          localStorage.setItem('userId', userId);
+          localStorage.setItem(`userId_to_email_${userId}`, data.email);
+          localStorage.setItem('vendorName', userName);
+          
+          window.dispatchEvent(new Event('storage-event'));
+          
+          toast({
+            title: "Welcome to ViaFix!",
+            description: "Your account has been created and you're now signed in.",
+          });
+          
+          navigate('/mechanic-dashboard', { replace: true });
           return;
         }
       } else {
@@ -126,107 +151,61 @@ const MechanicSigninForm = () => {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email<span className="text-destructive ml-1">*</span></FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="space-y-6">
+      {/* Tab selection for Sign In vs Register */}
+      <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
+        <button 
+          type="button" 
+          className={`flex-1 py-2 text-center rounded-md transition-all ${!isNewAccount ? 'bg-white shadow' : ''}`}
+          onClick={() => setIsNewAccount(false)}
+        >
+          Sign In
+        </button>
+        <button 
+          type="button" 
+          className={`flex-1 py-2 text-center rounded-md transition-all ${isNewAccount ? 'bg-white shadow' : ''}`}
+          onClick={() => setIsNewAccount(true)}
+        >
+          Register
+        </button>
+      </div>
+      
+      <h3 className="text-lg font-medium">{isNewAccount ? 'Create an Account' : 'Sign In to Your Account'}</h3>
+      <p className="text-sm text-gray-500">
+        {isNewAccount 
+          ? 'Register as a mechanic to get started with ViaFix.' 
+          : 'Enter your credentials to access your mechanic dashboard.'}
+      </p>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <EmailField form={form} />
+          <PasswordField form={form} />
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password<span className="text-destructive ml-1">*</span></FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="Enter your password" 
-                    {...field} 
-                  />
-                  <button 
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </FormControl>
-              <FormMessage />
-              <div className="text-sm text-right mt-1">
-                <button 
+          {authError && (
+            <Alert variant="destructive" className="text-sm">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{authError}</AlertDescription>
+              {authError.includes("Account not found") && (
+                <Button 
                   type="button" 
-                  className="text-primary hover:underline"
-                  onClick={() => console.log('Forgot password')}
+                  variant="outline" 
+                  size="sm"
+                  className="mt-2 w-full"
+                  onClick={() => setIsNewAccount(true)}
                 >
-                  Forgot password?
-                </button>
-              </div>
-            </FormItem>
+                  Register a new account
+                </Button>
+              )}
+            </Alert>
           )}
-        />
 
-        {authError && (
-          <Alert variant="destructive" className="text-sm">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{authError}</AlertDescription>
-            {authError.includes("Account not found") && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                className="mt-2 w-full"
-                onClick={() => setIsNewAccount(true)}
-              >
-                Register a new account
-              </Button>
-            )}
-          </Alert>
-        )}
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Processing..." : isNewAccount ? "Register" : "Sign In"}
-        </Button>
-        
-        <div className="text-center text-sm">
-          {isNewAccount ? (
-            <>
-              Already have an account?{" "}
-              <button 
-                type="button" 
-                className="text-primary hover:underline"
-                onClick={() => setIsNewAccount(false)}
-              >
-                Sign in
-              </button>
-            </>
-          ) : (
-            <>
-              Don't have an account?{" "}
-              <button 
-                type="button" 
-                className="text-primary hover:underline"
-                onClick={() => setIsNewAccount(true)}
-              >
-                Sign up
-              </button>
-            </>
-          )}
-        </div>
-      </form>
-    </Form>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Processing..." : isNewAccount ? "Register" : "Sign In"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 };
 
