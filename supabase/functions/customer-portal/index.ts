@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
@@ -64,7 +63,7 @@ serve(async (req) => {
       // Create Stripe Billing Portal session with the customer ID
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
+        return_url: 'https://billing.stripe.com/p/login/test_9AQaFn1V82Ur8lW3cc',
       });
 
       console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
