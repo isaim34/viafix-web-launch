@@ -45,7 +45,7 @@ serve(async (req) => {
           url: null,
           error: 'Stripe Customer Portal is not configured. You must set up your Customer Portal in the Stripe Dashboard.',
           adminAction: true,
-          setupUrl: 'https://dashboard.stripe.com/test/settings/billing/portal'
+          setupUrl: 'https://dashboard.stripe.com/settings/billing/portal'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
@@ -102,7 +102,7 @@ serve(async (req) => {
     } catch (portalError) {
       console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
       
-      // Enhanced error handling for portal configuration issues
+      // Additional error handling for common setup issues
       if (portalError.message && (
           portalError.message.includes('No configuration provided') ||
           portalError.message.includes('configuration has not been created')
@@ -111,7 +111,7 @@ serve(async (req) => {
           url: null,
           error: 'The Stripe Customer Portal needs to be set up in your Stripe Dashboard before use.',
           adminAction: true,
-          setupUrl: 'https://dashboard.stripe.com/test/settings/billing/portal'
+          setupUrl: 'https://dashboard.stripe.com/settings/billing/portal'
         }), {
           headers: { 
             ...corsHeaders, 
