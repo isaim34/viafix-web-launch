@@ -9,6 +9,8 @@ export interface CheckoutSessionOptions {
 
 export const createCheckoutSession = async (options: CheckoutSessionOptions) => {
   try {
+    console.log("Creating checkout session with options:", options);
+    
     const { data, error } = await supabase.functions.invoke('create-checkout', {
       body: options
     });
@@ -21,10 +23,12 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
       };
     }
     
-    if (!data.url) {
+    if (!data?.url) {
+      console.error("No checkout URL in response:", data);
       throw new Error("No checkout URL returned");
     }
     
+    console.log("Checkout session created successfully:", data.url);
     return { url: data.url, error: null };
   } catch (err) {
     console.error("Error in createCheckoutSession:", err);

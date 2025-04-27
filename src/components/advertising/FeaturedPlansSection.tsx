@@ -3,9 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star } from 'lucide-react';
 import { FeaturedPlanCard } from './FeaturedPlanCard';
 import { Button } from '@/components/ui/button';
-import { PaymentMethodSelector } from './PaymentMethodSelector';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { createCheckoutSession, getCustomerPortal } from '@/lib/stripe';
+import { createCheckoutSession } from '@/lib/stripe';
 import { toast } from '@/hooks/use-toast';
 
 export interface SelectedPlan {
@@ -24,7 +22,7 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
   onPurchaseFeatured
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(null);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleSelectPlan = (plan: SelectedPlan) => {
     setSelectedPlan(prev => {
@@ -35,29 +33,32 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
     });
   };
   
-  const handleProceedToPayment = () => {
-    if (selectedPlan) {
-      setShowPaymentDialog(true);
-    }
-  };
-  
-  const handleCompletePurchase = async (paymentMethodId: string) => {
+  const handleProceedToPayment = async () => {
     if (selectedPlan) {
       try {
-        const { url } = await createCheckoutSession({
+        setIsLoading(true);
+        
+        const { url, error } = await createCheckoutSession({
           paymentType: 'featured',
           quantity: selectedPlan.days
         });
+
+        if (error) {
+          throw new Error(error);
+        }
         
         if (url) {
           window.location.href = url;
         }
       } catch (error) {
+        console.error('Payment error:', error);
         toast({
           title: "Error",
-          description: "Failed to initiate checkout. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to initiate checkout",
           variant: "destructive"
         });
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -112,8 +113,11 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
             <p className="font-medium">Selected plan: {selectedPlan.title}</p>
             <p className="text-sm text-muted-foreground">Total: ${selectedPlan.price.toFixed(2)}</p>
           </div>
-          <Button onClick={handleProceedToPayment}>
-            Proceed to Payment
+          <Button 
+            onClick={handleProceedToPayment}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : "Proceed to Payment"}
           </Button>
         </div>
       )}
@@ -151,46 +155,6 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
           </ul>
         </CardContent>
       </Card>
-      
-      <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Complete Your Purchase</AlertDialogTitle>
-            <AlertDialogDescription>
-              <div className="space-y-4">
-                <div className="border-b pb-4">
-                  <p className="font-medium">Selected Plan:</p>
-                  {selectedPlan && (
-                    <div className="mt-2 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>{selectedPlan.title}</span>
-                        <span>${selectedPlan.price.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between font-semibold pt-2 border-t">
-                        <span>Total</span>
-                        <span>${selectedPlan.price.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <PaymentMethodSelector 
-                  onSelectMethod={handleCompletePurchase}
-                  confirmButtonText={selectedPlan ? `Pay $${selectedPlan.price.toFixed(2)}` : "Pay"}
-                />
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowPaymentDialog(false)}
-            >
-              Cancel
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
