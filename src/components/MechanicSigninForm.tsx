@@ -17,10 +17,12 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { getUserNameFromEmail } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
@@ -29,6 +31,8 @@ const MechanicSigninForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isNewAccount, setIsNewAccount] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -41,14 +45,41 @@ const MechanicSigninForm = () => {
   const onSubmit = async (data: MechanicFormValues) => {
     try {
       setIsLoading(true);
+      setAuthError(null);
       
-      // Sign in with Supabase
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      });
+      let authData, error;
       
-      if (error) throw error;
+      if (isNewAccount) {
+        // Sign up with Supabase
+        ({ data: authData, error } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              user_type: 'mechanic',
+            }
+          }
+        }));
+        
+        if (error) throw error;
+        
+        if (authData?.user) {
+          toast({
+            title: "Account created successfully!",
+            description: "You can now sign in with your new credentials.",
+          });
+          setIsNewAccount(false);
+          return;
+        }
+      } else {
+        // Sign in with Supabase
+        ({ data: authData, error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password
+        }));
+        
+        if (error) throw error;
+      }
       
       // Keep localStorage sync for backward compatibility
       localStorage.setItem('userEmail', data.email);
@@ -71,18 +102,24 @@ const MechanicSigninForm = () => {
       const firstName = userName.split(' ')[0];
       
       toast({
-        title: `Welcome back, ${firstName}!`,
+        title: `Welcome${isNewAccount ? '' : ' back'}, ${firstName}!`,
         description: "You have successfully signed in.",
       });
       
       navigate('/mechanic-dashboard', { replace: true });
     } catch (error) {
       console.error('Sign in error:', error);
-      toast({
-        title: "Authentication Error",
-        description: error instanceof Error ? error.message : "Failed to sign in",
-        variant: "destructive"
-      });
+      
+      // Handle specific authentication errors
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid login credentials')) {
+          setAuthError("Account not found. Would you like to register instead?");
+        } else {
+          setAuthError(error.message);
+        }
+      } else {
+        setAuthError("Failed to sign in");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -141,19 +178,52 @@ const MechanicSigninForm = () => {
           )}
         />
 
+        {authError && (
+          <Alert variant="destructive" className="text-sm">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{authError}</AlertDescription>
+            {authError.includes("Account not found") && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => setIsNewAccount(true)}
+              >
+                Register a new account
+              </Button>
+            )}
+          </Alert>
+        )}
+
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Signing in..." : "Sign In"}
+          {isLoading ? "Processing..." : isNewAccount ? "Register" : "Sign In"}
         </Button>
         
         <div className="text-center text-sm">
-          Don't have an account?{" "}
-          <button 
-            type="button" 
-            className="text-primary hover:underline"
-            onClick={() => navigate('/signup')}
-          >
-            Sign up
-          </button>
+          {isNewAccount ? (
+            <>
+              Already have an account?{" "}
+              <button 
+                type="button" 
+                className="text-primary hover:underline"
+                onClick={() => setIsNewAccount(false)}
+              >
+                Sign in
+              </button>
+            </>
+          ) : (
+            <>
+              Don't have an account?{" "}
+              <button 
+                type="button" 
+                className="text-primary hover:underline"
+                onClick={() => setIsNewAccount(true)}
+              >
+                Sign up
+              </button>
+            </>
+          )}
         </div>
       </form>
     </Form>
