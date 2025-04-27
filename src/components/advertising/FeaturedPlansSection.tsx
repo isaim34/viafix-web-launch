@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { createCheckoutSession, getCustomerPortal } from '@/lib/stripe';
+import { toast } from '@/hooks/use-toast';
 
 export interface SelectedPlan {
   days: number;

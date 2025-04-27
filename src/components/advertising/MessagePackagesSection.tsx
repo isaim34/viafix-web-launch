@@ -14,6 +14,7 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { createCheckoutSession } from '@/lib/stripe';
+import { toast } from '@/hooks/use-toast';
 
 interface MessagePackagesSectionProps {
   messageCost: number;
