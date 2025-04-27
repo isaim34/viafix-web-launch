@@ -25,7 +25,7 @@ const Signin = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Sign In</h1>
             <p className="text-muted-foreground">
-              Welcome back to Mobex
+              Welcome back to ViaFix
             </p>
           </div>
 
