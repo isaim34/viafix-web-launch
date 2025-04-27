@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
@@ -18,7 +17,6 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
 
   const handleGoogleAuth = async () => {
     try {
-      // Show a loading toast to indicate authentication is in progress
       toast({
         title: "Connecting to Google",
         description: "Please wait while we connect to Google...",
@@ -26,43 +24,29 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       
       console.log("Starting Google auth process...");
       
-      // Get the current URL for troubleshooting
-      const currentUrl = window.location.origin;
-      console.log("Current app URL:", currentUrl);
-      
-      // Don't append /** anymore - use the exact format that matches Google Console
-      // We'll use the current origin as the base for the redirect
-      const redirectUrl = window.location.origin;
-      console.log("Using redirect URL:", redirectUrl);
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           queryParams: {
-            prompt: 'select_account', // Forces account selection, helping with new signups
             access_type: 'offline',
+            prompt: 'consent',
           },
-          redirectTo: redirectUrl,
+          redirectTo: window.location.origin,
         }
       });
       
-      console.log("Google auth response:", { data, error });
-      
       if (error) {
         console.error('Google auth error:', error);
-        console.error('Error code:', error.code);
-        console.error('Error status:', error.status);
+        console.error('Error details:', {
+          code: error.code,
+          status: error.status,
+          message: error.message
+        });
         
         toast({
           title: "Authentication Failed",
-          description: `${error.message || `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}`}. Please check the console for details.`,
+          description: error.message || "There was an error connecting to Google. Please try again.",
           variant: "destructive"
-        });
-        
-        // Show detailed troubleshooting information
-        toast({
-          title: "Troubleshooting Tips",
-          description: "Verify your redirect URLs in both Google Console and Supabase match exactly.",
         });
       } else if (data) {
         toast({
@@ -71,7 +55,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         });
       }
     } catch (error) {
-      console.error('Google auth error:', error);
+      console.error('Unexpected error during auth:', error);
       toast({
         title: "Authentication Error",
         description: "An unexpected error occurred. Please try again.",
