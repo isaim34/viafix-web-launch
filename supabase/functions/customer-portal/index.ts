@@ -8,6 +8,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const logError = (step: string, error: any) => {
+  console.error(`[CUSTOMER-PORTAL ERROR] ${step}:`, error);
+  return error instanceof Error ? error : new Error(String(error));
+}
+
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2023-10-16',
 })
@@ -18,39 +23,99 @@ serve(async (req) => {
   }
 
   try {
+    console.log('[CUSTOMER-PORTAL] Function started');
+    
+    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
     
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    // Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    console.log('[CUSTOMER-PORTAL] Authenticating user');
+    
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !user) {
-      throw new Error('Not authenticated')
+      throw logError('Authentication failed', userError || 'No user found');
     }
+    
+    console.log('[CUSTOMER-PORTAL] User authenticated:', user.email);
 
-    const { data: customers } = await stripe.customers.search({
-      query: `email:'${user.email}'`,
-    })
+    // Find or create Stripe customer
+    console.log('[CUSTOMER-PORTAL] Looking up Stripe customer');
+    
+    let customers;
+    try {
+      customers = await stripe.customers.search({
+        query: `email:'${user.email}'`,
+      });
+    } catch (error) {
+      throw logError('Stripe customer search failed', error);
+    }
 
     if (customers.length === 0) {
-      throw new Error('No Stripe customer found')
+      console.log('[CUSTOMER-PORTAL] No Stripe customer found, creating one');
+      try {
+        // Create a customer if none exists
+        const newCustomer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            supabaseUserId: user.id
+          }
+        });
+        
+        console.log('[CUSTOMER-PORTAL] Created new customer:', newCustomer.id);
+        
+        // Create a Billing Portal session for the new customer
+        const session = await stripe.billingPortal.sessions.create({
+          customer: newCustomer.id,
+          return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
+        });
+        
+        return new Response(JSON.stringify({ url: session.url }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        throw logError('Customer creation failed', error);
+      }
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customers[0].id,
-      return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
-    })
+    const customerId = customers.data[0].id;
+    console.log('[CUSTOMER-PORTAL] Found customer:', customerId);
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    try {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${req.headers.get('origin')}/mechanic-dashboard`,
+      });
+      
+      console.log('[CUSTOMER-PORTAL] Created portal session:', session.id);
+      
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      throw logError('Failed to create portal session', error);
+    }
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: errorMessage,
+        details: "There was a problem accessing the subscription management portal. Please try again later or contact support."
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    );
   }
 })
