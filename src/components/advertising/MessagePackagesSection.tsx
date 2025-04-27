@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +13,7 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
+import { createCheckoutSession } from '@/lib/stripe';
 
 interface MessagePackagesSectionProps {
   messageCost: number;
@@ -34,14 +34,28 @@ export const MessagePackagesSection: React.FC<MessagePackagesSectionProps> = ({
     setIsConfirmDialogOpen(true);
   };
   
-  const handleConfirmPurchase = () => {
+  const handleConfirmPurchase = async () => {
     if (selectedPackage) {
-      onBuyMessages(selectedPackage);
+      try {
+        const { url } = await createCheckoutSession({
+          paymentType: 'messages',
+          quantity: selectedPackage
+        });
+        
+        if (url) {
+          window.location.href = url;
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to initiate checkout. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
     setIsConfirmDialogOpen(false);
   };
 
-  // Calculate prices for different packages
   const price50 = (messageCost * 50).toFixed(2);
   const price200 = (messageCost * 200 * 0.9).toFixed(2);
   const price500 = (messageCost * 500 * 0.8).toFixed(2);
@@ -93,7 +107,6 @@ export const MessagePackagesSection: React.FC<MessagePackagesSectionProps> = ({
         )}
       </div>
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

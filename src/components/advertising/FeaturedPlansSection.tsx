@@ -5,6 +5,7 @@ import { FeaturedPlanCard } from './FeaturedPlanCard';
 import { Button } from '@/components/ui/button';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { createCheckoutSession, getCustomerPortal } from '@/lib/stripe';
 
 export interface SelectedPlan {
   days: number;
@@ -26,11 +27,9 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
   
   const handleSelectPlan = (plan: SelectedPlan) => {
     setSelectedPlan(prev => {
-      // If this plan is already selected, toggle it off
       if (prev?.days === plan.days) {
         return null;
       }
-      // Otherwise, select this plan (replacing any previously selected plan)
       return plan;
     });
   };
@@ -41,11 +40,24 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
     }
   };
   
-  const handleCompletePurchase = (paymentMethodId: string) => {
+  const handleCompletePurchase = async (paymentMethodId: string) => {
     if (selectedPlan) {
-      onPurchaseFeatured(selectedPlan.days);
-      setSelectedPlan(null);
-      setShowPaymentDialog(false);
+      try {
+        const { url } = await createCheckoutSession({
+          paymentType: 'featured',
+          quantity: selectedPlan.days
+        });
+        
+        if (url) {
+          window.location.href = url;
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to initiate checkout. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
   
@@ -139,7 +151,6 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
         </CardContent>
       </Card>
       
-      {/* Payment Method Selection Dialog */}
       <AlertDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
