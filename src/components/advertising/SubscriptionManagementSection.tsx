@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rawError, setRawError] = useState<string | null>(null);
   const [needsConfiguration, setNeedsConfiguration] = useState(false);
   const { toast } = useToast();
   const { isLoggedIn, userEmail } = useAuth();
@@ -19,6 +20,7 @@ export const SubscriptionManagementSection = () => {
     try {
       setIsLoading(true);
       setError(null);
+      setRawError(null);
       setNeedsConfiguration(false);
 
       // Comprehensive authentication check
@@ -39,11 +41,14 @@ export const SubscriptionManagementSection = () => {
       });
       
       console.log("Attempting to access customer portal for:", userEmail);
-      const { url, error: responseError, needsConfiguration: configNeeded } = await getCustomerPortal();
+      const { url, error: responseError, needsConfiguration: configNeeded, rawError: responseRawError } = await getCustomerPortal();
       
       if (responseError) {
         console.error("Portal access error:", responseError);
+        if (responseRawError) console.error("Raw error details:", responseRawError);
+        
         setError(`${responseError}`);
+        setRawError(responseRawError || null);
         setNeedsConfiguration(!!configNeeded);
         
         toast({
@@ -109,7 +114,14 @@ export const SubscriptionManagementSection = () => {
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error}
+              <div className="font-medium mb-1">Error accessing portal</div>
+              <p className="text-sm">{error}</p>
+              {rawError && (
+                <details className="mt-2 text-xs opacity-80">
+                  <summary className="cursor-pointer">Technical details</summary>
+                  <pre className="mt-1 p-2 bg-red-950/10 rounded overflow-auto">{rawError}</pre>
+                </details>
+              )}
             </AlertDescription>
           </Alert>
         ) : null}

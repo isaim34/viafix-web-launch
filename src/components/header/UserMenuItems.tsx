@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink, Info } from 'lucide-react';
+import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink, Info, AlertCircle } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -12,11 +12,11 @@ import { syncCustomerProfileData } from '@/utils/profileSync/customerProfileSync
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getCustomerPortal } from '@/lib/stripe';
-import { Alert } from '@/components/ui/alert';
 
 export const UserMenuItems = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showConfigAlert, setShowConfigAlert] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
   const userRole = localStorage.getItem('userRole');
@@ -26,16 +26,18 @@ export const UserMenuItems = () => {
     try {
       setIsLoading(true);
       setShowConfigAlert(false);
+      setErrorMessage(null);
       
       toast({
         title: "Accessing Portal",
         description: "Opening subscription management portal...",
       });
 
-      const { url, error, needsConfiguration } = await getCustomerPortal();
+      const { url, error, needsConfiguration, rawError } = await getCustomerPortal();
       
       if (error) {
         console.error("Portal access error:", error);
+        console.error("Raw error details:", rawError);
         
         // Show different message based on the error type
         if (needsConfiguration) {
@@ -46,6 +48,7 @@ export const UserMenuItems = () => {
             variant: "default"
           });
         } else {
+          setErrorMessage(error);
           toast({
             title: "Unable to Access Portal",
             description: error,
@@ -62,6 +65,7 @@ export const UserMenuItems = () => {
       }
     } catch (error) {
       console.error("Failed to open subscription portal:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
       toast({
         title: "Portal Access Error",
         description: error instanceof Error ? error.message : "Failed to open the portal",
@@ -113,21 +117,36 @@ export const UserMenuItems = () => {
       
       {showConfigAlert && (
         <div className="px-2 py-1.5 mb-1">
-          <Alert variant="default" className="p-2 bg-amber-50 border-amber-200 text-xs">
-            <Info className="h-3 w-3 text-amber-500" />
-            <span className="ml-2">
-              Portal needs configuration.{' '}
-              <a 
-                href="https://dashboard.stripe.com/test/settings/billing/portal" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline inline-flex items-center"
-              >
-                Configure
-                <ExternalLink className="ml-1 h-2 w-2" />
-              </a>
-            </span>
-          </Alert>
+          <div className="p-2 bg-amber-50 border border-amber-200 rounded-md text-xs">
+            <div className="flex items-start">
+              <Info className="h-3 w-3 text-amber-500 mt-0.5 mr-1.5 flex-shrink-0" />
+              <div>
+                <span className="text-amber-800">
+                  Portal needs configuration.{' '}
+                  <a 
+                    href="https://dashboard.stripe.com/test/settings/billing/portal" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline inline-flex items-center"
+                  >
+                    Configure
+                    <ExternalLink className="ml-1 h-2 w-2" />
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {errorMessage && !showConfigAlert && (
+        <div className="px-2 py-1.5 mb-1">
+          <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs">
+            <div className="flex items-start">
+              <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 mr-1.5 flex-shrink-0" />
+              <div className="text-red-800">{errorMessage}</div>
+            </div>
+          </div>
         </div>
       )}
       

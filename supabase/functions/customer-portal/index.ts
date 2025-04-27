@@ -55,15 +55,13 @@ serve(async (req) => {
       console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
     }
 
-    // Try to get the portal configuration ID
-    const portalConfigId = Deno.env.get('STRIPE_PORTAL_CONFIG_ID');
-    
-    // Create the portal session
+    // Create the portal session without any configuration ID
+    // Let Stripe use the default configuration
     try {
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: `${req.headers.get('origin') || 'https://viafix-web.com'}/mechanic-dashboard`,
-        configuration: portalConfigId || undefined
+        return_url: `${req.headers.get('origin') || 'https://viafix-web.com'}/mechanic-dashboard`
+        // Remove the configuration parameter entirely to use the default configuration
       });
 
       console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
@@ -84,7 +82,7 @@ serve(async (req) => {
       // Extract the helpful message from the error
       const errorMessage = portalError instanceof Error ? portalError.message : 'Failed to create portal session';
       
-      // Check if it's the specific configuration error and provide a more helpful message
+      // Check if it's a specific configuration error
       const isConfigError = errorMessage.includes('No configuration provided') || 
                           errorMessage.includes('configuration has not been created') ||
                           errorMessage.includes('portal settings');
@@ -97,7 +95,8 @@ serve(async (req) => {
         url: null,
         error: friendlyMessage,
         customerExists: !!customerId,
-        needsConfiguration: isConfigError
+        needsConfiguration: isConfigError,
+        rawError: errorMessage // Include the raw error for debugging
       }), {
         headers: { 
           ...corsHeaders, 
