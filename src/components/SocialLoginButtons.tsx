@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Apple, Facebook, Instagram } from 'lucide-react';
@@ -29,8 +30,9 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       const currentUrl = window.location.origin;
       console.log("Current app URL:", currentUrl);
       
-      // Make sure our redirect URL ends with /** to match Supabase settings
-      const redirectUrl = `${window.location.origin}/**`;
+      // Don't append /** anymore - use the exact format that matches Google Console
+      // We'll use the current origin as the base for the redirect
+      const redirectUrl = window.location.origin;
       console.log("Using redirect URL:", redirectUrl);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -48,6 +50,9 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
       
       if (error) {
         console.error('Google auth error:', error);
+        console.error('Error code:', error.code);
+        console.error('Error status:', error.status);
+        
         toast({
           title: "Authentication Failed",
           description: `${error.message || `There was an error with Google ${isSignUp ? 'sign up' : 'sign in'}`}. Please check the console for details.`,
@@ -57,7 +62,7 @@ const SocialLoginButtons = ({ className }: SocialLoginButtonsProps) => {
         // Show detailed troubleshooting information
         toast({
           title: "Troubleshooting Tips",
-          description: "Check Google Console settings and Supabase configuration for redirect URLs.",
+          description: "Verify your redirect URLs in both Google Console and Supabase match exactly.",
         });
       } else if (data) {
         toast({
