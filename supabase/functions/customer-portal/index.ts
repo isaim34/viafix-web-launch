@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
@@ -53,71 +54,24 @@ serve(async (req) => {
       customerId = customers.data[0].id;
       console.log(`[CUSTOMER-PORTAL] Found existing customer with ID: ${customerId}`);
     }
-    
-    try {
-      const portalSession = await stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: 'https://billing.stripe.com/p/login/test_9AQaFn1V82Ur8lW3cc',
-      });
 
-      console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: 'https://billing.stripe.com/p/login/test_9AQaFn1V82Ur8lW3cc',
+    });
 
-      return new Response(JSON.stringify({ 
-        url: portalSession.url,
-        error: null 
-      }), {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        },
-        status: 200,
-      });
-    } catch (portalError) {
-      console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
-      
-      if (portalError.message && portalError.message.includes('No configuration provided')) {
-        console.log('[CUSTOMER-PORTAL] Falling back to checkout session due to missing portal configuration');
-        
-        const checkoutSession = await stripe.checkout.sessions.create({
-          customer: customerId,
-          payment_method_types: ['card'],
-          line_items: [
-            {
-              price_data: {
-                currency: 'usd',
-                product_data: {
-                  name: 'Basic Subscription',
-                  description: 'Monthly subscription to access premium features',
-                },
-                unit_amount: 999, // $9.99
-                recurring: {
-                  interval: 'month',
-                },
-              },
-              quantity: 1,
-            },
-          ],
-          mode: 'subscription',
-          success_url: `${req.headers.get('origin')}/mechanic-dashboard?checkout_success=true`,
-          cancel_url: `${req.headers.get('origin')}/mechanic-dashboard?checkout_canceled=true`,
-        });
-        
-        console.log(`[CUSTOMER-PORTAL] Created checkout session as fallback: ${checkoutSession.url}`);
-        
-        return new Response(JSON.stringify({ 
-          url: checkoutSession.url,
-          error: null 
-        }), {
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          },
-          status: 200,
-        });
-      }
-      
-      throw portalError;
-    }
+    console.log(`[CUSTOMER-PORTAL] Created portal session: ${portalSession.url}`);
+
+    return new Response(JSON.stringify({ 
+      url: portalSession.url,
+      error: null 
+    }), {
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json' 
+      },
+      status: 200,
+    });
 
   } catch (error) {
     console.error('[CUSTOMER-PORTAL] Error:', error);
