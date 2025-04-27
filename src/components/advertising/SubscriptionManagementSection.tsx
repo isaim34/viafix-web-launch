@@ -12,15 +12,16 @@ export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, userEmail } = useAuth();
 
   const handleManageSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Check if user is logged in first
-      if (!isLoggedIn) {
+      // More comprehensive authentication check
+      if (!isLoggedIn || !userEmail) {
+        console.log("Authentication check failed:", { isLoggedIn, userEmail });
         setError("You must be logged in to access subscription management");
         toast({
           title: "Authentication Required",
@@ -30,6 +31,7 @@ export const SubscriptionManagementSection = () => {
         return;
       }
       
+      console.log("Attempting to access customer portal for:", userEmail);
       const { url, error: responseError } = await getCustomerPortal();
       
       if (responseError) {

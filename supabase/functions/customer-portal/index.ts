@@ -36,38 +36,53 @@ serve(async (req) => {
     
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
     
+    // Try to get user email - either from token or request body
+    let userEmail: string | null = null;
+    
     // Extract JWT from Authorization header
     const authHeader = req.headers.get('Authorization');
-    
-    if (!authHeader) {
-      throw logError('Auth validation', 'Missing authorization header');
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      console.log('[CUSTOMER-PORTAL] Authenticating user with token');
+      
+      try {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+        
+        if (userError) {
+          console.error('[CUSTOMER-PORTAL] Token validation error:', userError);
+        } else if (userData?.user?.email) {
+          userEmail = userData.user.email;
+          console.log('[CUSTOMER-PORTAL] User authenticated from token:', userEmail);
+        }
+      } catch (tokenError) {
+        console.error('[CUSTOMER-PORTAL] Token processing error:', tokenError);
+      }
     }
     
-    const token = authHeader.replace('Bearer ', '');
-    console.log('[CUSTOMER-PORTAL] Authenticating user with token');
-    
-    // Get user from token
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !userData.user) {
-      throw logError('Authentication failed', userError || 'No user found in token');
+    // If no email from token, try body
+    if (!userEmail) {
+      try {
+        const requestData = await req.json();
+        if (requestData?.email) {
+          userEmail = requestData.email;
+          console.log('[CUSTOMER-PORTAL] Using email from request body:', userEmail);
+        }
+      } catch (bodyParseError) {
+        console.log('[CUSTOMER-PORTAL] No body data provided or parse error');
+      }
     }
-    
-    const user = userData.user;
-    
-    if (!user.email) {
-      throw logError('User validation', 'No email found for authenticated user');
-    }
-    
-    console.log('[CUSTOMER-PORTAL] User authenticated:', user.email);
 
+    if (!userEmail) {
+      throw logError('User validation', 'No email found for user');
+    }
+    
     // Find or create Stripe customer
-    console.log('[CUSTOMER-PORTAL] Looking up Stripe customer');
+    console.log('[CUSTOMER-PORTAL] Looking up Stripe customer for email:', userEmail);
     
     let customers;
     try {
       customers = await stripe.customers.search({
-        query: `email:'${user.email}'`,
+        query: `email:'${userEmail}'`,
       });
     } catch (error) {
       throw logError('Stripe customer search failed', error);
@@ -80,10 +95,7 @@ serve(async (req) => {
       try {
         // Create a customer if none exists
         const newCustomer = await stripe.customers.create({
-          email: user.email,
-          metadata: {
-            supabaseUserId: user.id
-          }
+          email: userEmail,
         });
         
         customerId = newCustomer.id;

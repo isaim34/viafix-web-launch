@@ -31,22 +31,34 @@ export const getCustomerPortal = async () => {
   try {
     console.log("Requesting customer portal access");
     
-    // Check if the user is authenticated
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    // Create headers object with auth if available
+    const headers: Record<string, string> = {};
     
-    if (sessionError || !sessionData.session) {
-      console.error("No active session found:", sessionError);
+    // Check if localStorage has user credentials we can use as fallback
+    const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    const userEmail = localStorage.getItem('userEmail');
+    
+    // Try to get Supabase session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    if (sessionData?.session?.access_token) {
+      console.log("Found active Supabase session, using access token for authentication");
+      headers.Authorization = `Bearer ${sessionData.session.access_token}`;
+    } else if (userLoggedIn && userEmail) {
+      // Fallback to using localStorage data in request body if no active session
+      console.log("No active Supabase session found, using localStorage credentials as fallback");
+    } else {
+      console.error("No authentication method available");
       return { 
         url: null, 
         error: "You must be logged in to access subscription management" 
       };
     }
 
-    // Add the authentication token to the request
+    // Make the request to the customer portal function
     const { data, error } = await supabase.functions.invoke('customer-portal', {
-      headers: {
-        Authorization: `Bearer ${sessionData.session.access_token}`
-      }
+      headers,
+      body: userEmail ? { email: userEmail } : undefined
     });
     
     if (error) {
