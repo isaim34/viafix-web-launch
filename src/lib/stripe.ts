@@ -56,18 +56,7 @@ export const getCustomerPortal = async () => {
       console.error("Customer portal error:", error);
       return { 
         url: null, 
-        error: error.message || "Failed to access customer portal",
-        adminAction: false,
-        setupUrl: null
-      };
-    }
-    
-    if (data.adminAction) {
-      return {
-        url: null,
-        error: data.error || "Stripe Customer Portal configuration required",
-        adminAction: true,
-        setupUrl: data.setupUrl || "https://dashboard.stripe.com/test/settings/billing/portal"
+        error: error.message || "Failed to access customer portal"
       };
     }
     
@@ -77,17 +66,13 @@ export const getCustomerPortal = async () => {
     
     return { 
       url: data.url, 
-      error: null,
-      adminAction: false,
-      setupUrl: null
+      error: null
     };
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
     return { 
       url: null, 
-      error: err instanceof Error ? err.message : String(err),
-      adminAction: false,
-      setupUrl: null
+      error: err instanceof Error ? err.message : String(err)
     };
   }
 };

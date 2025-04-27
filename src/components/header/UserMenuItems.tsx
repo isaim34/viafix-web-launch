@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink } from 'lucide-react';
@@ -28,33 +27,14 @@ export const UserMenuItems = () => {
         description: "Opening subscription management portal...",
       });
 
-      const { url, error, adminAction, setupUrl } = await getCustomerPortal();
+      const { url, error } = await getCustomerPortal();
       
       if (error) {
-        if (adminAction) {
-          toast({
-            title: "Configuration Required",
-            description: "The Stripe Customer Portal needs to be configured in your Stripe Dashboard.",
-            variant: "destructive"
-          });
-          
-          // If we have a setup URL, open it for admin
-          if (setupUrl) {
-            const openSetup = window.confirm(
-              "Would you like to open the Stripe Dashboard to configure the Customer Portal now?"
-            );
-            
-            if (openSetup) {
-              window.open(setupUrl, '_blank');
-            }
-          }
-        } else {
-          toast({
-            title: "Unable to Access Portal",
-            description: "We couldn't connect to the subscription management portal. Please try again later.",
-            variant: "destructive"
-          });
-        }
+        toast({
+          title: "Unable to Access Portal",
+          description: error,
+          variant: "destructive"
+        });
         throw new Error(error);
       }
       

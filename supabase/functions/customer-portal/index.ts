@@ -32,32 +32,6 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
     
-    // First check if the portal is configured
-    try {
-      // We can check this by fetching portal configurations
-      const portalConfigs = await stripe.billingPortal.configurations.list({
-        limit: 1
-      });
-      
-      if (portalConfigs.data.length === 0) {
-        console.log('[CUSTOMER-PORTAL] No portal configurations found');
-        return new Response(JSON.stringify({ 
-          url: null,
-          error: 'Stripe Customer Portal is not configured. You must set up your Customer Portal in the Stripe Dashboard.',
-          adminAction: true,
-          setupUrl: 'https://dashboard.stripe.com/settings/billing/portal'
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        });
-      }
-      
-      console.log('[CUSTOMER-PORTAL] Portal configurations found:', portalConfigs.data.length);
-    } catch (configError) {
-      console.error('[CUSTOMER-PORTAL] Error checking portal configurations:', configError);
-      // Continue and let the portal creation attempt fail with a more specific error
-    }
-    
     const customers = await stripe.customers.list({ 
       email: userEmail,
       limit: 1 
@@ -101,26 +75,6 @@ serve(async (req) => {
       });
     } catch (portalError) {
       console.error('[CUSTOMER-PORTAL] Portal creation error:', portalError);
-      
-      // Additional error handling for common setup issues
-      if (portalError.message && (
-          portalError.message.includes('No configuration provided') ||
-          portalError.message.includes('configuration has not been created')
-        )) {
-        return new Response(JSON.stringify({ 
-          url: null,
-          error: 'The Stripe Customer Portal needs to be set up in your Stripe Dashboard before use.',
-          adminAction: true,
-          setupUrl: 'https://dashboard.stripe.com/settings/billing/portal'
-        }), {
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          },
-          status: 400,
-        });
-      }
-      
       throw portalError;
     }
   } catch (error) {
