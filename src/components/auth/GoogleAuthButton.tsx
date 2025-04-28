@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface GoogleAuthButtonProps {
   mode?: 'signin' | 'signup';
@@ -10,6 +11,7 @@ interface GoogleAuthButtonProps {
 
 export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
     try {
