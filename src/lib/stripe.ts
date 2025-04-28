@@ -70,52 +70,28 @@ export const getCustomerPortal = async () => {
     });
     
     if (error) {
-      console.error("Customer portal supabase error:", error);
+      console.error("Customer portal error:", error);
       return { 
         url: null, 
-        error: error.message || "Failed to access customer portal",
-        needsConfiguration: false
+        error: error.message || "Failed to access customer portal"
       };
     }
     
-    console.log("Portal response:", data);
-    
-    // Check if the response contains a URL
-    if (data?.url) {
+    if (!data?.url) {
+      console.error("No portal URL in response:", data);
       return { 
-        url: data.url, 
-        error: null,
-        needsConfiguration: false,
-        isAccountPage: data.isAccountPage || false,
-        message: data.message
+        url: null, 
+        error: data?.error || "Failed to create portal session"
       };
     }
     
-    // Handle case where there's an application error in the response
-    if (data?.error) {
-      console.error("Customer portal application error:", data.error);
-      
-      return {
-        url: null,
-        error: data.error,
-        needsConfiguration: data.needsConfiguration || false,
-        rawError: data.rawError // Pass through raw error for debugging
-      };
-    }
-    
-    // Fallback for unexpected response format
-    return { 
-      url: null, 
-      error: "Unexpected response from portal service",
-      needsConfiguration: false
-    };
-    
+    console.log("Portal access successful:", data.url);
+    return { url: data.url, error: null };
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
     return { 
       url: null, 
-      error: err instanceof Error ? err.message : String(err),
-      needsConfiguration: false
+      error: err instanceof Error ? err.message : String(err)
     };
   }
 };

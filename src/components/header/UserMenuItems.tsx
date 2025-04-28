@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink, Info, AlertCircle, CalendarClock } from 'lucide-react';
+import { LogOut, UserCircle, User, Settings, CreditCard, ExternalLink, AlertCircle, CalendarClock } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -15,7 +14,6 @@ import { getCustomerPortal } from '@/lib/stripe';
 
 export const UserMenuItems = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfigAlert, setShowConfigAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
@@ -30,7 +28,6 @@ export const UserMenuItems = () => {
   const handleSubscriptionManagement = async () => {
     try {
       setIsLoading(true);
-      setShowConfigAlert(false);
       setErrorMessage(null);
       
       toast({
@@ -38,38 +35,20 @@ export const UserMenuItems = () => {
         description: "Opening subscription management portal...",
       });
 
-      const { url, error, needsConfiguration, rawError, isAccountPage, message } = await getCustomerPortal();
+      const { url, error } = await getCustomerPortal();
       
       if (error) {
         console.error("Portal access error:", error);
-        console.error("Raw error details:", rawError);
-        
-        // Show different message based on the error type
-        if (needsConfiguration) {
-          setShowConfigAlert(true);
-          toast({
-            title: "Portal Configuration Required",
-            description: "The Stripe Customer Portal needs to be configured",
-            variant: "default"
-          });
-        } else {
-          setErrorMessage(error);
-          toast({
-            title: "Unable to Access Portal",
-            description: error,
-            variant: "destructive"
-          });
-        }
+        setErrorMessage(error);
+        toast({
+          title: "Unable to Access Portal",
+          description: error,
+          variant: "destructive"
+        });
         return;
       }
       
       if (url) {
-        if (isAccountPage) {
-          toast({
-            title: "Opening Stripe Account",
-            description: message || "Customer Portal isn't set up yet. Opening Stripe account page instead.",
-          });
-        }
         window.open(url, '_blank') || window.location.assign(url);
       } else {
         throw new Error("No portal URL returned");
@@ -145,31 +124,7 @@ export const UserMenuItems = () => {
         </div>
       )}
       
-      {showConfigAlert && (
-        <div className="px-2 py-1.5 mb-1">
-          <div className="p-2 bg-amber-50 border border-amber-200 rounded-md text-xs">
-            <div className="flex items-start">
-              <Info className="h-3 w-3 text-amber-500 mt-0.5 mr-1.5 flex-shrink-0" />
-              <div>
-                <span className="text-amber-800">
-                  Portal needs configuration.{' '}
-                  <a 
-                    href="https://dashboard.stripe.com/test/settings/billing/portal" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline inline-flex items-center"
-                  >
-                    Configure
-                    <ExternalLink className="ml-1 h-2 w-2" />
-                  </a>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {errorMessage && !showConfigAlert && (
+      {errorMessage && (
         <div className="px-2 py-1.5 mb-1">
           <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs">
             <div className="flex items-start">
