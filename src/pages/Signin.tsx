@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
@@ -17,13 +18,26 @@ const Signin = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Check for authentication in URL hash (from OAuth redirects)
+    const checkHashParams = () => {
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') || hash.includes('error'))) {
+        console.log('OAuth redirect detected with hash params');
+        // Let GoogleAuthButton component handle this
+        return;
+      }
+    };
+    
+    checkHashParams();
+    
     const timer = setTimeout(() => {
       setRedirectChecked(true);
-    }, 100);
+    }, 500); // Increased timeout to ensure auth state is properly checked
     
     return () => clearTimeout(timer);
   }, []);
 
+  // Only redirect if we've confirmed auth state and the user is logged in
   if (redirectChecked && authChecked && isLoggedIn) {
     const defaultPath = currentUserRole === 'mechanic' ? '/mechanic-dashboard' : '/profile';
     const redirectTo = location.state?.redirectTo || defaultPath;

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -155,50 +154,75 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check auth status on component mount and listen for changes
   useEffect(() => {
-    const checkUserAuth = () => {
+    const checkUserAuth = async () => {
       try {
-        const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-        const userRole = localStorage.getItem('userRole');
-        const userName = localStorage.getItem('userName');
-        const email = localStorage.getItem('userEmail');
+        // First check if we have an active session in Supabase
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // If the stored name is an email, check if we have a registered name for this email
-        let storedName = userName || '';
-        
-        // For mechanics, we need to be even more aggressive about finding a proper name
-        if ((storedName.includes('@') || !storedName) && email) {
-          // Try to get a registered name for this email
-          let registeredName = localStorage.getItem(`registered_${email}`);
+        if (session?.user) {
+          console.log("Active Supabase session found:", session.user.email);
+          // We have a valid session, use this as source of truth
           
-          // If we're a mechanic, also check the mechanicProfile
-          if (userRole === 'mechanic' && !registeredName) {
-            try {
-              const mechanicProfile = localStorage.getItem('mechanicProfile');
-              if (mechanicProfile) {
-                const profile = JSON.parse(mechanicProfile);
-                if (profile.firstName) {
-                  registeredName = `${profile.firstName} ${profile.lastName || ''}`.trim();
+          const email = session.user.email || '';
+          const userType = session.user.user_metadata?.user_type || 'customer';
+          const userName = session.user.user_metadata?.full_name || 
+                          email.split('@')[0] || 'User';
+          
+          // Update localStorage with the session data to keep everything in sync
+          localStorage.setItem('userLoggedIn', 'true');
+          localStorage.setItem('userRole', userType);
+          localStorage.setItem('userName', userName);
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('userId', session.user.id);
+          
+          // Update state with session data
+          setIsCustomerLoggedIn(userType === 'customer');
+          setIsMechanicLoggedIn(userType === 'mechanic');
+          setCurrentUserName(userName);
+          setCurrentUserRole(userType);
+          setUserEmail(email);
+        } else {
+          // No Supabase session, fall back to localStorage
+          const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+          const userRole = localStorage.getItem('userRole');
+          const userName = localStorage.getItem('userName');
+          const email = localStorage.getItem('userEmail');
+          
+          // For mechanics, we need to be even more aggressive about finding a proper name
+          let storedName = userName || '';
+          
+          if ((storedName.includes('@') || !storedName) && email) {
+            // Try to get a registered name for this email
+            let registeredName = localStorage.getItem(`registered_${email}`);
+            
+            // If we're a mechanic, also check the mechanicProfile
+            if (userRole === 'mechanic' && !registeredName) {
+              try {
+                const mechanicProfile = localStorage.getItem('mechanicProfile');
+                if (mechanicProfile) {
+                  const profile = JSON.parse(mechanicProfile);
+                  if (profile.firstName) {
+                    registeredName = `${profile.firstName} ${profile.lastName || ''}`.trim();
+                  }
                 }
+              } catch (e) {
+                console.error('Error checking mechanic profile for name:', e);
               }
-            } catch (e) {
-              console.error('Error checking mechanic profile for name:', e);
+            }
+            
+            if (registeredName) {
+              storedName = registeredName;
+              // Update localStorage immediately to fix the display for future renders
+              localStorage.setItem('userName', registeredName);
             }
           }
           
-          if (registeredName) {
-            storedName = registeredName;
-            // Update localStorage immediately to fix the display for future renders
-            localStorage.setItem('userName', registeredName);
-          }
+          setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
+          setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
+          setCurrentUserName(storedName);
+          setCurrentUserRole(userRole);
+          setUserEmail(email);
         }
-        
-        setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
-        setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
-        setCurrentUserName(storedName);
-        setCurrentUserRole(userRole);
-        setUserEmail(email);
-        
-        console.log('Auth state checked:', { userLoggedIn, userRole, userName: storedName, email });
       } catch (error) {
         console.error('Error checking auth state:', error);
       } finally {
@@ -209,11 +233,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Initial auth check
     checkUserAuth();
     
+    // Set up listener for auth state changes from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        // Use setTimeout to prevent potential auth deadlocks
+        setTimeout(() => checkUserAuth(), 0);
+      }
+    );
+    
     // Listen for storage events for cross-tab sync and custom storage events
     window.addEventListener('storage', checkUserAuth);
     window.addEventListener('storage-event', checkUserAuth);
     
     return () => {
+      subscription?.unsubscribe();
       window.removeEventListener('storage', checkUserAuth);
       window.removeEventListener('storage-event', checkUserAuth);
     };

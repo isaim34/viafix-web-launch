@@ -37,17 +37,36 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         console.log("User authenticated:", session.user);
+        
+        // Extract user information from the session
+        const userEmail = session.user.email;
+        const userName = session.user.user_metadata?.full_name || 
+                         userEmail?.split('@')[0] || 
+                         'User';
+        
+        // Store critical auth information in localStorage
+        localStorage.setItem('userLoggedIn', 'true');
+        localStorage.setItem('userEmail', userEmail || '');
+        localStorage.setItem('userName', userName);
+        
+        // Set user role based on metadata or default to customer
+        const userType = session.user.user_metadata?.user_type || 'customer';
+        localStorage.setItem('userRole', userType);
+        localStorage.setItem('userId', session.user.id);
+        
+        // Dispatch event to notify all components about auth state change
+        window.dispatchEvent(new Event('storage-event'));
+        
         toast({
           title: "Success!",
           description: "You've successfully authenticated with Google.",
         });
         
-        // Redirect based on user type if available in metadata
-        const userType = session.user.user_metadata?.user_type;
+        // Redirect based on user type
         if (userType === 'mechanic') {
-          navigate('/mechanic-dashboard');
+          navigate('/mechanic-dashboard', { replace: true });
         } else {
-          navigate('/profile');
+          navigate('/profile', { replace: true });
         }
       }
     };
