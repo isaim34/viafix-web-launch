@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SocialLoginButtons from '@/components/SocialLoginButtons';
 import { Separator } from '@/components/ui/separator';
 import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
@@ -54,7 +52,7 @@ const Signin = () => {
           </div>
 
           <div className="mb-8 space-y-6">
-            <SocialLoginButtons />
+            
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

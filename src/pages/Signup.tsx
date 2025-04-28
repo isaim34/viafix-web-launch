@@ -1,9 +1,7 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import CustomerSignupForm from '@/components/CustomerSignupForm';
 import MechanicSignupForm from '@/components/MechanicSignupForm';
-import SocialLoginButtons from '@/components/SocialLoginButtons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
@@ -27,21 +25,6 @@ const Signup = () => {
             <p className="text-muted-foreground">
               Join Mobex to find mechanics or offer your services
             </p>
-          </div>
-
-          <div className="mb-8 space-y-6">
-            <SocialLoginButtons />
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with email
-                </span>
-              </div>
-            </div>
           </div>
 
           <Tabs 
