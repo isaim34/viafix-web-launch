@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
+import { AuthGuard } from './components/auth/AuthGuard';
 import './App.css';
 
 // Import core pages directly for immediate loading
@@ -40,37 +41,29 @@ function App() {
       <Router>
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/mechanics" element={<Mechanics />} />
-            <Route path="/mechanics/:id" element={<MechanicProfile />} />
-            <Route path="/profile" element={<CustomerProfile />} />
-            <Route path="/customer/profile" element={<Navigate to="/profile" replace />} />
-            
-            {/* How It Works page */}
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            
-            {/* Terms of Service Page */}
-            <Route path="/terms" element={<Terms />} />
-            
-            {/* Privacy Policy Page */}
-            <Route path="/privacy" element={<Privacy />} />
-            
-            {/* Zipcode Test Page */}
-            <Route path="/zipcode-test" element={<ZipcodeTest />} />
-            
-            {/* Mechanic Dashboard Routes - Handle all possible variations */}
-            <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
-            <Route path="/mechanic-dashboard/*" element={<MechanicDashboard />} />
-            <Route path="/mechanic/dashboard" element={<Navigate to="/mechanic-dashboard" replace />} />
-            <Route path="/mechanic/dashboard/*" element={<Navigate to="/mechanic-dashboard" replace />} />
-            
             <Route path="/signin" element={<Signin />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            
+            {/* Protected routes */}
+            <Route path="/mechanics" element={<AuthGuard><Mechanics /></AuthGuard>} />
+            <Route path="/mechanics/:id" element={<AuthGuard><MechanicProfile /></AuthGuard>} />
+            <Route path="/profile" element={<AuthGuard><CustomerProfile /></AuthGuard>} />
+            <Route path="/customer/profile" element={<Navigate to="/profile" replace />} />
+            <Route path="/mechanic-dashboard/*" element={<AuthGuard><MechanicDashboard /></AuthGuard>} />
+            <Route path="/settings" element={<AuthGuard><AccountSettings /></AuthGuard>} />
+            <Route path="/vehicle-safety-check" element={<AuthGuard><VehicleSafetyCheck /></AuthGuard>} />
+            
+            {/* Blog routes */}
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />
-            <Route path="/settings" element={<AccountSettings />} />
+            
+            {/* Other routes */}
+            <Route path="/zipcode-test" element={<ZipcodeTest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

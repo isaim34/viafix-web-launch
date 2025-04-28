@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,9 +8,20 @@ import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Navigate, useLocation } from 'react-router-dom';
 
 const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
+  const { isLoggedIn, currentUserRole } = useAuth();
+  const location = useLocation();
+
+  // If user is already logged in, redirect to appropriate dashboard
+  if (isLoggedIn) {
+    const defaultPath = currentUserRole === 'mechanic' ? '/mechanic-dashboard' : '/profile';
+    const redirectTo = location.state?.redirectTo || defaultPath;
+    return <Navigate to={redirectTo} replace />;
+  }
 
   return (
     <Layout>
