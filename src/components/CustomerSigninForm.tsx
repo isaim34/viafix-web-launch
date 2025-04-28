@@ -14,6 +14,7 @@ import { customerFormSchema, CustomerFormValues } from '@/schemas/signupSchema';
 import NameFields from './common/NameFields';
 import ZipCodeInput from './ZipCodeInput';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
+import { LogIn } from 'lucide-react';
 
 const CustomerSigninForm = () => {
   const [isNewAccount, setIsNewAccount] = useState(false);
@@ -115,7 +116,14 @@ const CustomerSigninForm = () => {
           {isNewAccount && <TermsOfServiceCheckbox control={form.control} />}
 
           <Button type="submit" className="w-full">
-            {isNewAccount ? 'Create Account' : 'Sign In'}
+            {isNewAccount ? (
+              'Create Account'
+            ) : (
+              <div className="flex items-center">
+                <LogIn className="mr-2 h-4 w-4" />
+                <span>Sign In</span>
+              </div>
+            )}
           </Button>
           
           <div className="relative flex items-center">
