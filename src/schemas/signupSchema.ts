@@ -13,6 +13,9 @@ export const baseUserSchema = z.object({
   }),
 });
 
+// Customer form schema is the same as the base user schema
+export const customerFormSchema = baseUserSchema;
+
 // Mechanic-specific schema extends the base user schema
 export const mechanicFormSchema = baseUserSchema.extend({
   specialties: z.string().min(5, "Please list at least one specialty"),
@@ -21,3 +24,4 @@ export const mechanicFormSchema = baseUserSchema.extend({
 
 export type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 export type BaseUserFormValues = z.infer<typeof baseUserSchema>;
+export type CustomerFormValues = z.infer<typeof customerFormSchema>;
