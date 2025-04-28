@@ -135,6 +135,12 @@ const CustomerSigninForm = () => {
           <GoogleAuthButton />
         </form>
       </Form>
+      
+      <div className="text-xs text-center text-gray-500 mt-4">
+        By {isNewAccount ? 'signing up' : 'signing in'}, you agree to our{' '}
+        <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and{' '}
+        <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+      </div>
     </div>
   );
 };
