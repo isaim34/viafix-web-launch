@@ -7,6 +7,7 @@ export function useAuth() {
   const [currentUserName, setCurrentUserName] = useState('');
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   
   // Enhanced getFirstName function that handles both regular names and email addresses
   const getFirstName = useCallback((fullName: string) => {
@@ -26,48 +27,54 @@ export function useAuth() {
 
   useEffect(() => {
     const checkUserAuth = () => {
-      const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-      const userRole = localStorage.getItem('userRole');
-      const userName = localStorage.getItem('userName');
-      const email = localStorage.getItem('userEmail');
-      
-      // If the stored name is an email, check if we have a registered name for this email
-      let storedName = userName || '';
-      
-      // For mechanics, we need to be even more aggressive about finding a proper name
-      if ((storedName.includes('@') || !storedName) && email) {
-        // Try to get a registered name for this email
-        let registeredName = localStorage.getItem(`registered_${email}`);
+      try {
+        const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+        const userRole = localStorage.getItem('userRole');
+        const userName = localStorage.getItem('userName');
+        const email = localStorage.getItem('userEmail');
         
-        // If we're a mechanic, also check the mechanicProfile
-        if (userRole === 'mechanic' && !registeredName) {
-          try {
-            const mechanicProfile = localStorage.getItem('mechanicProfile');
-            if (mechanicProfile) {
-              const profile = JSON.parse(mechanicProfile);
-              if (profile.firstName) {
-                registeredName = `${profile.firstName} ${profile.lastName || ''}`.trim();
+        // If the stored name is an email, check if we have a registered name for this email
+        let storedName = userName || '';
+        
+        // For mechanics, we need to be even more aggressive about finding a proper name
+        if ((storedName.includes('@') || !storedName) && email) {
+          // Try to get a registered name for this email
+          let registeredName = localStorage.getItem(`registered_${email}`);
+          
+          // If we're a mechanic, also check the mechanicProfile
+          if (userRole === 'mechanic' && !registeredName) {
+            try {
+              const mechanicProfile = localStorage.getItem('mechanicProfile');
+              if (mechanicProfile) {
+                const profile = JSON.parse(mechanicProfile);
+                if (profile.firstName) {
+                  registeredName = `${profile.firstName} ${profile.lastName || ''}`.trim();
+                }
               }
+            } catch (e) {
+              console.error('Error checking mechanic profile for name:', e);
             }
-          } catch (e) {
-            console.error('Error checking mechanic profile for name:', e);
+          }
+          
+          if (registeredName) {
+            storedName = registeredName;
+            // Update localStorage immediately to fix the display for future renders
+            localStorage.setItem('userName', registeredName);
           }
         }
         
-        if (registeredName) {
-          storedName = registeredName;
-          // Update localStorage immediately to fix the display for future renders
-          localStorage.setItem('userName', registeredName);
-        }
+        setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
+        setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
+        setCurrentUserName(storedName);
+        setCurrentUserRole(userRole);
+        setUserEmail(email);
+        
+        console.log('Auth state checked:', { userLoggedIn, userRole, userName: storedName, email });
+      } catch (error) {
+        console.error('Error checking auth state:', error);
+      } finally {
+        setAuthChecked(true);
       }
-      
-      setIsCustomerLoggedIn(userLoggedIn && userRole === 'customer');
-      setIsMechanicLoggedIn(userLoggedIn && userRole === 'mechanic');
-      setCurrentUserName(storedName);
-      setCurrentUserRole(userRole);
-      setUserEmail(email);
-      
-      console.log('Auth state checked:', { userLoggedIn, userRole, userName: storedName, email });
     };
     
     // Initial auth check
@@ -152,5 +159,6 @@ export function useAuth() {
     userEmail,
     updateUserName,
     getFirstName,
+    authChecked,
   };
 }

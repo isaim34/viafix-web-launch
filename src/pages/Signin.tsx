@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
@@ -13,13 +14,26 @@ import { Navigate, useLocation } from 'react-router-dom';
 
 const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
+  const [redirectChecked, setRedirectChecked] = useState(false);
   const { isLoggedIn, currentUserRole } = useAuth();
   const location = useLocation();
 
-  // If user is already logged in, redirect to appropriate dashboard
-  if (isLoggedIn) {
+  // Add a useEffect to control when we check for redirection
+  // This helps prevent the flickering by ensuring we only check once
+  useEffect(() => {
+    // Set a short timeout to allow auth state to stabilize
+    const timer = setTimeout(() => {
+      setRedirectChecked(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Only redirect if we've completed our redirect check
+  if (redirectChecked && isLoggedIn) {
     const defaultPath = currentUserRole === 'mechanic' ? '/mechanic-dashboard' : '/profile';
     const redirectTo = location.state?.redirectTo || defaultPath;
+    console.log(`User is logged in as ${currentUserRole}, redirecting to: ${redirectTo}`);
     return <Navigate to={redirectTo} replace />;
   }
 
