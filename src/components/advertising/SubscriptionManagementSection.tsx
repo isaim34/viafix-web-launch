@@ -41,7 +41,7 @@ export const SubscriptionManagementSection = () => {
       });
       
       console.log("Attempting to access customer portal for:", userEmail);
-      const { url, error: responseError, needsConfiguration: configNeeded, rawError: responseRawError } = await getCustomerPortal();
+      const { url, error: responseError, needsConfiguration: configNeeded, rawError: responseRawError, isAccountPage, message } = await getCustomerPortal();
       
       if (responseError) {
         console.error("Portal access error:", responseError);
@@ -62,6 +62,12 @@ export const SubscriptionManagementSection = () => {
       }
       
       if (url) {
+        if (isAccountPage) {
+          toast({
+            title: "Opening Stripe Account",
+            description: message || "Customer Portal isn't set up yet. Opening Stripe account page instead.",
+          });
+        }
         window.open(url, '_blank') || window.location.assign(url);
       } else {
         throw new Error("No portal URL returned");
@@ -97,7 +103,7 @@ export const SubscriptionManagementSection = () => {
             <AlertDescription className="text-amber-800">
               <div className="font-medium mb-1">Portal Configuration Required</div>
               <p className="text-sm mb-2">
-                The Stripe Customer Portal needs to be configured before you can access it.
+                The Stripe Customer Portal needs to be configured before you can access it. A fallback option will be provided.
               </p>
               <a 
                 href="https://dashboard.stripe.com/test/settings/billing/portal" 
@@ -153,8 +159,8 @@ export const SubscriptionManagementSection = () => {
           <div className="text-sm text-gray-600 flex items-start">
             <Info className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
             <p>
-              Once configured, the Stripe Customer Portal allows your customers to manage their 
-              subscriptions, update payment methods, and view billing history.
+              You'll be redirected to your Stripe account page as a fallback until the Customer Portal is configured.
+              The portal allows your customers to manage their subscriptions, update payment methods, and view billing history.
             </p>
           </div>
         </CardFooter>

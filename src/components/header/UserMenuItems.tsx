@@ -38,7 +38,7 @@ export const UserMenuItems = () => {
         description: "Opening subscription management portal...",
       });
 
-      const { url, error, needsConfiguration, rawError } = await getCustomerPortal();
+      const { url, error, needsConfiguration, rawError, isAccountPage, message } = await getCustomerPortal();
       
       if (error) {
         console.error("Portal access error:", error);
@@ -64,6 +64,12 @@ export const UserMenuItems = () => {
       }
       
       if (url) {
+        if (isAccountPage) {
+          toast({
+            title: "Opening Stripe Account",
+            description: message || "Customer Portal isn't set up yet. Opening Stripe account page instead.",
+          });
+        }
         window.open(url, '_blank') || window.location.assign(url);
       } else {
         throw new Error("No portal URL returned");

@@ -85,7 +85,9 @@ export const getCustomerPortal = async () => {
       return { 
         url: data.url, 
         error: null,
-        needsConfiguration: false
+        needsConfiguration: false,
+        isAccountPage: data.isAccountPage || false,
+        message: data.message
       };
     }
     

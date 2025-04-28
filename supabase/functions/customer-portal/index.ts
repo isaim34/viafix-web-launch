@@ -61,6 +61,9 @@ serve(async (req) => {
       logStep(`Found existing customer with ID: ${customerId}`);
     }
 
+    // Get account dashboard URL as fallback when portal isn't configured
+    const accountUrl = 'https://dashboard.stripe.com/test/customers/' + customerId;
+    
     try {
       // Create the return URL dynamically based on request origin
       const origin = req.headers.get('origin') || 'https://viafix-web.com';
@@ -68,45 +71,79 @@ serve(async (req) => {
       
       logStep('Creating portal session', { customerId, returnUrl });
       
-      const portalSession = await stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: returnUrl
-      });
+      try {
+        const portalSession = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: returnUrl
+        });
+        
+        logStep(`Created portal session: ${portalSession.url}`);
 
-      logStep(`Created portal session: ${portalSession.url}`);
-
-      return new Response(JSON.stringify({ 
-        url: portalSession.url,
-        error: null 
-      }), {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        },
-        status: 200,
-      });
-    } catch (portalError) {
-      logStep('Portal creation error', { message: portalError instanceof Error ? portalError.message : String(portalError) });
-      
-      // Extract the helpful message from the error
-      const errorMessage = portalError instanceof Error ? portalError.message : 'Failed to create portal session';
-      
-      // Check if it's a specific configuration error
-      const isConfigError = errorMessage.includes('No configuration provided') || 
-                          errorMessage.includes('configuration has not been created') ||
-                          errorMessage.includes('portal settings') ||
-                          errorMessage.includes('portal configuration');
-      
-      const friendlyMessage = isConfigError
-        ? 'Your Stripe Customer Portal needs to be configured. Please visit https://dashboard.stripe.com/test/settings/billing/portal to set it up.'
-        : errorMessage;
+        return new Response(JSON.stringify({ 
+          url: portalSession.url,
+          error: null 
+        }), {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          },
+          status: 200,
+        });
+      } catch (portalError: any) {
+        logStep('Portal creation error', { message: portalError instanceof Error ? portalError.message : String(portalError) });
+        
+        // Extract the helpful message from the error
+        const errorMessage = portalError instanceof Error ? portalError.message : 'Failed to create portal session';
+        
+        // Check if it's a specific configuration error
+        const isConfigError = errorMessage.includes('No configuration provided') || 
+                            errorMessage.includes('configuration has not been created') ||
+                            errorMessage.includes('portal settings') ||
+                            errorMessage.includes('portal configuration');
+        
+        // If the error is due to portal not being configured, provide the direct account URL instead
+        if (isConfigError) {
+          logStep('Providing account URL as fallback', { accountUrl });
+          return new Response(JSON.stringify({ 
+            url: accountUrl,
+            error: null,
+            isAccountPage: true,
+            message: "The Customer Portal isn't configured yet. Opening your Stripe account page instead."
+          }), {
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            },
+            status: 200,
+          });
+        }
+        
+        const friendlyMessage = isConfigError
+          ? 'Your Stripe Customer Portal needs to be configured. Please visit https://dashboard.stripe.com/test/settings/billing/portal to set it up.'
+          : errorMessage;
+        
+        return new Response(JSON.stringify({ 
+          url: null,
+          error: friendlyMessage,
+          customerExists: !!customerId,
+          needsConfiguration: isConfigError,
+          rawError: errorMessage // Include the raw error for debugging
+        }), {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          },
+          status: 200, // Always return 200 to avoid CORS issues
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      logStep('Error', { message: errorMessage });
       
       return new Response(JSON.stringify({ 
         url: null,
-        error: friendlyMessage,
-        customerExists: !!customerId,
-        needsConfiguration: isConfigError,
-        rawError: errorMessage // Include the raw error for debugging
+        error: errorMessage,
+        needsConfiguration: false
       }), {
         headers: { 
           ...corsHeaders, 
