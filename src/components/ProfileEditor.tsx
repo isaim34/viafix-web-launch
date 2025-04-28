@@ -9,7 +9,8 @@ import { useMechanicProfileSync } from '@/hooks/useMechanicProfileSync';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
-  const { currentUserRole, updateUserName, currentUserName, getFirstName } = useAuth();
+  const auth = useAuth();
+  const { currentUserRole, updateUserName, currentUserName, getFirstName } = auth;
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';

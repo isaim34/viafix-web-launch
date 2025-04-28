@@ -58,7 +58,9 @@ export function useCustomerAuth() {
   
   const updateUserName = useCallback((newName: string) => {
     // Use the auth.updateUserName for consistent behavior
-    auth.updateUserName(newName);
+    if (auth && typeof auth.updateUserName === 'function') {
+      auth.updateUserName(newName);
+    }
     setUserName(newName);
   }, [auth]);
   
@@ -79,12 +81,13 @@ export function useCustomerAuth() {
   }, []);
   
   return {
-    ...auth,
-    isCustomerLoggedIn: isCustomerLoggedIn,
+    isCustomerLoggedIn,
     currentUserId: userId,
     currentUserName: userName,
-    currentUserRole: currentUserRole,
+    currentUserRole,
     updateUserName,
     getFirstName,
+    // Safely spread auth properties, making sure auth is an object
+    ...(auth && typeof auth === 'object' ? auth : {})
   };
 }

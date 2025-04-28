@@ -11,6 +11,8 @@ type AuthContextType = {
   getFirstName: (fullName: string) => string;
   signOut: () => Promise<void>;
   authChecked: boolean;
+  isMechanicLoggedIn: boolean;
+  isCustomerLoggedIn: boolean;
 };
 
 const defaultContext: AuthContextType = {
@@ -22,9 +24,11 @@ const defaultContext: AuthContextType = {
   getFirstName: () => '',
   signOut: async () => {},
   authChecked: false,
+  isMechanicLoggedIn: false,
+  isCustomerLoggedIn: false,
 };
 
-const AuthContext = createContext<AuthContextType>(defaultContext);
+export const AuthContext = createContext<AuthContextType>(defaultContext);
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -217,6 +221,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value = {
     isLoggedIn: isCustomerLoggedIn || isMechanicLoggedIn,
+    isMechanicLoggedIn,
+    isCustomerLoggedIn,
     currentUserName,
     currentUserRole,
     userEmail,

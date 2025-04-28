@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +23,8 @@ interface AccountSettingsFormProps {
 
 const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
   const { toast } = useToast();
-  const { userEmail } = useAuth();
+  const auth = useAuth();
+  const { userEmail } = auth;
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -57,7 +57,6 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
 
   const onSubmit = async (data: SettingsFormValues) => {
     try {
-      // Update email if it has changed
       if (data.email !== userEmail) {
         const { error: updateError } = await supabase.auth.updateUser({
           email: data.email,
@@ -66,7 +65,6 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
         if (updateError) throw updateError;
       }
 
-      // Update profile with contact information
       const { error: profileError } = await supabase
         .from('profiles')
         .update({

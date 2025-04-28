@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,17 +28,14 @@ export const SubscriptionPlansSection = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isLoggedIn } = useAuth();
+  const auth = useAuth();
   
-  // Current subscription info
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   
-  // Check if the user has an active subscription
   const isSubscribed = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
 
-  // Load subscription data from localStorage and check auth on component mount
   useEffect(() => {
     const loadSubscriptionData = () => {
       setCurrentPlan(localStorage.getItem('subscription_plan'));
@@ -58,7 +54,6 @@ export const SubscriptionPlansSection = () => {
     loadSubscriptionData();
     checkAuth();
     
-    // Listen for subscription status updates
     window.addEventListener('storage', loadSubscriptionData);
     window.addEventListener('storage-event', loadSubscriptionData);
     
@@ -144,7 +139,6 @@ export const SubscriptionPlansSection = () => {
       setRefreshing(true);
       setError(null);
       
-      // Check authentication
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setError("You need to be signed in to view subscription status");
@@ -156,7 +150,6 @@ export const SubscriptionPlansSection = () => {
         return;
       }
       
-      // Refresh data from localStorage
       setCurrentPlan(localStorage.getItem('subscription_plan'));
       setSubscriptionStatus(localStorage.getItem('subscription_status'));
       setSubscriptionEnd(localStorage.getItem('subscription_end'));
@@ -184,9 +177,8 @@ export const SubscriptionPlansSection = () => {
       setIsLoading(true);
       setError(null);
       
-      // First confirm the user is logged in
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      if (!session && !auth.isLoggedIn) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",
@@ -238,7 +230,6 @@ export const SubscriptionPlansSection = () => {
     }
   };
   
-  // Show authentication error if not logged in
   if (!authChecked) {
     return (
       <div className="flex justify-center items-center py-12">

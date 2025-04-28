@@ -5,7 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import AccountSettingsForm from '@/components/settings/AccountSettingsForm';
 
 const AccountSettings = () => {
-  const { currentUserRole } = useAuth();
+  const auth = useAuth();
+  const { currentUserRole } = auth;
   
   return (
     <Layout>

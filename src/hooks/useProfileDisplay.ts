@@ -2,7 +2,7 @@
 import { useAuth } from './useAuth';
 
 export const useProfileDisplay = () => {
-  const { getFirstName } = useAuth();
+  const auth = useAuth();
 
   const getProfileImage = (): string => {
     try {
@@ -59,5 +59,10 @@ export const useProfileDisplay = () => {
     return displayName;
   };
 
-  return { getProfileImage, getDisplayName };
+  return { 
+    getProfileImage, 
+    getDisplayName,
+    // Safely access getFirstName from auth
+    getFirstName: auth.getFirstName 
+  };
 };

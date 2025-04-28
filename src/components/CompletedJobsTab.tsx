@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { CompletedJobs } from '@/components/mechanic/CompletedJobs';
@@ -57,7 +56,8 @@ const sampleCompletedJobs = [
 ];
 
 const CompletedJobsTab = () => {
-  const { isMechanicLoggedIn } = useAuth();
+  // Use the auth context with the correct property
+  const auth = useAuth();
   
   return (
     <Card className="p-6">
