@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface GoogleAuthButtonProps {
   mode?: 'signin' | 'signup';
@@ -12,10 +12,57 @@ interface GoogleAuthButtonProps {
 export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for auth errors on component mount (from redirect)
+  useEffect(() => {
+    const checkForErrors = async () => {
+      const hash = window.location.hash;
+      
+      // If we have an error in URL hash
+      if (hash && hash.includes('error')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+        
+        console.error('Auth redirect error:', error, errorDescription);
+        toast({
+          title: "Authentication Failed",
+          description: errorDescription || "An error occurred during Google authentication. Please try again.",
+          variant: "destructive"
+        });
+      }
+      
+      // Check if we have a session after redirect
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log("User authenticated:", session.user);
+        toast({
+          title: "Success!",
+          description: "You've successfully authenticated with Google.",
+        });
+        
+        // Redirect based on user type if available in metadata
+        const userType = session.user.user_metadata?.user_type;
+        if (userType === 'mechanic') {
+          navigate('/mechanic-dashboard');
+        } else {
+          navigate('/profile');
+        }
+      }
+    };
+    
+    checkForErrors();
+  }, [navigate]);
 
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      
+      // Determine redirect URL based on current mode
+      const redirectUrl = `${window.location.origin}${mode === 'signin' ? '/signin' : '/signup'}`;
+      
+      console.log(`Initiating Google auth with redirect to: ${redirectUrl}`);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -24,7 +71,14 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
             access_type: 'offline',
             prompt: 'consent',
           },
-          redirectTo: window.location.origin + '/signin'
+          redirectTo: redirectUrl,
+          // Pass user_type based on current mode (signin vs signup) and current tab selection
+          ...(mode === 'signup' && {
+            // Extract current tab from pathname to determine if user is mechanic/customer
+            data: { 
+              user_type: location.pathname.includes('mechanic') ? 'mechanic' : 'customer' 
+            }
+          })
         }
       });
 
@@ -35,12 +89,8 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
           description: error.message || "There was an error connecting to Google. Please try again.",
           variant: "destructive"
         });
-      } else if (data) {
-        toast({
-          title: "Success!",
-          description: "You've successfully authenticated with Google.",
-        });
-        navigate('/profile');
+      } else {
+        console.log("Auth initiated successfully, awaiting redirect...", data);
       }
     } catch (error) {
       console.error('Google sign in error:', error);
