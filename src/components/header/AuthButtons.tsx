@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +10,7 @@ import {
 import { UserGreeting } from './UserGreeting';
 import { UserAvatar } from './UserAvatar';
 import { UserMenuItems } from './UserMenuItems';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
@@ -18,24 +19,9 @@ interface AuthButtonsProps {
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const { isLoggedIn } = useAuth();
 
-  useEffect(() => {
-    const handleStorageEvent = () => {
-      setForceUpdate(prev => prev + 1);
-    };
-    
-    window.addEventListener('storage-event', handleStorageEvent);
-    window.addEventListener('storage', handleStorageEvent);
-    return () => {
-      window.removeEventListener('storage-event', handleStorageEvent);
-      window.removeEventListener('storage', handleStorageEvent);
-    };
-  }, []);
-
-  const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-
-  if (userLoggedIn) {
+  if (isLoggedIn) {
     return (
       <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
         <div className="text-sm">
@@ -56,7 +42,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     );
   }
 
-  if (location.pathname.includes('/mechanic-dashboard') && !userLoggedIn) {
+  if (location.pathname.includes('/mechanic-dashboard') && !isLoggedIn) {
     return null;
   }
 

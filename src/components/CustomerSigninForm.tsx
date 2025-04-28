@@ -1,15 +1,96 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
-import { useCustomerSignin } from '@/hooks/useCustomerSignin';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { generateUserId, setupCustomerProfile } from '@/utils/authUtils';
+import { useToast } from '@/hooks/use-toast';
+
+// Form schema for customer login
+const customerFormSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSigninForm = () => {
   const navigate = useNavigate();
-  const { form, onSubmit, redirectAction } = useCustomerSignin();
+  const location = useLocation();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const redirectTo = location.state?.redirectTo || '/';
+  const redirectAction = location.state?.action || null;
+  
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerFormSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = (data: CustomerFormValues) => {
+    try {
+      setIsSubmitting(true);
+      const userId = generateUserId(data.email);
+      const { userName, profileData } = setupCustomerProfile(data.email, userId);
+      
+      // Store auth data
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'customer');
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('customerProfile', JSON.stringify(profileData));
+      
+      // Store email to userId mapping
+      localStorage.setItem(`userId_to_email_${userId}`, data.email);
+      
+      window.dispatchEvent(new Event('storage-event'));
+      
+      // Get just the first name for the welcome message
+      const firstName = userName.split(' ')[0];
+      
+      toast({
+        title: `Welcome back, ${firstName}!`,
+        description: "You have successfully signed in.",
+      });
+      
+      navigate(redirectTo);
+      
+      if (redirectAction) {
+        setTimeout(() => {
+          if (redirectAction === 'book') {
+            toast({
+              title: "You can now book services",
+              description: "You've been signed in as a customer and can now book mechanic services.",
+            });
+          } else if (redirectAction === 'contact') {
+            toast({
+              title: "You can now chat with mechanics",
+              description: "You've been signed in as a customer and can now chat with mechanics.",
+            });
+          }
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error during customer login:', error);
+      toast({
+        title: "Sign in failed",
+        description: "There was an error signing you in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Form {...form}>
@@ -20,9 +101,9 @@ const CustomerSigninForm = () => {
         <Button 
           type="submit" 
           className="w-full bg-[#6E59A5] hover:bg-[#7E69AB] text-white py-2 font-medium"
-          disabled={form.formState.isSubmitting}
+          disabled={isSubmitting}
         >
-          {form.formState.isSubmitting ? (
+          {isSubmitting ? (
             <>
               <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

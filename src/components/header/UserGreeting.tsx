@@ -1,28 +1,20 @@
 
-import React from 'react';
-import { useProfileDisplay } from '@/hooks/useProfileDisplay';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserGreetingProps {
   isMobile?: boolean;
 }
 
-export const UserGreeting: React.FC<UserGreetingProps> = ({ isMobile }) => {
-  const { getDisplayName } = useProfileDisplay();
-  const userRole = localStorage.getItem('userRole');
-  const displayName = getDisplayName();
-
-  if (isMobile) {
-    return (
-      <div className="pb-2">
-        <p className="font-medium">Hello, {displayName}</p>
-        <p className="text-muted-foreground capitalize">{userRole}</p>
-      </div>
-    );
-  }
+export const UserGreeting = ({ isMobile = false }: UserGreetingProps) => {
+  const { currentUserName, getFirstName } = useAuth();
+  
+  const firstName = getFirstName(currentUserName);
 
   return (
-    <p className="hidden md:block text-right mr-2">
-      Hello, <span className="font-medium">{displayName}</span>
-    </p>
+    <div className={isMobile ? "px-4 py-2" : ""}>
+      <p className="font-medium">
+        Welcome, {firstName || 'User'}!
+      </p>
+    </div>
   );
 };

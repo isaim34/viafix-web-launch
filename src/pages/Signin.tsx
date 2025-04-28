@@ -9,13 +9,13 @@ import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 
 const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
   const [redirectChecked, setRedirectChecked] = useState(false);
-  const { isLoggedIn, currentUserRole } = useAuth();
+  const { isLoggedIn, currentUserRole, authChecked } = useAuth();
   const location = useLocation();
 
   // Add a useEffect to control when we check for redirection
@@ -29,8 +29,8 @@ const Signin = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Only redirect if we've completed our redirect check
-  if (redirectChecked && isLoggedIn) {
+  // Only redirect if we've completed our redirect check and auth check
+  if (redirectChecked && authChecked && isLoggedIn) {
     const defaultPath = currentUserRole === 'mechanic' ? '/mechanic-dashboard' : '/profile';
     const redirectTo = location.state?.redirectTo || defaultPath;
     console.log(`User is logged in as ${currentUserRole}, redirecting to: ${redirectTo}`);

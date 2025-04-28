@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast'; 
 import EmailField from './auth/EmailField';
 import PasswordField from './auth/PasswordField';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { AuthTabs } from './auth/AuthTabs';
 import { AuthError } from './auth/AuthError';
-import { useAuthSubmit } from '@/hooks/useAuthSubmit';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -25,7 +25,9 @@ type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 const MechanicSigninForm = () => {
   const navigate = useNavigate();
   const [isNewAccount, setIsNewAccount] = useState(false);
-  const { handleSubmit: handleAuthSubmit, isLoading, authError, setAuthError } = useAuthSubmit();
+  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const { toast } = useToast();
   
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -36,17 +38,7 @@ const MechanicSigninForm = () => {
       console.error('Auth redirect error:', error, errorDescription);
       setAuthError(errorDescription || 'Authentication failed. Please try again.');
     }
-    
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (data.session && !error) {
-        navigate('/mechanic-dashboard', { replace: true });
-      }
-    };
-    
-    checkSession();
-  }, [navigate, setAuthError]);
+  }, []);
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -56,13 +48,60 @@ const MechanicSigninForm = () => {
     },
   });
 
-  const onSubmit = (data: MechanicFormValues) => {
-    // Since we're using zod validation, we know that email and password will be defined
-    // as non-optional strings exactly matching what handleAuthSubmit expects
-    handleAuthSubmit({
-      email: data.email,
-      password: data.password
-    }, isNewAccount);
+  const onSubmit = async (data: MechanicFormValues) => {
+    try {
+      setIsLoading(true);
+      setAuthError(null);
+
+      // Simulate successful login
+      const simulatedAuthData = {
+        user: {
+          id: 'temp-' + Math.random().toString(36).substring(2, 9),
+          email: data.email
+        }
+      };
+      
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'mechanic');
+      
+      const storedName = localStorage.getItem(`registered_${data.email}`);
+      const formattedUsername = data.email.split('@')[0];
+      const userName = storedName || formattedUsername.charAt(0).toUpperCase() + formattedUsername.slice(1);
+      
+      localStorage.setItem('userName', userName);
+      const userId = simulatedAuthData.user?.id;
+      localStorage.setItem('userId', userId);
+      localStorage.setItem(`userId_to_email_${userId}`, data.email);
+      localStorage.setItem('vendorName', userName);
+      
+      // Set default subscription status for testing
+      localStorage.setItem('subscription_status', 'active');
+      localStorage.setItem('subscription_plan', 'monthly');
+      localStorage.setItem('subscription_end', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      window.dispatchEvent(new Event('storage-event'));
+      
+      const firstName = userName.split(' ')[0];
+      
+      toast({
+        title: `Welcome${isNewAccount ? '' : ' back'}, ${firstName}!`,
+        description: "You have successfully signed in.",
+      });
+      
+      navigate('/mechanic-dashboard', { replace: true });
+    } catch (error) {
+      console.error('Sign in error:', error);
+      setAuthError("Failed to sign in. Please try again.");
+      
+      toast({
+        title: "Authentication failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

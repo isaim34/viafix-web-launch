@@ -1,6 +1,6 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
 interface AuthGuardProps {
@@ -8,7 +8,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard = ({ children }: AuthGuardProps) => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, authChecked } = useAuth();
   const location = useLocation();
   const [isChecking, setIsChecking] = useState(true);
 
@@ -22,7 +22,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   }, [isLoggedIn]);
 
   // Show nothing during the brief check period
-  if (isChecking) {
+  if (isChecking || !authChecked) {
     return null;
   }
 
