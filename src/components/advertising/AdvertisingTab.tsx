@@ -1,10 +1,7 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Tabs, TabsContent, TabsList, TabsTrigger,
-  Card, CardContent, CardHeader, CardTitle
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Send, CreditCard, CalendarClock, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MassMessageForm } from './MassMessageForm';
@@ -24,7 +21,6 @@ const AdvertisingTab = () => {
   const [featuredUntil, setFeaturedUntil] = useState<string | null>(null);
   const [messagesRemaining, setMessagesRemaining] = useState(0);
   
-  // Check if the user has an active subscription from localStorage
   const subscriptionStatus = localStorage.getItem('subscription_status');
   const subscriptionPlan = localStorage.getItem('subscription_plan');
   const subscriptionEnd = localStorage.getItem('subscription_end');
@@ -78,7 +74,6 @@ const AdvertisingTab = () => {
         </div>
       </div>
       
-      {/* Simplified tab navigation */}
       <Card className="border">
         <CardHeader className="p-0">
           <TabsList className="w-full grid grid-cols-1 md:grid-cols-4 bg-background border-b h-auto">
@@ -122,7 +117,6 @@ const AdvertisingTab = () => {
         </CardHeader>
         
         <CardContent className="p-6">
-          {/* Content area for selected tab */}
           {activeTab === 'subscription' && (
             <>
               <SubscriptionPlansSection />
