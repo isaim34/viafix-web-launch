@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-export const GoogleAuthButton = () => {
+interface GoogleAuthButtonProps {
+  mode?: 'signin' | 'signup';
+}
+
+export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -64,7 +68,7 @@ export const GoogleAuthButton = () => {
           </g>
         </svg>
       )}
-      {isLoading ? 'Connecting...' : 'Continue with Google'}
+      {isLoading ? 'Connecting...' : `Continue with Google${mode === 'signup' ? ' to sign up' : ''}`}
     </Button>
   );
 };
