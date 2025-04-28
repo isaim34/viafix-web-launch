@@ -78,8 +78,8 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
     try {
       setIsLoading(true);
       
-      // Determine redirect URL based on current mode
-      const redirectUrl = `${window.location.origin}${mode === 'signin' ? '/signin' : '/signup'}`;
+      // Use window.location.origin for the base URL without additional paths
+      const redirectUrl = `${window.location.origin}`;
       
       console.log(`Initiating Google auth with redirect to: ${redirectUrl}`);
       
