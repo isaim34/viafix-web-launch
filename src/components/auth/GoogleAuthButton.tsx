@@ -17,17 +17,17 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
     try {
       setIsLoading(true);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/signin`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          redirectTo: window.location.origin + '/signin'
         }
       });
-      
+
       if (error) {
         console.error('Google auth error:', error);
         toast({
@@ -35,6 +35,12 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
           description: error.message || "There was an error connecting to Google. Please try again.",
           variant: "destructive"
         });
+      } else if (data) {
+        toast({
+          title: "Success!",
+          description: "You've successfully authenticated with Google.",
+        });
+        navigate('/profile');
       }
     } catch (error) {
       console.error('Google sign in error:', error);
