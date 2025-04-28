@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, Star, CreditCard, ShieldCheck } from 'lucide-react';
+import { Check, Star, CreditCard, ShieldCheck, RefreshCcw } from 'lucide-react';
 import { createCheckoutSession } from '@/lib/stripe';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SubscriptionPlan {
   id: string;
@@ -23,14 +24,35 @@ export const SubscriptionPlansSection = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
   
   // Current subscription info from localStorage
-  const currentPlan = localStorage.getItem('subscription_plan');
-  const subscriptionStatus = localStorage.getItem('subscription_status');
-  const subscriptionEnd = localStorage.getItem('subscription_end');
+  const [currentPlan, setCurrentPlan] = useState<string | null>(localStorage.getItem('subscription_plan'));
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(localStorage.getItem('subscription_status'));
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(localStorage.getItem('subscription_end'));
+  
+  // Check if the user has an active subscription
   const isSubscribed = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+
+  // Effect to update subscription info when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setCurrentPlan(localStorage.getItem('subscription_plan'));
+      setSubscriptionStatus(localStorage.getItem('subscription_status'));
+      setSubscriptionEnd(localStorage.getItem('subscription_end'));
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('storage-event', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage-event', handleStorageChange);
+    };
+  }, []);
   
   const plans: SubscriptionPlan[] = [
     {
@@ -103,12 +125,39 @@ export const SubscriptionPlansSection = () => {
     }
   };
   
+  const refreshSubscriptionStatus = () => {
+    setRefreshing(true);
+    setTimeout(() => {
+      // Refresh data from localStorage
+      setCurrentPlan(localStorage.getItem('subscription_plan'));
+      setSubscriptionStatus(localStorage.getItem('subscription_status'));
+      setSubscriptionEnd(localStorage.getItem('subscription_end'));
+      setRefreshing(false);
+      
+      toast({
+        title: "Subscription status refreshed",
+        description: "Your subscription information has been updated"
+      });
+    }, 1000);
+  };
+  
   const handleProceedToCheckout = async () => {
     if (!selectedPlan) return;
     
     try {
       setIsLoading(true);
       setError(null);
+      
+      // First confirm the user is logged in
+      if (!isLoggedIn) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to purchase a subscription plan",
+          variant: "destructive"
+        });
+        navigate('/signin');
+        return;
+      }
       
       const { url, error, authError } = await createCheckoutSession({
         paymentType: 'subscription',
@@ -140,7 +189,7 @@ export const SubscriptionPlansSection = () => {
       }
     } catch (err) {
       console.error('Subscription checkout error:', err);
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(err instanceof Error ? err.message : String(err));
       
       toast({
         title: "Checkout Error",
@@ -154,9 +203,21 @@ export const SubscriptionPlansSection = () => {
   
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Subscription Plans</h2>
-        <p className="text-muted-foreground">Choose a subscription plan to unlock premium features</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-semibold">Subscription Plans</h2>
+          <p className="text-muted-foreground">Choose a subscription plan to unlock premium features</p>
+        </div>
+        
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={refreshSubscriptionStatus}
+          disabled={refreshing}
+        >
+          <RefreshCcw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh Status'}
+        </Button>
       </div>
       
       {isSubscribed && (

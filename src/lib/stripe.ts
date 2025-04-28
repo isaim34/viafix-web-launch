@@ -14,13 +14,36 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
     // Get current session
     const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
     
-    if (sessionError || !authSession) {
+    if (sessionError) {
       console.error("Auth session error:", sessionError);
       return { 
         url: null, 
         error: "Please sign in to continue",
         authError: true
       };
+    }
+    
+    // Additional check to confirm the user is authenticated
+    if (!authSession) {
+      console.warn("No active session found during checkout");
+      // Check localStorage as a fallback to see if user thinks they're logged in
+      const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (userLoggedIn && userEmail) {
+        console.warn("Local storage indicates user is logged in, but session is missing");
+        return { 
+          url: null, 
+          error: "Your session has expired. Please refresh the page and try again.",
+          authError: true
+        };
+      } else {
+        return { 
+          url: null, 
+          error: "Please sign in to continue",
+          authError: true
+        };
+      }
     }
     
     // Call the checkout function with proper auth

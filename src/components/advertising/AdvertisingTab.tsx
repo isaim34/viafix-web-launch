@@ -9,6 +9,7 @@ import { FeaturedPlansSection } from './FeaturedPlansSection';
 import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
+import { SubscriptionManagementSection } from './SubscriptionManagementSection';
 
 const FEATURED_DAILY_PRICE = 24.99;
 const MASS_MESSAGE_PRICE = 0.10;
@@ -121,8 +122,9 @@ const AdvertisingTab = () => {
           />
         </TabsContent>
         
-        <TabsContent value="subscription">
+        <TabsContent value="subscription" className="space-y-6">
           <SubscriptionPlansSection />
+          {isSubscribed && <SubscriptionManagementSection />}
         </TabsContent>
         
         <TabsContent value="payment">
