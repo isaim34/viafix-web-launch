@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
 export interface CheckoutSessionOptions {
   paymentType: 'featured' | 'messages' | 'subscription';
@@ -12,48 +11,47 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
   try {
     console.log("Creating checkout session with options:", options);
     
-    // Get current session - use getSession directly instead of relying on localStorage
-    const { data: { session: authSession }, error: authError } = await supabase.auth.getSession();
+    // Get current session directly from Supabase auth
+    const { data, error: sessionError } = await supabase.auth.getSession();
     
-    if (authError) {
-      console.error("Auth session error:", authError);
+    if (sessionError) {
+      console.error("Session error:", sessionError);
       return { 
         url: null, 
-        error: "Authentication error. Please try signing in again.",
-        authError: true
+        error: "Authentication error. Please try signing in again.", 
+        authError: true 
       };
     }
     
-    // Check if the user is authenticated
-    if (!authSession) {
+    if (!data.session || !data.session.user) {
       console.error("No active session found during checkout");
       return { 
         url: null, 
-        error: "Please sign in to continue",
-        authError: true
+        error: "Please sign in to continue", 
+        authError: true 
       };
     }
 
-    // Call the checkout function with proper auth
-    const { data, error } = await supabase.functions.invoke('create-checkout', {
+    // Call the checkout function
+    const response = await supabase.functions.invoke('create-checkout', {
       body: options
     });
     
-    if (error) {
-      console.error("Checkout session error:", error);
+    if (response.error) {
+      console.error("Checkout session error:", response.error);
       return { 
         url: null, 
-        error: error.message || "Failed to create checkout session" 
+        error: response.error.message || "Failed to create checkout session" 
       };
     }
     
-    if (!data?.url) {
-      console.error("No checkout URL in response:", data);
+    if (!response.data?.url) {
+      console.error("No checkout URL in response:", response.data);
       throw new Error("No checkout URL returned");
     }
     
-    console.log("Checkout session created successfully:", data.url);
-    return { url: data.url, error: null };
+    console.log("Checkout session created successfully:", response.data.url);
+    return { url: response.data.url, error: null };
   } catch (err) {
     console.error("Error in createCheckoutSession:", err);
     return { 
@@ -65,11 +63,11 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
 
 export const getCustomerPortal = async () => {
   try {
-    // Get current session - use getSession directly instead of relying on localStorage
-    const { data: { session: authSession }, error: authError } = await supabase.auth.getSession();
+    // Get current session directly from Supabase auth
+    const { data, error: sessionError } = await supabase.auth.getSession();
     
-    if (authError) {
-      console.error("Auth session error:", authError);
+    if (sessionError) {
+      console.error("Session error:", sessionError);
       return { 
         url: null, 
         error: "Authentication error. Please try signing in again.",
@@ -77,8 +75,7 @@ export const getCustomerPortal = async () => {
       };
     }
     
-    // Check if the user is authenticated
-    if (!authSession || !authSession.user) {
+    if (!data.session || !data.session.user) {
       console.error("No active session found during portal access");
       return { 
         url: null, 
@@ -87,7 +84,7 @@ export const getCustomerPortal = async () => {
       };
     }
     
-    const userEmail = authSession.user.email;
+    const userEmail = data.session.user.email;
     if (!userEmail) {
       console.error("User email not found in session");
       return { 
@@ -98,29 +95,29 @@ export const getCustomerPortal = async () => {
     
     console.log("Attempting to access customer portal for email:", userEmail);
 
-    // Call the customer-portal function with the user's email
-    const { data, error } = await supabase.functions.invoke('customer-portal', {
+    // Call the customer-portal function
+    const response = await supabase.functions.invoke('customer-portal', {
       body: { email: userEmail }
     });
     
-    if (error) {
-      console.error("Customer portal error:", error);
+    if (response.error) {
+      console.error("Customer portal error:", response.error);
       return { 
         url: null, 
-        error: error.message || "Failed to access customer portal"
+        error: response.error.message || "Failed to access customer portal"
       };
     }
     
-    if (!data?.url) {
-      console.error("No portal URL in response:", data);
+    if (!response.data?.url) {
+      console.error("No portal URL in response:", response.data);
       return { 
         url: null, 
-        error: data?.error || "Failed to create portal session"
+        error: response.data?.error || "Failed to create portal session"
       };
     }
     
-    console.log("Portal access successful:", data.url);
-    return { url: data.url, error: null };
+    console.log("Portal access successful:", response.data.url);
+    return { url: response.data.url, error: null };
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
     return { 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { getCustomerPortal } from '@/lib/stripe';
@@ -11,7 +11,18 @@ import { supabase } from '@/integrations/supabase/client';
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, []);
 
   const handleManageSubscription = async () => {
     try {
@@ -19,8 +30,9 @@ export const SubscriptionManagementSection = () => {
       setError(null);
 
       // Check authentication status directly
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session || !session.user) {
+      const { data } = await supabase.auth.getSession();
+      
+      if (!data.session) {
         setError("You must be logged in to access subscription management");
         toast({
           title: "Authentication Required",
@@ -72,11 +84,11 @@ export const SubscriptionManagementSection = () => {
   };
 
   return (
-    <Card>
+    <Card className="border-green-100 bg-green-50/30">
       <CardHeader>
-        <CardTitle>Subscription Management</CardTitle>
+        <CardTitle>Manage Your Subscription</CardTitle>
         <CardDescription>
-          Manage your subscription plan, payment methods, and billing details
+          Change your plan, update payment methods, or cancel your subscription
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -90,27 +102,25 @@ export const SubscriptionManagementSection = () => {
           </Alert>
         ) : null}
         
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            onClick={handleManageSubscription}
-            className="w-full sm:w-auto"
-            variant="outline"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span className="animate-pulse mr-2">Loading...</span>
-                <Settings className="h-4 w-4 animate-spin" />
-              </>
-            ) : (
-              <>
-                <Settings className="mr-2 h-4 w-4" />
-                Manage Subscription
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </>
-            )}
-          </Button>
-        </div>
+        <Button 
+          onClick={handleManageSubscription}
+          className="w-full sm:w-auto"
+          variant="default"
+          disabled={isLoading || !isAuthenticated}
+        >
+          {isLoading ? (
+            <>
+              <span className="animate-pulse mr-2">Opening Portal...</span>
+              <Settings className="h-4 w-4 animate-spin" />
+            </>
+          ) : (
+            <>
+              <Settings className="mr-2 h-4 w-4" />
+              Manage Subscription
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </>
+          )}
+        </Button>
       </CardContent>
     </Card>
   );
