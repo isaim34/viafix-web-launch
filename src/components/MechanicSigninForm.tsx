@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,7 +6,6 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { LogIn } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast'; 
 import EmailField from './auth/EmailField';
 import PasswordField from './auth/PasswordField';
@@ -120,14 +118,6 @@ const MechanicSigninForm = () => {
           : 'Enter your credentials to access your mechanic dashboard.'}
       </p>
       
-      <GoogleAuthButton />
-      
-      <div className="relative flex items-center">
-        <div className="flex-grow border-t border-gray-300"></div>
-        <span className="flex-shrink mx-4 text-gray-500 text-sm">or continue with email</span>
-        <div className="flex-grow border-t border-gray-300"></div>
-      </div>
-      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <EmailField form={form} />
@@ -155,6 +145,14 @@ const MechanicSigninForm = () => {
               </div>
             )}
           </Button>
+          
+          <div className="relative flex items-center">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink mx-4 text-gray-500 text-sm">or</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          <GoogleAuthButton />
         </form>
       </Form>
       

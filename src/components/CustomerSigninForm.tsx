@@ -7,6 +7,7 @@ import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import * as z from 'zod';
 import { generateUserId, setupCustomerProfile } from '@/utils/authUtils';
 import { useToast } from '@/hooks/use-toast';
@@ -115,6 +116,14 @@ const CustomerSigninForm = () => {
             'Sign In'
           )}
         </Button>
+
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="flex-shrink mx-4 text-gray-500 text-sm">or</span>
+          <div className="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        <GoogleAuthButton />
         
         {redirectAction && (
           <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
