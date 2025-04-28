@@ -16,10 +16,7 @@ const Signin = () => {
   const { isLoggedIn, currentUserRole, authChecked } = useAuth();
   const location = useLocation();
 
-  // Add a useEffect to control when we check for redirection
-  // This helps prevent the flickering by ensuring we only check once
   useEffect(() => {
-    // Set a short timeout to allow auth state to stabilize
     const timer = setTimeout(() => {
       setRedirectChecked(true);
     }, 100);
@@ -27,7 +24,6 @@ const Signin = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Only redirect if we've completed our redirect check and auth check
   if (redirectChecked && authChecked && isLoggedIn) {
     const defaultPath = currentUserRole === 'mechanic' ? '/mechanic-dashboard' : '/profile';
     const redirectTo = location.state?.redirectTo || defaultPath;
@@ -45,25 +41,10 @@ const Signin = () => {
           className="max-w-md mx-auto"
         >
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Sign In</h1>
+            <h1 className="text-3xl font-bold mb-2">Welcome to ViaFix</h1>
             <p className="text-muted-foreground">
-              Welcome back to ViaFix
+              Sign in as a customer or mechanic
             </p>
-          </div>
-
-          <div className="mb-8 space-y-6">
-            
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with email
-                </span>
-              </div>
-            </div>
           </div>
 
           <Tabs 
@@ -90,7 +71,7 @@ const Signin = () => {
               <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
                 <AlertCircle className="h-4 w-4 text-green-800" />
                 <AlertDescription className="text-green-800">
-                  You are signing in as a <strong>Customer</strong>. If you're a mechanic, please switch to the mechanic tab.
+                  {activeTab === 'customer' ? 'Find and book mechanics in your area.' : 'Offer your services to customers.'}
                 </AlertDescription>
               </Alert>
               <div className="border p-6 rounded-lg shadow-sm bg-gray-50">
@@ -101,7 +82,7 @@ const Signin = () => {
               <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
                 <AlertCircle className="h-4 w-4 text-green-800" />
                 <AlertDescription className="text-green-800">
-                  You are signing in as a <strong>Mechanic</strong>. If you're a customer, please switch to the customer tab.
+                  Offer your services as a mechanic to customers.
                 </AlertDescription>
               </Alert>
               <div className="border p-6 rounded-lg shadow-sm bg-gray-50">
