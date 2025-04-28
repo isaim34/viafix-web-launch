@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface CheckoutSessionOptions {
   paymentType: 'featured' | 'messages' | 'subscription';
@@ -11,41 +12,28 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
   try {
     console.log("Creating checkout session with options:", options);
     
-    // Get current session
-    const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
+    // Get current session - use getSession directly instead of relying on localStorage
+    const { data: { session: authSession }, error: authError } = await supabase.auth.getSession();
     
-    if (sessionError) {
-      console.error("Auth session error:", sessionError);
+    if (authError) {
+      console.error("Auth session error:", authError);
+      return { 
+        url: null, 
+        error: "Authentication error. Please try signing in again.",
+        authError: true
+      };
+    }
+    
+    // Check if the user is authenticated
+    if (!authSession) {
+      console.error("No active session found during checkout");
       return { 
         url: null, 
         error: "Please sign in to continue",
         authError: true
       };
     }
-    
-    // Additional check to confirm the user is authenticated
-    if (!authSession) {
-      console.warn("No active session found during checkout");
-      // Check localStorage as a fallback to see if user thinks they're logged in
-      const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-      const userEmail = localStorage.getItem('userEmail');
-      
-      if (userLoggedIn && userEmail) {
-        console.warn("Local storage indicates user is logged in, but session is missing");
-        return { 
-          url: null, 
-          error: "Your session has expired. Please refresh the page and try again.",
-          authError: true
-        };
-      } else {
-        return { 
-          url: null, 
-          error: "Please sign in to continue",
-          authError: true
-        };
-      }
-    }
-    
+
     // Call the checkout function with proper auth
     const { data, error } = await supabase.functions.invoke('create-checkout', {
       body: options
@@ -77,12 +65,35 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
 
 export const getCustomerPortal = async () => {
   try {
-    // Get user email from localStorage or auth context
-    const userEmail = localStorage.getItem('userEmail');
+    // Get current session - use getSession directly instead of relying on localStorage
+    const { data: { session: authSession }, error: authError } = await supabase.auth.getSession();
     
+    if (authError) {
+      console.error("Auth session error:", authError);
+      return { 
+        url: null, 
+        error: "Authentication error. Please try signing in again.",
+        authError: true
+      };
+    }
+    
+    // Check if the user is authenticated
+    if (!authSession || !authSession.user) {
+      console.error("No active session found during portal access");
+      return { 
+        url: null, 
+        error: "Please sign in to access your subscription",
+        authError: true
+      };
+    }
+    
+    const userEmail = authSession.user.email;
     if (!userEmail) {
-      console.error("No user email found");
-      throw new Error('User email not found. Please log in.');
+      console.error("User email not found in session");
+      return { 
+        url: null, 
+        error: "User email not found. Please log in again." 
+      };
     }
     
     console.log("Attempting to access customer portal for email:", userEmail);

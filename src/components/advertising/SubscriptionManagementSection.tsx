@@ -6,22 +6,21 @@ import { getCustomerPortal } from '@/lib/stripe';
 import { Settings, AlertCircle, ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export const SubscriptionManagementSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { isLoggedIn, userEmail } = useAuth();
 
   const handleManageSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Comprehensive authentication check
-      if (!isLoggedIn || !userEmail) {
-        console.log("Authentication check failed:", { isLoggedIn, userEmail });
+      // Check authentication status directly
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) {
         setError("You must be logged in to access subscription management");
         toast({
           title: "Authentication Required",
@@ -36,7 +35,7 @@ export const SubscriptionManagementSection = () => {
         description: "Opening subscription management portal...",
       });
       
-      console.log("Attempting to access customer portal for:", userEmail);
+      console.log("Attempting to access customer portal");
       const { url, error: responseError } = await getCustomerPortal();
       
       if (responseError) {

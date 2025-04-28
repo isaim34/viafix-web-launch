@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, Star, CreditCard, ShieldCheck, RefreshCcw } from 'lucide-react';
+import { Check, Star, CreditCard, ShieldCheck, RefreshCcw, AlertCircle } from 'lucide-react';
 import { createCheckoutSession } from '@/lib/stripe';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionPlan {
   id: string;
@@ -25,32 +26,45 @@ export const SubscriptionPlansSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isLoggedIn } = useAuth();
   
-  // Current subscription info from localStorage
-  const [currentPlan, setCurrentPlan] = useState<string | null>(localStorage.getItem('subscription_plan'));
-  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(localStorage.getItem('subscription_status'));
-  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(localStorage.getItem('subscription_end'));
+  // Current subscription info
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   
   // Check if the user has an active subscription
   const isSubscribed = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
 
-  // Effect to update subscription info when localStorage changes
+  // Load subscription data from localStorage and check auth on component mount
   useEffect(() => {
-    const handleStorageChange = () => {
+    const loadSubscriptionData = () => {
       setCurrentPlan(localStorage.getItem('subscription_plan'));
       setSubscriptionStatus(localStorage.getItem('subscription_status'));
       setSubscriptionEnd(localStorage.getItem('subscription_end'));
     };
+
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setAuthChecked(true);
+      if (!data.session) {
+        setError("You need to be signed in to purchase a subscription");
+      }
+    };
     
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('storage-event', handleStorageChange);
+    loadSubscriptionData();
+    checkAuth();
+    
+    // Listen for subscription status updates
+    window.addEventListener('storage', loadSubscriptionData);
+    window.addEventListener('storage-event', loadSubscriptionData);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('storage-event', handleStorageChange);
+      window.removeEventListener('storage', loadSubscriptionData);
+      window.removeEventListener('storage-event', loadSubscriptionData);
     };
   }, []);
   
@@ -125,20 +139,42 @@ export const SubscriptionPlansSection = () => {
     }
   };
   
-  const refreshSubscriptionStatus = () => {
-    setRefreshing(true);
-    setTimeout(() => {
+  const refreshSubscriptionStatus = async () => {
+    try {
+      setRefreshing(true);
+      setError(null);
+      
+      // Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError("You need to be signed in to view subscription status");
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to view your subscription status",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       // Refresh data from localStorage
       setCurrentPlan(localStorage.getItem('subscription_plan'));
       setSubscriptionStatus(localStorage.getItem('subscription_status'));
       setSubscriptionEnd(localStorage.getItem('subscription_end'));
-      setRefreshing(false);
       
       toast({
         title: "Subscription status refreshed",
         description: "Your subscription information has been updated"
       });
-    }, 1000);
+    } catch (error) {
+      console.error("Error refreshing subscription status:", error);
+      toast({
+        title: "Refresh failed",
+        description: "Unable to refresh subscription status",
+        variant: "destructive"
+      });
+    } finally {
+      setRefreshing(false);
+    }
   };
   
   const handleProceedToCheckout = async () => {
@@ -149,7 +185,8 @@ export const SubscriptionPlansSection = () => {
       setError(null);
       
       // First confirm the user is logged in
-      if (!isLoggedIn) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",
@@ -201,6 +238,19 @@ export const SubscriptionPlansSection = () => {
     }
   };
   
+  // Show authentication error if not logged in
+  if (!authChecked) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-pulse flex gap-2">
+          <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
+          <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
+          <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -236,6 +286,7 @@ export const SubscriptionPlansSection = () => {
       
       {error && (
         <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

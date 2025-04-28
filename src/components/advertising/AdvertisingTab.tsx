@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Send, CreditCard, CalendarClock } from 'lucide-react';
+import { Star, Send, CreditCard, CalendarClock, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MassMessageForm } from './MassMessageForm';
 import { FeaturedPlansSection } from './FeaturedPlansSection';
@@ -10,13 +10,14 @@ import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
 import { SubscriptionManagementSection } from './SubscriptionManagementSection';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const FEATURED_DAILY_PRICE = 24.99;
 const MASS_MESSAGE_PRICE = 0.10;
 
 const AdvertisingTab = () => {
   const { toast } = useToast();
-  const [currentTab, setCurrentTab] = useState('featured');
+  const [currentTab, setCurrentTab] = useState('subscription');
   const [isFeatured, setIsFeatured] = useState(false);
   const [featuredUntil, setFeaturedUntil] = useState<string | null>(null);
   const [messagesRemaining, setMessagesRemaining] = useState(0);
@@ -49,8 +50,9 @@ const AdvertisingTab = () => {
     });
   };
 
+  // Simplify the UI with a secondary navigation system
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-semibold">Advertising & Promotion</h2>
@@ -75,62 +77,86 @@ const AdvertisingTab = () => {
         </div>
       </div>
       
-      <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="featured" className="flex items-center gap-2">
+      {/* Simplified navigation with clear icons and labels */}
+      <div className="bg-slate-50 p-4 rounded-lg border">
+        <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsTrigger 
+            value="subscription" 
+            onClick={() => setCurrentTab('subscription')}
+            className={`flex items-center gap-2 ${currentTab === 'subscription' ? 'bg-primary text-white' : ''}`}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Subscription Plans
+          </TabsTrigger>
+          <TabsTrigger 
+            value="featured" 
+            onClick={() => setCurrentTab('featured')}
+            className={`flex items-center gap-2 ${currentTab === 'featured' ? 'bg-primary text-white' : ''}`}
+          >
             <Star className="h-4 w-4" />
             Get Featured
           </TabsTrigger>
-          <TabsTrigger value="messaging" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="messaging" 
+            onClick={() => setCurrentTab('messaging')}
+            className={`flex items-center gap-2 ${currentTab === 'messaging' ? 'bg-primary text-white' : ''}`}
+          >
             <Send className="h-4 w-4" />
             Mass Messaging
           </TabsTrigger>
-          <TabsTrigger value="subscription" className="flex items-center gap-2">
-            <CalendarClock className="h-4 w-4" />
-            Subscription Plans
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="payment" 
+            onClick={() => setCurrentTab('payment')}
+            className={`flex items-center gap-2 ${currentTab === 'payment' ? 'bg-primary text-white' : ''}`}
+          >
             <CreditCard className="h-4 w-4" />
             Payment Methods
           </TabsTrigger>
         </TabsList>
+      </div>
+      
+      {/* Content area for selected tab */}
+      <div className="mt-6">
+        {currentTab === 'subscription' && (
+          <>
+            <SubscriptionPlansSection />
+            {isSubscribed && <div className="mt-6"><SubscriptionManagementSection /></div>}
+          </>
+        )}
         
-        <TabsContent value="featured">
+        {currentTab === 'featured' && (
           <FeaturedPlansSection 
             featuredDailyPrice={FEATURED_DAILY_PRICE} 
             onPurchaseFeatured={handlePurchaseFeatured} 
           />
-        </TabsContent>
+        )}
         
-        <TabsContent value="messaging" className="space-y-6">
-          <MessagePackagesSection 
-            messageCost={MASS_MESSAGE_PRICE}
-            messagesRemaining={messagesRemaining}
-            onBuyMessages={handleBuyMessages}
-          />
-          
-          <MassMessageForm 
-            messagesAvailable={messagesRemaining}
-            messageCost={MASS_MESSAGE_PRICE}
-            onSend={(messageCount) => {
-              if (messageCount <= messagesRemaining) {
-                setMessagesRemaining(prev => prev - messageCount);
-                return true;
-              }
-              return false;
-            }}
-          />
-        </TabsContent>
+        {currentTab === 'messaging' && (
+          <div className="space-y-6">
+            <MessagePackagesSection 
+              messageCost={MASS_MESSAGE_PRICE}
+              messagesRemaining={messagesRemaining}
+              onBuyMessages={handleBuyMessages}
+            />
+            
+            <MassMessageForm 
+              messagesAvailable={messagesRemaining}
+              messageCost={MASS_MESSAGE_PRICE}
+              onSend={(messageCount) => {
+                if (messageCount <= messagesRemaining) {
+                  setMessagesRemaining(prev => prev - messageCount);
+                  return true;
+                }
+                return false;
+              }}
+            />
+          </div>
+        )}
         
-        <TabsContent value="subscription" className="space-y-6">
-          <SubscriptionPlansSection />
-          {isSubscribed && <SubscriptionManagementSection />}
-        </TabsContent>
-        
-        <TabsContent value="payment">
+        {currentTab === 'payment' && (
           <PaymentMethodsTab />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 };
