@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import CustomerSignupForm from '@/components/CustomerSignupForm';
-import MechanicSignupForm from '@/components/MechanicSignupForm';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+// Import components directly without lazy loading
+import CustomerSignupForm from '@/components/CustomerSignupForm';
+import MechanicSignupForm from '@/components/MechanicSignupForm';
 
 const Signup = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
@@ -23,7 +24,7 @@ const Signup = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>
             <p className="text-muted-foreground">
-              Join Mobex to find mechanics or offer your services
+              Join ViaFix to find mechanics or offer your services
             </p>
           </div>
 

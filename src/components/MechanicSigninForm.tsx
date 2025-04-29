@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import EmailField from '@/components/auth/EmailField';
+import PasswordField from '@/components/auth/PasswordField';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
+import { z } from 'zod';
 import { LogIn } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast'; 
-import EmailField from './auth/EmailField';
-import PasswordField from './auth/PasswordField';
-import { GoogleAuthButton } from './auth/GoogleAuthButton';
-import { AuthTabs } from './auth/AuthTabs';
-import { AuthError } from './auth/AuthError';
+import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -22,21 +22,9 @@ type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 
 const MechanicSigninForm = () => {
   const navigate = useNavigate();
-  const [isNewAccount, setIsNewAccount] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const location = useLocation();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
-    
-    if (error) {
-      console.error('Auth redirect error:', error, errorDescription);
-      setAuthError(errorDescription || 'Authentication failed. Please try again.');
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -49,29 +37,20 @@ const MechanicSigninForm = () => {
   const onSubmit = async (data: MechanicFormValues) => {
     try {
       setIsLoading(true);
-      setAuthError(null);
-
-      // Simulate successful login
-      const simulatedAuthData = {
-        user: {
-          id: 'temp-' + Math.random().toString(36).substring(2, 9),
-          email: data.email
-        }
-      };
+      
+      // Generate user ID from email
+      const userId = generateUserId(data.email);
+      
+      // Get stored name if available
+      const storedName = localStorage.getItem(`registered_${data.email}`);
+      const userName = storedName || getUserNameFromEmail(data.email);
       
       localStorage.setItem('userEmail', data.email);
       localStorage.setItem('userLoggedIn', 'true');
       localStorage.setItem('userRole', 'mechanic');
-      
-      const storedName = localStorage.getItem(`registered_${data.email}`);
-      const formattedUsername = data.email.split('@')[0];
-      const userName = storedName || formattedUsername.charAt(0).toUpperCase() + formattedUsername.slice(1);
-      
-      localStorage.setItem('userName', userName);
-      const userId = simulatedAuthData.user?.id;
       localStorage.setItem('userId', userId);
+      localStorage.setItem('userName', userName);
       localStorage.setItem(`userId_to_email_${userId}`, data.email);
-      localStorage.setItem('vendorName', userName);
       
       // Set default subscription status for testing
       localStorage.setItem('subscription_status', 'active');
@@ -83,17 +62,17 @@ const MechanicSigninForm = () => {
       const firstName = userName.split(' ')[0];
       
       toast({
-        title: `Welcome${isNewAccount ? '' : ' back'}, ${firstName}!`,
+        title: `Welcome back, ${firstName}!`,
         description: "You have successfully signed in.",
       });
       
-      navigate('/mechanic-dashboard', { replace: true });
+      // Navigate directly to mechanic dashboard without MFA
+      const redirectTo = location.state?.redirectTo || '/mechanic-dashboard';
+      navigate(redirectTo);
     } catch (error) {
       console.error('Sign in error:', error);
-      setAuthError("Failed to sign in. Please try again.");
-      
       toast({
-        title: "Authentication failed",
+        title: "Sign in failed",
         description: "Please check your credentials and try again.",
         variant: "destructive"
       });
@@ -104,18 +83,9 @@ const MechanicSigninForm = () => {
 
   return (
     <div className="space-y-6">
-      <AuthTabs 
-        isNewAccount={isNewAccount} 
-        onTabChange={setIsNewAccount} 
-      />
-      
-      <h3 className="text-lg font-medium">
-        {isNewAccount ? 'Create an Account' : 'Sign In to Your Account'}
-      </h3>
+      <h3 className="text-lg font-medium">Sign In to Your Account</h3>
       <p className="text-sm text-gray-500">
-        {isNewAccount 
-          ? 'Register as a mechanic to get started with ViaFix.' 
-          : 'Enter your credentials to access your mechanic dashboard.'}
+        Welcome back! Please enter your details.
       </p>
       
       <Form {...form}>
@@ -123,28 +93,28 @@ const MechanicSigninForm = () => {
           <EmailField form={form} />
           <PasswordField form={form} />
 
-          <AuthError 
-            error={authError} 
-            onRegisterClick={() => setIsNewAccount(true)} 
-          />
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="flex items-center">
-                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                <span>Processing...</span>
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <LogIn className="mr-2 h-4 w-4" />
-                <span>{isNewAccount ? "Register" : "Sign In"}</span>
-              </div>
-            )}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            <div className="flex items-center justify-center">
+              {isLoading ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  <span>Sign In</span>
+                </>
+              )}
+            </div>
           </Button>
+          
+          <p className="text-center text-sm text-gray-500">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-primary hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
           
           <div className="relative flex items-center">
             <div className="flex-grow border-t border-gray-300"></div>

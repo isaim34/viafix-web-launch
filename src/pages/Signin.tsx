@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import CustomerSigninForm from '@/components/CustomerSigninForm';
-import MechanicSigninForm from '@/components/MechanicSigninForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
+// Import the sign in forms directly without lazy loading
+import CustomerSigninForm from '@/components/CustomerSigninForm';
+import MechanicSigninForm from '@/components/MechanicSigninForm';
 
 const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');

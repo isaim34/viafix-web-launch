@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -10,14 +11,14 @@ import './App.css';
 // Import core pages directly for immediate loading
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
+import Signin from './pages/Signin';
+import Signup from './pages/Signup';
 
 // Lazy load other pages for better performance
 const Mechanics = lazy(() => import('./pages/Mechanics'));
 const MechanicProfile = lazy(() => import('./pages/MechanicProfile'));
 const CustomerProfile = lazy(() => import('./pages/CustomerProfile'));
 const MechanicDashboard = lazy(() => import('./pages/MechanicDashboard'));
-const Signin = lazy(() => import('./pages/Signin'));
-const Signup = lazy(() => import('./pages/Signup'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const VehicleSafetyCheck = lazy(() => import('./pages/VehicleSafetyCheck'));
