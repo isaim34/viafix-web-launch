@@ -35,14 +35,27 @@ const MechanicSignupForm = () => {
     console.log('Mechanic signup data:', data);
     
     // Store some user data in localStorage for this demo 
-    // In a real app with Supabase, we would create the user account here
     const fullName = `${data.firstName} ${data.lastName}`;
+    const userId = 'mechanic-' + Math.random().toString(36).substring(2, 9);
+    
     localStorage.setItem(`registered_${data.email}`, fullName);
     localStorage.setItem('userEmail', data.email);
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'mechanic');
     localStorage.setItem('userName', fullName);
-    localStorage.setItem('userId', 'mechanic-' + Math.random().toString(36).substring(2, 9));
+    localStorage.setItem('userId', userId);
+    localStorage.setItem(`userId_to_email_${userId}`, data.email);
+    
+    // Store mechanic specific data
+    const mechanicProfile = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      zipCode: data.zipCode,
+      specialties: data.specialties,
+      hourlyRate: data.hourlyRate
+    };
+    
+    localStorage.setItem(`mechanic_profile_${data.email}`, JSON.stringify(mechanicProfile));
     
     // Set default subscription status for testing
     localStorage.setItem('subscription_status', 'active');
@@ -53,10 +66,10 @@ const MechanicSignupForm = () => {
     
     toast({
       title: "Account created!",
-      description: "Welcome to Mobex. Your mechanic account has been created successfully.",
+      description: `Welcome to Mobex, ${data.firstName}. Your mechanic account has been created successfully.`,
     });
     
-    // Navigate directly to mechanic dashboard
+    // Navigate directly to mechanic dashboard without any MFA step
     navigate('/mechanic-dashboard');
   };
 

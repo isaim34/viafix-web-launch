@@ -12,6 +12,7 @@ import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
+import { generateUserId, setupCustomerProfile } from '@/utils/authUtils';
 
 const CustomerSignupForm = () => {
   const navigate = useNavigate();
@@ -31,26 +32,38 @@ const CustomerSignupForm = () => {
   const onSubmit = (data: BaseUserFormValues) => {
     console.log('Customer signup data:', data);
     
-    // Store the full name in localStorage for this demo
-    // In a real app with Supabase, we would create the user account here
+    // Generate a consistent user ID based on email
+    const userId = generateUserId(data.email);
+    
+    // Set up the customer profile data
     const fullName = `${data.firstName} ${data.lastName}`;
     localStorage.setItem(`registered_${data.email}`, fullName);
     
-    // Set up localStorage for authentication
+    // Set up authentication data
     localStorage.setItem('userEmail', data.email);
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', 'customer');
     localStorage.setItem('userName', fullName);
-    localStorage.setItem('userId', 'customer-' + Math.random().toString(36).substring(2, 9));
+    localStorage.setItem('userId', userId);
+    
+    // Store profile information
+    const customerProfile = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      zipCode: data.zipCode
+    };
+    
+    localStorage.setItem(`customer_profile_${data.email}`, JSON.stringify(customerProfile));
+    localStorage.setItem(`userId_to_email_${userId}`, data.email);
     
     window.dispatchEvent(new Event('storage-event'));
     
     toast({
       title: "Account created!",
-      description: "Welcome to Mobex. Your customer account has been created successfully.",
+      description: `Welcome to Mobex, ${data.firstName}. Your customer account has been created successfully.`,
     });
     
-    // Navigate directly to customer profile/dashboard
+    // Navigate directly to customer profile/dashboard without any MFA step
     navigate('/profile');
   };
 

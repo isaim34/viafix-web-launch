@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
@@ -11,11 +11,13 @@ import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { customerFormSchema, CustomerFormValues } from '@/schemas/signupSchema';
 import { LogIn } from 'lucide-react';
+import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
 
 const CustomerSigninForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -31,20 +33,34 @@ const CustomerSigninForm = () => {
 
   const onSubmit = async (data: CustomerFormValues) => {
     try {
-      const userId = Math.random().toString(36).substring(2, 9);
+      setIsLoading(true);
+      
+      // Generate user ID from email
+      const userId = generateUserId(data.email);
+      
+      // Get stored name if available
+      const storedName = localStorage.getItem(`registered_${data.email}`);
+      const userName = storedName || getUserNameFromEmail(data.email);
+      
       localStorage.setItem('userEmail', data.email);
       localStorage.setItem('userLoggedIn', 'true');
       localStorage.setItem('userRole', 'customer');
       localStorage.setItem('userId', userId);
+      localStorage.setItem('userName', userName);
+      localStorage.setItem(`userId_to_email_${userId}`, data.email);
       
       window.dispatchEvent(new Event('storage-event'));
       
+      const firstName = userName.split(' ')[0];
+      
       toast({
-        title: "Welcome back!",
+        title: `Welcome back, ${firstName}!`,
         description: "You have successfully signed in.",
       });
       
-      navigate('/profile');
+      // Navigate directly to profile without MFA
+      const redirectTo = location.state?.redirectTo || '/profile';
+      navigate(redirectTo);
     } catch (error) {
       console.error('Sign in error:', error);
       toast({
@@ -52,6 +68,8 @@ const CustomerSigninForm = () => {
         description: "Please check your credentials and try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,10 +85,19 @@ const CustomerSigninForm = () => {
           <EmailField form={form} />
           <PasswordField form={form} />
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isLoading}>
             <div className="flex items-center justify-center">
-              <LogIn className="mr-2 h-4 w-4" />
-              <span>Sign In</span>
+              {isLoading ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  <span>Sign In</span>
+                </>
+              )}
             </div>
           </Button>
           
