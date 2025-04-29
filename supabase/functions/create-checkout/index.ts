@@ -113,13 +113,12 @@ serve(async (req) => {
     let session;
     
     if (paymentType === 'subscription') {
-      // UPDATE THESE PRICE IDs with your actual Stripe price IDs
-      // You can find these in your Stripe dashboard under Products > Select product > Pricing
+      // Using the actual price IDs from your Stripe dashboard
       const prices = {
-        monthly: 'price_REPLACE_WITH_YOUR_MONTHLY_PRICE_ID',
-        quarterly: 'price_REPLACE_WITH_YOUR_QUARTERLY_PRICE_ID',
-        biannual: 'price_REPLACE_WITH_YOUR_BIANNUAL_PRICE_ID',
-        annual: 'price_REPLACE_WITH_YOUR_ANNUAL_PRICE_ID',
+        monthly: 'price_1RHQvyQ2fyi7p18OwHgMc713',    // $50/month
+        quarterly: 'price_1RHQwmQ2fyi7p18OrDott3L3',  // $45/month (billed quarterly)
+        biannual: 'price_1RHQxFQ2fyi7p18OKwn92RrR',   // $42.50/month (billed bi-annually)
+        annual: 'price_1RHQyRQ2fyi7p18O0dUNCTo1',     // $40/month (billed annually)
       };
 
       if (!planType || !prices[planType as keyof typeof prices]) {
