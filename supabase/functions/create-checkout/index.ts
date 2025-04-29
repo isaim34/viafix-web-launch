@@ -31,13 +31,6 @@ serve(async (req) => {
       throw new Error('STRIPE_SECRET_KEY is not configured');
     }
     
-    // Parse request body
-    const requestBody = await req.json();
-    
-    // Explicitly extract data from the request body
-    const { paymentType, quantity, planType, email: requestEmail } = requestBody;
-    logStep('Request payload', { paymentType, quantity, planType, hasEmail: !!requestEmail });
-    
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -49,7 +42,6 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
     
     let userEmail: string | undefined;
-    let userId: string | undefined;
     
     // Try to get user from auth header first (Supabase auth)
     const authHeader = req.headers.get('Authorization');
@@ -66,14 +58,20 @@ serve(async (req) => {
           // Continue to local auth check
         } else if (data.user) {
           userEmail = data.user.email;
-          userId = data.user.id;
-          logStep('User authenticated via Supabase', { userId, email: userEmail });
+          logStep('User authenticated via Supabase', { userId: data.user.id, email: userEmail });
         }
       } catch (authError) {
         logStep('Error during Supabase authentication', { error: authError });
         // Continue to local auth check
       }
     }
+    
+    // Parse request body
+    const requestBody = await req.json();
+    
+    // Explicitly extract data from the request body
+    const { paymentType, quantity, planType, email: requestEmail } = requestBody;
+    logStep('Request payload', { paymentType, quantity, planType, hasEmail: !!requestEmail });
     
     // If no user from Supabase auth, check the request body for email (local auth)
     if (!userEmail && requestEmail) {
@@ -106,9 +104,6 @@ serve(async (req) => {
     } else {
       const customer = await stripe.customers.create({
         email: userEmail,
-        metadata: {
-          supabaseUUID: userId || 'local_auth_user',
-        },
       });
       customerId = customer.id;
       logStep('Created new customer', { customerId });
@@ -118,12 +113,13 @@ serve(async (req) => {
     let session;
     
     if (paymentType === 'subscription') {
-      // Subscription prices (monthly base with different durations)
+      // UPDATE THESE PRICE IDs with your actual Stripe price IDs
+      // You can find these in your Stripe dashboard under Products > Select product > Pricing
       const prices = {
-        monthly: 'price_1RHQvyQ2fyi7p18OwHgMc713',
-        quarterly: 'price_1RHQwmQ2fyi7p18OrDott3L3',
-        biannual: 'price_1RHQxFQ2fyi7p18OKwn92RrR',
-        annual: 'price_1RHQyRQ2fyi7p18O0dUNCTo1',
+        monthly: 'price_REPLACE_WITH_YOUR_MONTHLY_PRICE_ID',
+        quarterly: 'price_REPLACE_WITH_YOUR_QUARTERLY_PRICE_ID',
+        biannual: 'price_REPLACE_WITH_YOUR_BIANNUAL_PRICE_ID',
+        annual: 'price_REPLACE_WITH_YOUR_ANNUAL_PRICE_ID',
       };
 
       if (!planType || !prices[planType as keyof typeof prices]) {
@@ -151,7 +147,6 @@ serve(async (req) => {
         cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
         subscription_data: {
           metadata: {
-            supabase_user_id: userId || 'local_auth_user',
             plan_type: planType
           }
         }
@@ -202,7 +197,6 @@ serve(async (req) => {
         cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
         payment_intent_data: {
           metadata: {
-            supabase_user_id: userId || 'local_auth_user',
             payment_type: paymentType,
             quantity: quantity ? quantity.toString() : '1'
           }

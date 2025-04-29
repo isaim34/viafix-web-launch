@@ -38,7 +38,7 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
       console.log("Proceeding with local authentication", { userEmail });
     }
     
-    // Include the email in the request body for local auth fallback
+    // Always include the email in the request body for consistent authentication fallback
     const response = await supabase.functions.invoke('create-checkout', {
       body: {
         ...options,
