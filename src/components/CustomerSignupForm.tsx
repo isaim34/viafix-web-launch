@@ -32,26 +32,26 @@ const CustomerSignupForm = () => {
     console.log('Customer signup data:', data);
     
     // Store the full name in localStorage for this demo
-    // In a real app, this would be stored in a database
+    // In a real app with Supabase, we would create the user account here
     const fullName = `${data.firstName} ${data.lastName}`;
     localStorage.setItem(`registered_${data.email}`, fullName);
     
-    // Simulate API call for account creation
+    // Set up localStorage for authentication
+    localStorage.setItem('userEmail', data.email);
+    localStorage.setItem('userLoggedIn', 'true');
+    localStorage.setItem('userRole', 'customer');
+    localStorage.setItem('userName', fullName);
+    localStorage.setItem('userId', 'customer-' + Math.random().toString(36).substring(2, 9));
+    
+    window.dispatchEvent(new Event('storage-event'));
+    
     toast({
       title: "Account created!",
-      description: "Now let's set up two-factor authentication for your security.",
+      description: "Welcome to Mobex. Your customer account has been created successfully.",
     });
     
-    // Navigate to 2FA setup with user data
-    navigate('/two-factor-auth', { 
-      state: { 
-        userData: {
-          ...data,
-          fullName
-        },
-        userType: 'customer' 
-      } 
-    });
+    // Navigate directly to customer profile/dashboard
+    navigate('/profile');
   };
 
   return (

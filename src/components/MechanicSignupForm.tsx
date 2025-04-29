@@ -34,19 +34,30 @@ const MechanicSignupForm = () => {
   const onSubmit = (data: MechanicFormValues) => {
     console.log('Mechanic signup data:', data);
     
-    // Simulate API call for account creation
+    // Store some user data in localStorage for this demo 
+    // In a real app with Supabase, we would create the user account here
+    const fullName = `${data.firstName} ${data.lastName}`;
+    localStorage.setItem(`registered_${data.email}`, fullName);
+    localStorage.setItem('userEmail', data.email);
+    localStorage.setItem('userLoggedIn', 'true');
+    localStorage.setItem('userRole', 'mechanic');
+    localStorage.setItem('userName', fullName);
+    localStorage.setItem('userId', 'mechanic-' + Math.random().toString(36).substring(2, 9));
+    
+    // Set default subscription status for testing
+    localStorage.setItem('subscription_status', 'active');
+    localStorage.setItem('subscription_plan', 'monthly');
+    localStorage.setItem('subscription_end', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
+    
+    window.dispatchEvent(new Event('storage-event'));
+    
     toast({
       title: "Account created!",
-      description: "Now let's set up two-factor authentication for your security.",
+      description: "Welcome to Mobex. Your mechanic account has been created successfully.",
     });
     
-    // Navigate to 2FA setup with user data
-    navigate('/two-factor-auth', { 
-      state: { 
-        userData: data,
-        userType: 'mechanic' 
-      } 
-    });
+    // Navigate directly to mechanic dashboard
+    navigate('/mechanic-dashboard');
   };
 
   return (

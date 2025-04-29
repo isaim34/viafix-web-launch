@@ -18,7 +18,6 @@ const CustomerProfile = lazy(() => import('./pages/CustomerProfile'));
 const MechanicDashboard = lazy(() => import('./pages/MechanicDashboard'));
 const Signin = lazy(() => import('./pages/Signin'));
 const Signup = lazy(() => import('./pages/Signup'));
-const TwoFactorAuth = lazy(() => import('./pages/TwoFactorAuth'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPost = lazy(() => import('./pages/BlogPost'));
 const VehicleSafetyCheck = lazy(() => import('./pages/VehicleSafetyCheck'));
