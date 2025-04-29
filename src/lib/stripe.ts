@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export interface CheckoutSessionOptions {
   paymentType: 'featured' | 'messages' | 'subscription';
@@ -11,10 +12,10 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
   try {
     console.log("Creating checkout session with options:", options);
     
-    // Get current session directly from Supabase auth
+    // Check if user is authenticated
     const { data, error: sessionError } = await supabase.auth.getSession();
     
-    if (sessionError) {
+    if (sessionError || !data.session) {
       console.error("Session error:", sessionError);
       return { 
         url: null, 
@@ -23,47 +24,26 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
       };
     }
     
-    // If using Supabase auth and have a session
-    if (data.session && data.session.user) {
-      // Call the checkout function with Supabase auth
-      const response = await supabase.functions.invoke('create-checkout', {
-        body: options
-      });
-      
-      if (response.error) {
-        console.error("Checkout session error:", response.error);
-        return { 
-          url: null, 
-          error: response.error.message || "Failed to create checkout session" 
-        };
-      }
-      
-      if (!response.data?.url) {
-        console.error("No checkout URL in response:", response.data);
-        throw new Error("No checkout URL returned");
-      }
-      
-      console.log("Checkout session created successfully:", response.data.url);
-      return { url: response.data.url, error: null };
-    } else {
-      // Fallback to localStorage-based auth for development
-      const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-      
-      if (!userLoggedIn) {
-        return { 
-          url: null, 
-          error: "Please sign in to continue", 
-          authError: true 
-        };
-      }
-      
-      // Simulate checkout URL for development (replace with actual implementation)
-      console.log("Using development mode checkout");
+    // Call the checkout function with authentication
+    const response = await supabase.functions.invoke('create-checkout', {
+      body: options
+    });
+    
+    if (response.error) {
+      console.error("Checkout session error:", response.error);
       return { 
-        url: `https://checkout.stripe.com/demo?type=${options.paymentType}&plan=${options.planType || ''}`,
-        error: null 
+        url: null, 
+        error: response.error.message || "Failed to create checkout session" 
       };
     }
+    
+    if (!response.data?.url) {
+      console.error("No checkout URL in response:", response.data);
+      throw new Error("No checkout URL returned");
+    }
+    
+    console.log("Checkout session created successfully:", response.data.url);
+    return { url: response.data.url, error: null };
   } catch (err) {
     console.error("Error in createCheckoutSession:", err);
     return { 
@@ -75,10 +55,10 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
 
 export const getCustomerPortal = async () => {
   try {
-    // Get current session directly from Supabase auth
+    // Check if user is authenticated
     const { data, error: sessionError } = await supabase.auth.getSession();
     
-    if (sessionError) {
+    if (sessionError || !data.session) {
       console.error("Session error:", sessionError);
       return { 
         url: null, 
@@ -87,61 +67,96 @@ export const getCustomerPortal = async () => {
       };
     }
     
-    // If using Supabase auth and have a session
-    if (data.session && data.session.user) {
-      const userEmail = data.session.user.email;
-      if (!userEmail) {
-        return { 
-          url: null, 
-          error: "User email not found. Please log in again." 
-        };
-      }
-      
-      // Call the customer-portal function
-      const response = await supabase.functions.invoke('customer-portal', {
-        body: { email: userEmail }
-      });
-      
-      if (response.error) {
-        console.error("Customer portal error:", response.error);
-        return { 
-          url: null, 
-          error: response.error.message || "Failed to access customer portal"
-        };
-      }
-      
-      if (!response.data?.url) {
-        return { 
-          url: null, 
-          error: response.data?.error || "Failed to create portal session"
-        };
-      }
-      
-      console.log("Portal access successful:", response.data.url);
-      return { url: response.data.url, error: null };
-    } else {
-      // Fallback to localStorage for development
-      const userEmail = localStorage.getItem('userEmail');
-      
-      if (!userEmail) {
-        return { 
-          url: null, 
-          error: "User email not found. Please log in again.",
-          authError: true
-        };
-      }
-      
-      // Simulate customer portal URL for development
-      console.log("Using development mode portal for:", userEmail);
+    const userEmail = data.session.user.email;
+    if (!userEmail) {
       return { 
-        url: 'https://dashboard.stripe.com/test/customers', 
-        error: null 
+        url: null, 
+        error: "User email not found. Please log in again." 
       };
     }
+    
+    // Call the customer-portal function
+    const response = await supabase.functions.invoke('customer-portal', {
+      body: { email: userEmail }
+    });
+    
+    if (response.error) {
+      console.error("Customer portal error:", response.error);
+      return { 
+        url: null, 
+        error: response.error.message || "Failed to access customer portal"
+      };
+    }
+    
+    if (!response.data?.url) {
+      return { 
+        url: null, 
+        error: response.data?.error || "Failed to create portal session"
+      };
+    }
+    
+    console.log("Portal access successful:", response.data.url);
+    return { url: response.data.url, error: null };
   } catch (err) {
     console.error("Error in getCustomerPortal:", err);
     return { 
       url: null, 
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+};
+
+export const checkSubscription = async () => {
+  try {
+    // Check if user is authenticated
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !data.session) {
+      console.error("Session error:", sessionError);
+      return { 
+        subscribed: false, 
+        error: "Authentication error. Please try signing in again.",
+        authError: true
+      };
+    }
+    
+    // Call the check-subscription function
+    const response = await supabase.functions.invoke('check-subscription', {});
+    
+    if (response.error) {
+      console.error("Subscription check error:", response.error);
+      return { 
+        subscribed: false, 
+        error: response.error.message || "Failed to check subscription status"
+      };
+    }
+    
+    // Store subscription info in localStorage for easy access
+    if (response.data) {
+      if (response.data.subscribed) {
+        localStorage.setItem('subscription_status', 'active');
+        localStorage.setItem('subscription_plan', response.data.subscription_tier || '');
+        localStorage.setItem('subscription_end', response.data.subscription_end || '');
+      } else {
+        localStorage.setItem('subscription_status', 'inactive');
+        localStorage.removeItem('subscription_plan');
+        localStorage.removeItem('subscription_end');
+      }
+      
+      // Dispatch storage event to notify components about the update
+      window.dispatchEvent(new Event('storage-event'));
+    }
+    
+    return { 
+      subscribed: response.data?.subscribed || false,
+      subscription_tier: response.data?.subscription_tier || null,
+      subscription_end: response.data?.subscription_end || null,
+      error: null
+    };
+  } catch (err) {
+    console.error("Error in checkSubscription:", err);
+    return { 
+      subscribed: false,
       error: err instanceof Error ? err.message : String(err)
     };
   }

@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, Star, CreditCard, ShieldCheck, RefreshCcw, AlertCircle } from 'lucide-react';
-import { createCheckoutSession } from '@/lib/stripe';
+import { Check, Star, CreditCard, ShieldCheck, RefreshCcw, AlertCircle, Loader2 } from 'lucide-react';
+import { createCheckoutSession, checkSubscription } from '@/lib/stripe';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionPlan {
@@ -33,9 +34,11 @@ export const SubscriptionPlansSection = () => {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
   
   const isSubscribed = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
 
+  // Load subscription data from localStorage and check with Stripe
   useEffect(() => {
     const loadSubscriptionData = () => {
       setCurrentPlan(localStorage.getItem('subscription_plan'));
@@ -44,10 +47,38 @@ export const SubscriptionPlansSection = () => {
     };
 
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setAuthChecked(true);
-      if (!data.session) {
-        setError("You need to be signed in to purchase a subscription");
+      try {
+        const { data } = await supabase.auth.getSession();
+        
+        if (!data.session) {
+          setError("You need to be signed in to purchase a subscription");
+          setAuthChecked(true);
+          setIsLoadingSubscription(false);
+          return;
+        }
+        
+        setAuthChecked(true);
+        
+        // Check subscription status with Stripe
+        setIsLoadingSubscription(true);
+        const result = await checkSubscription();
+        
+        if (result.error) {
+          console.error("Error checking subscription:", result.error);
+          if (result.authError) {
+            setError("You need to be signed in to purchase a subscription");
+          } else {
+            setError(`Error checking subscription status: ${result.error}`);
+          }
+        }
+        
+        // Load data from localStorage (which should be updated by checkSubscription)
+        loadSubscriptionData();
+        setIsLoadingSubscription(false);
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+        setIsLoadingSubscription(false);
+        setAuthChecked(true);
       }
     };
     
@@ -147,17 +178,32 @@ export const SubscriptionPlansSection = () => {
           description: "Please sign in to view your subscription status",
           variant: "destructive"
         });
+        setRefreshing(false);
         return;
       }
       
-      setCurrentPlan(localStorage.getItem('subscription_plan'));
-      setSubscriptionStatus(localStorage.getItem('subscription_status'));
-      setSubscriptionEnd(localStorage.getItem('subscription_end'));
+      // Check subscription status with Stripe
+      const result = await checkSubscription();
       
-      toast({
-        title: "Subscription status refreshed",
-        description: "Your subscription information has been updated"
-      });
+      if (result.error) {
+        toast({
+          title: "Error checking subscription",
+          description: result.error,
+          variant: "destructive"
+        });
+      } else {
+        // Load updated data from localStorage
+        setCurrentPlan(localStorage.getItem('subscription_plan'));
+        setSubscriptionStatus(localStorage.getItem('subscription_status'));
+        setSubscriptionEnd(localStorage.getItem('subscription_end'));
+        
+        toast({
+          title: "Subscription status refreshed",
+          description: result.subscribed 
+            ? `You are subscribed to the ${result.subscription_tier} plan`
+            : "You don't have an active subscription"
+        });
+      }
     } catch (error) {
       console.error("Error refreshing subscription status:", error);
       toast({
@@ -230,6 +276,17 @@ export const SubscriptionPlansSection = () => {
     }
   };
   
+  if (isLoadingSubscription) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading subscription status...</p>
+        </div>
+      </div>
+    );
+  }
+  
   if (!authChecked) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -255,8 +312,9 @@ export const SubscriptionPlansSection = () => {
           size="sm"
           onClick={refreshSubscriptionStatus}
           disabled={refreshing}
+          className="flex items-center gap-1"
         >
-          <RefreshCcw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           {refreshing ? 'Refreshing...' : 'Refresh Status'}
         </Button>
       </div>
@@ -359,7 +417,7 @@ export const SubscriptionPlansSection = () => {
           >
             {isLoading ? (
               <>
-                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Processing...
               </>
             ) : (

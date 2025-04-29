@@ -6,6 +6,8 @@ import Stripe from 'https://esm.sh/stripe@14.21.0'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 }
 
 // Helper for improved logging
@@ -27,8 +29,35 @@ serve(async (req) => {
       throw new Error('Stripe secret key is not configured');
     }
     
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    
+    if (!supabaseUrl || !supabaseServiceRole) {
+      throw new Error('Supabase environment variables are not configured');
+    }
+    
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
+    
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header provided');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    if (userError || !data.user) {
+      logStep('Authentication failed', { error: userError });
+      throw new Error('Not authenticated');
+    }
+
+    const user = data.user;
+    logStep('User authenticated', { userId: user.id, email: user.email });
+    
     const requestBody = await req.json();
-    const userEmail = requestBody?.email;
+    const userEmail = requestBody?.email || user.email;
     
     if (!userEmail) {
       throw new Error('User email is required');
@@ -50,7 +79,8 @@ serve(async (req) => {
       const newCustomer = await stripe.customers.create({
         email: userEmail,
         metadata: {
-          source: 'customer_portal_function'
+          source: 'customer_portal_function',
+          supabase_user_id: user.id
         }
       });
       
@@ -62,7 +92,7 @@ serve(async (req) => {
     }
 
     // Create the return URL dynamically based on request origin
-    const origin = req.headers.get('origin') || 'https://viafix-web.com';
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://viafix-web.com';
     const returnUrl = `${origin}/mechanic-dashboard`;
     
     logStep('Creating portal session', { customerId, returnUrl });
