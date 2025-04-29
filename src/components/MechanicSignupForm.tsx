@@ -66,7 +66,7 @@ const MechanicSignupForm = () => {
     
     toast({
       title: "Account created!",
-      description: `Welcome to Mobex, ${data.firstName}. Your mechanic account has been created successfully.`,
+      description: `Welcome to ViaFix, ${data.firstName}. Your mechanic account has been created successfully.`,
     });
     
     // Navigate directly to mechanic dashboard without any MFA step

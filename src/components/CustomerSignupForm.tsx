@@ -60,7 +60,7 @@ const CustomerSignupForm = () => {
     
     toast({
       title: "Account created!",
-      description: `Welcome to Mobex, ${data.firstName}. Your customer account has been created successfully.`,
+      description: `Welcome to ViaFix, ${data.firstName}. Your customer account has been created successfully.`,
     });
     
     // Navigate directly to customer profile/dashboard without any MFA step
