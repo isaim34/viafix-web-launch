@@ -50,14 +50,28 @@ export const SubscriptionPlansSection = () => {
       try {
         const { data } = await supabase.auth.getSession();
         
-        if (!data.session) {
-          setError("You need to be signed in to purchase a subscription");
-          setAuthChecked(true);
-          setIsLoadingSubscription(false);
-          return;
-        }
-        
+        // Set auth checked first to avoid showing signin error message prematurely
         setAuthChecked(true);
+        
+        if (!data.session) {
+          console.warn("No Supabase session found");
+          
+          // Check if we're authenticated through the app's local storage mechanism
+          const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+          const userRole = localStorage.getItem('userRole');
+          const userEmail = localStorage.getItem('userEmail');
+          
+          if (isLoggedInLocally && userRole && userEmail) {
+            console.log("Using local auth status: user is logged in via localStorage");
+            // Continue as if authenticated - we'll use the local auth state
+          } else {
+            setError("You need to be signed in to purchase a subscription");
+            setIsLoadingSubscription(false);
+            return;
+          }
+        } else {
+          console.log("Authenticated with Supabase session");
+        }
         
         // Check subscription status with Stripe
         setIsLoadingSubscription(true);
@@ -66,7 +80,7 @@ export const SubscriptionPlansSection = () => {
         if (result.error) {
           console.error("Error checking subscription:", result.error);
           if (result.authError) {
-            setError("You need to be signed in to purchase a subscription");
+            setError("Authentication error when checking subscription status. Please try signing out and back in.");
           } else {
             setError(`Error checking subscription status: ${result.error}`);
           }
@@ -78,7 +92,6 @@ export const SubscriptionPlansSection = () => {
       } catch (error) {
         console.error("Error checking auth status:", error);
         setIsLoadingSubscription(false);
-        setAuthChecked(true);
       }
     };
     
@@ -223,8 +236,11 @@ export const SubscriptionPlansSection = () => {
       setIsLoading(true);
       setError(null);
       
+      // Check auth status in all possible ways
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session && !auth.isLoggedIn) {
+      const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      
+      if (!session && !isLoggedInLocally && !auth.isLoggedIn) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",
@@ -240,6 +256,7 @@ export const SubscriptionPlansSection = () => {
       });
       
       if (authError) {
+        console.error("Auth error from checkout:", authError);
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",

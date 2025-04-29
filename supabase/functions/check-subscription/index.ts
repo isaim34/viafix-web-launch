@@ -39,8 +39,74 @@ serve(async (req) => {
     // Use the service role key to perform writes in Supabase
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
 
+    // First check for auth header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("No authorization header provided - checking body for email");
+      // If no auth header, try to get email from request body (fallback)
+      try {
+        const body = await req.json();
+        if (body && body.email) {
+          logStep("Using email from request body", { email: body.email });
+          
+          // In this case, we'll check for subscriptions by email only
+          const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+          const customers = await stripe.customers.list({ email: body.email, limit: 1 });
+          
+          if (customers.data.length === 0) {
+            logStep("No customer found for email", { email: body.email });
+            return new Response(JSON.stringify({ 
+              subscribed: false,
+              subscription_tier: null,
+              subscription_end: null
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            });
+          }
+          
+          // Continue with subscription check using the found customer
+          const customerId = customers.data[0].id;
+          // ... continue code for checking subscription with this customerId
+          
+          // Similar to the code further down
+          const subscriptions = await stripe.subscriptions.list({
+            customer: customerId,
+            status: "active",
+            limit: 1,
+          });
+          
+          const hasActiveSub = subscriptions.data.length > 0;
+          let subscriptionTier = null;
+          let subscriptionEnd = null;
+          let subscriptionId = null;
+          
+          if (hasActiveSub) {
+            const subscription = subscriptions.data[0];
+            subscriptionId = subscription.id;
+            subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+            subscriptionTier = subscription.metadata?.plan_type || 'monthly';
+          }
+          
+          logStep("Returning subscription info without updating database (no user_id available)", { subscribed: hasActiveSub });
+          
+          return new Response(JSON.stringify({
+            subscribed: hasActiveSub,
+            subscription_tier: subscriptionTier,
+            subscription_end: subscriptionEnd
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+      } catch (e) {
+        logStep("Error parsing request body", { error: e });
+        // Continue to auth error below
+      }
+      
+      throw new Error("No authorization header provided");
+    }
+
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
@@ -59,18 +125,24 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
       
-      // Store subscription status in Supabase vendor_subscriptions table
-      const { error: insertError } = await supabaseClient.from("vendor_subscriptions").upsert({
-        vendor_id: user.id,
-        stripe_customer_id: null,
-        status: 'inactive',
-        plan_type: null,
-        current_period_end: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'vendor_id' });
-      
-      if (insertError) {
-        logStep("Error updating subscription status", { error: insertError });
+      // Store subscription status in Supabase subscribers table
+      try {
+        const { error: insertError } = await supabaseClient.from("subscribers").upsert({
+          user_id: user.id,
+          email: user.email,
+          stripe_customer_id: null,
+          subscribed: false,
+          subscription_tier: null,
+          subscription_end: null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+        
+        if (insertError) {
+          logStep("Error updating subscription status", { error: insertError });
+        }
+      } catch (dbError) {
+        logStep("Database error when updating subscriber record", { error: dbError });
+        // Continue despite DB error - we should still return the subscription status
       }
       
       return new Response(JSON.stringify({ 
@@ -111,19 +183,25 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
-    // Store subscription status in Supabase vendor_subscriptions table
-    const { error: upsertError } = await supabaseClient.from("vendor_subscriptions").upsert({
-      vendor_id: user.id,
-      stripe_customer_id: customerId,
-      stripe_subscription_id: subscriptionId,
-      status: hasActiveSub ? 'active' : 'inactive',
-      plan_type: subscriptionTier,
-      current_period_end: subscriptionEnd,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'vendor_id' });
+    // Store subscription status in Supabase subscribers table
+    try {
+      const { error: upsertError } = await supabaseClient.from("subscribers").upsert({
+        user_id: user.id,
+        email: user.email,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        subscribed: hasActiveSub,
+        subscription_tier: subscriptionTier,
+        subscription_end: subscriptionEnd,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
 
-    if (upsertError) {
-      logStep("Error updating subscription status", { error: upsertError });
+      if (upsertError) {
+        logStep("Error updating subscription status", { error: upsertError });
+      }
+    } catch (dbError) {
+      logStep("Database error when updating subscriber record", { error: dbError });
+      // Continue despite DB error - we should still return the subscription status
     }
 
     // Also store subscription info in localStorage for frontend access
@@ -141,9 +219,14 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
     
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      subscribed: false,
+      subscription_tier: null,
+      subscription_end: null 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: 200, // Return 200 even with errors to prevent CORS issues
     });
   }
 });

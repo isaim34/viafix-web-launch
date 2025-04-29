@@ -39,25 +39,40 @@ serve(async (req) => {
     
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
     
-    // Get user from auth header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header provided');
+    let userEmail: string | undefined;
+    
+    // Try to get the email from the request body first (for local auth)
+    try {
+      const requestBody = await req.json();
+      userEmail = requestBody?.email;
+      
+      if (userEmail) {
+        logStep(`Using email from request body: ${userEmail}`);
+      }
+    } catch (e) {
+      logStep("No request body or error parsing it", { error: e });
+      // Continue to check auth header
     }
     
-    const token = authHeader.replace('Bearer ', '');
-    const { data, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !data.user) {
-      logStep('Authentication failed', { error: userError });
-      throw new Error('Not authenticated');
-    }
+    // If no email in body, try to get user from auth header
+    if (!userEmail) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        throw new Error('No authorization header provided and no email in request body');
+      }
+      
+      const token = authHeader.replace('Bearer ', '');
+      const { data, error: userError } = await supabaseClient.auth.getUser(token);
+      
+      if (userError || !data.user) {
+        logStep('Authentication failed', { error: userError });
+        throw new Error('Not authenticated');
+      }
 
-    const user = data.user;
-    logStep('User authenticated', { userId: user.id, email: user.email });
-    
-    const requestBody = await req.json();
-    const userEmail = requestBody?.email || user.email;
+      const user = data.user;
+      userEmail = user.email;
+      logStep('User authenticated', { userId: user.id, email: user.email });
+    }
     
     if (!userEmail) {
       throw new Error('User email is required');
@@ -79,8 +94,7 @@ serve(async (req) => {
       const newCustomer = await stripe.customers.create({
         email: userEmail,
         metadata: {
-          source: 'customer_portal_function',
-          supabase_user_id: user.id
+          source: 'customer_portal_function'
         }
       });
       

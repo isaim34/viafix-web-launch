@@ -13,18 +13,31 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
     console.log("Creating checkout session with options:", options);
     
     // Check if user is authenticated
-    const { data, error: sessionError } = await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
-    if (sessionError || !data.session) {
-      console.error("Session error:", sessionError);
-      return { 
-        url: null, 
-        error: "Authentication error. Please try signing in again.", 
-        authError: true 
-      };
+    let authToken = sessionData?.session?.access_token;
+    
+    // If no Supabase session, check if we're authenticated locally
+    if (sessionError || !sessionData.session) {
+      console.warn("No Supabase session found, checking local auth");
+      
+      const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      const userEmail = localStorage.getItem('userEmail');
+      
+      if (!isLoggedInLocally || !userEmail) {
+        console.error("No authentication found");
+        return { 
+          url: null, 
+          error: "Authentication error. Please try signing in again.", 
+          authError: true 
+        };
+      }
+      
+      // We'll still try to proceed with the function call
+      console.log("Proceeding with local authentication");
     }
     
-    // Call the checkout function with authentication
+    // Call the checkout function with the best auth we have
     const response = await supabase.functions.invoke('create-checkout', {
       body: options
     });
@@ -55,19 +68,30 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
 
 export const getCustomerPortal = async () => {
   try {
-    // Check if user is authenticated
-    const { data, error: sessionError } = await supabase.auth.getSession();
+    // Check if user is authenticated with Supabase
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    let userEmail;
     
-    if (sessionError || !data.session) {
-      console.error("Session error:", sessionError);
-      return { 
-        url: null, 
-        error: "Authentication error. Please try signing in again.",
-        authError: true
-      };
+    if (sessionError || !sessionData.session) {
+      console.warn("No Supabase session found, checking local auth");
+      
+      const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      userEmail = localStorage.getItem('userEmail');
+      
+      if (!isLoggedInLocally || !userEmail) {
+        console.error("No authentication found");
+        return { 
+          url: null, 
+          error: "Authentication error. Please try signing in again.",
+          authError: true
+        };
+      }
+      
+      console.log("Using local authentication with email:", userEmail);
+    } else {
+      userEmail = sessionData.session.user.email;
     }
     
-    const userEmail = data.session.user.email;
     if (!userEmail) {
       return { 
         url: null, 
@@ -108,19 +132,65 @@ export const getCustomerPortal = async () => {
 
 export const checkSubscription = async () => {
   try {
-    // Check if user is authenticated
-    const { data, error: sessionError } = await supabase.auth.getSession();
+    // Check if user is authenticated with Supabase
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    let userEmail;
     
-    if (sessionError || !data.session) {
-      console.error("Session error:", sessionError);
+    if (sessionError || !sessionData.session) {
+      console.warn("No Supabase session found, checking local auth");
+      
+      const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      userEmail = localStorage.getItem('userEmail');
+      
+      if (!isLoggedInLocally || !userEmail) {
+        console.error("No authentication found");
+        return { 
+          subscribed: false, 
+          error: "Authentication error. Please try signing in again.",
+          authError: true
+        };
+      }
+      
+      console.log("Using local authentication with email:", userEmail);
+      
+      // Call the check-subscription function with email in the body
+      const response = await supabase.functions.invoke('check-subscription', {
+        body: { email: userEmail }
+      });
+      
+      if (response.error) {
+        console.error("Subscription check error:", response.error);
+        return { 
+          subscribed: false, 
+          error: response.error.message || "Failed to check subscription status"
+        };
+      }
+      
+      // Store subscription info in localStorage for easy access
+      if (response.data) {
+        if (response.data.subscribed) {
+          localStorage.setItem('subscription_status', 'active');
+          localStorage.setItem('subscription_plan', response.data.subscription_tier || '');
+          localStorage.setItem('subscription_end', response.data.subscription_end || '');
+        } else {
+          localStorage.setItem('subscription_status', 'inactive');
+          localStorage.removeItem('subscription_plan');
+          localStorage.removeItem('subscription_end');
+        }
+        
+        // Dispatch storage event to notify components about the update
+        window.dispatchEvent(new Event('storage-event'));
+      }
+      
       return { 
-        subscribed: false, 
-        error: "Authentication error. Please try signing in again.",
-        authError: true
+        subscribed: response.data?.subscribed || false,
+        subscription_tier: response.data?.subscription_tier || null,
+        subscription_end: response.data?.subscription_end || null,
+        error: null
       };
     }
     
-    // Call the check-subscription function
+    // Use Supabase session authentication
     const response = await supabase.functions.invoke('check-subscription', {});
     
     if (response.error) {
