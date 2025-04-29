@@ -16,13 +16,14 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     let authToken = sessionData?.session?.access_token;
+    let userEmail = sessionData?.session?.user?.email;
     
     // If no Supabase session, check if we're authenticated locally
     if (sessionError || !sessionData.session) {
       console.warn("No Supabase session found, checking local auth");
       
       const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
-      const userEmail = localStorage.getItem('userEmail');
+      userEmail = localStorage.getItem('userEmail');
       
       if (!isLoggedInLocally || !userEmail) {
         console.error("No authentication found");
@@ -34,12 +35,15 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
       }
       
       // We'll still try to proceed with the function call
-      console.log("Proceeding with local authentication");
+      console.log("Proceeding with local authentication", { userEmail });
     }
     
-    // Call the checkout function with the best auth we have
+    // Include the email in the request body for local auth fallback
     const response = await supabase.functions.invoke('create-checkout', {
-      body: options
+      body: {
+        ...options,
+        email: userEmail
+      }
     });
     
     if (response.error) {
@@ -52,6 +56,15 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions) => 
     
     if (!response.data?.url) {
       console.error("No checkout URL in response:", response.data);
+      
+      // Check if there's an error message in the response
+      if (response.data?.error) {
+        return {
+          url: null,
+          error: response.data.error
+        };
+      }
+      
       throw new Error("No checkout URL returned");
     }
     

@@ -50,28 +50,33 @@ serve(async (req) => {
         logStep(`Using email from request body: ${userEmail}`);
       }
     } catch (e) {
-      logStep("No request body or error parsing it", { error: e });
+      logStep("No request body or error parsing it", { error: e.message });
       // Continue to check auth header
     }
     
     // If no email in body, try to get user from auth header
     if (!userEmail) {
       const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
+      if (!authHeader || authHeader === 'Bearer null') {
         throw new Error('No authorization header provided and no email in request body');
       }
       
       const token = authHeader.replace('Bearer ', '');
-      const { data, error: userError } = await supabaseClient.auth.getUser(token);
-      
-      if (userError || !data.user) {
-        logStep('Authentication failed', { error: userError });
-        throw new Error('Not authenticated');
-      }
+      try {
+        const { data, error: userError } = await supabaseClient.auth.getUser(token);
+        
+        if (userError || !data.user) {
+          logStep('Authentication failed', { error: userError });
+          throw new Error('Not authenticated');
+        }
 
-      const user = data.user;
-      userEmail = user.email;
-      logStep('User authenticated', { userId: user.id, email: user.email });
+        const user = data.user;
+        userEmail = user.email;
+        logStep('User authenticated', { userId: user.id, email: user.email });
+      } catch (authError) {
+        logStep('Error during authentication', { error: authError.message });
+        throw new Error('Authentication failed');
+      }
     }
     
     if (!userEmail) {
@@ -82,6 +87,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
     
+    // Find customer by email
     const customers = await stripe.customers.list({ 
       email: userEmail,
       limit: 1 

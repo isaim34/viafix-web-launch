@@ -31,8 +31,12 @@ serve(async (req) => {
       throw new Error('STRIPE_SECRET_KEY is not configured');
     }
     
-    const { paymentType, quantity, planType } = await req.json();
-    logStep('Request payload', { paymentType, quantity, planType });
+    // Parse request body
+    const requestBody = await req.json();
+    
+    // Explicitly extract data from the request body
+    const { paymentType, quantity, planType, email: requestEmail } = requestBody;
+    logStep('Request payload', { paymentType, quantity, planType, hasEmail: !!requestEmail });
     
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -44,22 +48,43 @@ serve(async (req) => {
     
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
     
-    // Get user from auth header
+    let userEmail: string | undefined;
+    let userId: string | undefined;
+    
+    // Try to get user from auth header first (Supabase auth)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header provided');
+    
+    if (authHeader && authHeader !== 'Bearer null') {
+      try {
+        logStep('Trying to authenticate with token');
+        
+        const token = authHeader.replace('Bearer ', '');
+        const { data, error } = await supabaseClient.auth.getUser(token);
+        
+        if (error) {
+          logStep('Auth error', { error: error.message });
+          // Continue to local auth check
+        } else if (data.user) {
+          userEmail = data.user.email;
+          userId = data.user.id;
+          logStep('User authenticated via Supabase', { userId, email: userEmail });
+        }
+      } catch (authError) {
+        logStep('Error during Supabase authentication', { error: authError });
+        // Continue to local auth check
+      }
     }
     
-    const token = authHeader.replace('Bearer ', '');
-    const { data, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !data.user) {
-      logStep('Authentication failed', { error: userError });
-      throw new Error('Not authenticated');
+    // If no user from Supabase auth, check the request body for email (local auth)
+    if (!userEmail && requestEmail) {
+      userEmail = requestEmail;
+      logStep('Using email from request body', { email: userEmail });
     }
-
-    const user = data.user;
-    logStep('User authenticated', { userId: user.id, email: user.email });
+    
+    // If still no user email, return error
+    if (!userEmail) {
+      throw new Error('Authentication required. Please sign in to continue.');
+    }
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, {
@@ -67,10 +92,10 @@ serve(async (req) => {
     });
 
     // Get or create Stripe customer
-    logStep('Looking up customer', { email: user.email });
+    logStep('Looking up customer', { email: userEmail });
     
     const customers = await stripe.customers.search({
-      query: `email:'${user.email}'`,
+      query: `email:'${userEmail}'`,
     });
     
     let customerId: string;
@@ -80,9 +105,9 @@ serve(async (req) => {
       logStep('Found existing customer', { customerId });
     } else {
       const customer = await stripe.customers.create({
-        email: user.email,
+        email: userEmail,
         metadata: {
-          supabaseUUID: user.id,
+          supabaseUUID: userId || 'local_auth_user',
         },
       });
       customerId = customer.id;
@@ -126,7 +151,7 @@ serve(async (req) => {
         cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
         subscription_data: {
           metadata: {
-            supabase_user_id: user.id,
+            supabase_user_id: userId || 'local_auth_user',
             plan_type: planType
           }
         }
@@ -177,7 +202,7 @@ serve(async (req) => {
         cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
         payment_intent_data: {
           metadata: {
-            supabase_user_id: user.id,
+            supabase_user_id: userId || 'local_auth_user',
             payment_type: paymentType,
             quantity: quantity ? quantity.toString() : '1'
           }
@@ -200,7 +225,7 @@ serve(async (req) => {
       success: false
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status: 200, // Return 200 to avoid CORS issues, but include error in response
     });
   }
 });

@@ -239,8 +239,9 @@ export const SubscriptionPlansSection = () => {
       // Check auth status in all possible ways
       const { data: { session } } = await supabase.auth.getSession();
       const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      const localUserEmail = localStorage.getItem('userEmail');
       
-      if (!session && !isLoggedInLocally && !auth.isLoggedIn) {
+      if (!session && !isLoggedInLocally && !localUserEmail) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",
@@ -250,6 +251,7 @@ export const SubscriptionPlansSection = () => {
         return;
       }
       
+      // Pass local auth email as an explicit option
       const { url, error, authError } = await createCheckoutSession({
         paymentType: 'subscription',
         planType: selectedPlan
