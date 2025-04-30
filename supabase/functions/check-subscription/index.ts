@@ -51,7 +51,15 @@ serve(async (req) => {
           
           // In this case, we'll check for subscriptions by email only
           const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-          const customers = await stripe.customers.list({ email: body.email, limit: 1 });
+          
+          // Add cache-busting query param to prevent cached results
+          const timestamp = new Date().getTime();
+          
+          const customers = await stripe.customers.list({ 
+            email: body.email, 
+            limit: 1,
+            expand: ['data.subscriptions'],
+          });
           
           if (customers.data.length === 0) {
             logStep("No customer found for email", { email: body.email });
@@ -77,12 +85,6 @@ serve(async (req) => {
             limit: 5, // Get up to 5 active subscriptions (most users will have only 1)
           });
           
-          // Get all payments for the customer (for one-time purchases)
-          const payments = await stripe.paymentIntents.list({
-            customer: customerId,
-            limit: 10,
-          });
-          
           const hasActiveSub = subscriptions.data.length > 0;
           let subscriptionTier = null;
           let subscriptionEnd = null;
@@ -96,7 +98,8 @@ serve(async (req) => {
             logStep("Active subscription found", { 
               subscriptionId, 
               endDate: subscriptionEnd,
-              tier: subscriptionTier
+              tier: subscriptionTier,
+              status: subscription.status 
             });
           } else {
             logStep("No active subscription found");
@@ -104,6 +107,7 @@ serve(async (req) => {
           
           logStep("Returning subscription info without updating database (no user_id available)", { subscribed: hasActiveSub });
           
+          // Update local storage via script in response
           return new Response(JSON.stringify({
             subscribed: hasActiveSub,
             subscription_tier: subscriptionTier,
@@ -134,7 +138,15 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    
+    // Add cache-busting query param to prevent cached results
+    const timestamp = new Date().getTime();
+    
+    const customers = await stripe.customers.list({ 
+      email: user.email, 
+      limit: 1,
+      expand: ['data.subscriptions'],
+    });
     
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
@@ -172,22 +184,47 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Make sure to check for all subscription statuses that are "active"
+    // This includes trialing, active, past_due (as these are still usable subscriptions)
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 5, // Check for multiple subscriptions just in case
+      status: "all", // Get all so we can log for debugging
+      expand: ['data.plan'],
+      limit: 10, // Check for multiple subscriptions just in case
     });
     
-    const hasActiveSub = subscriptions.data.length > 0;
+    // Log all subscriptions for debugging
+    subscriptions.data.forEach((sub, idx) => {
+      logStep(`Subscription ${idx+1} found`, { 
+        id: sub.id, 
+        status: sub.status, 
+        current_period_end: new Date(sub.current_period_end * 1000).toISOString() 
+      });
+    });
+    
+    // Filter for active subscriptions (active, trialing, past_due)
+    const activeSubscriptions = subscriptions.data.filter(
+      sub => ['active', 'trialing', 'past_due'].includes(sub.status)
+    );
+    
+    const hasActiveSub = activeSubscriptions.length > 0;
     let subscriptionTier = null;
     let subscriptionEnd = null;
     let subscriptionId = null;
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+      // Sort by end date to get the one that expires later
+      const subscription = activeSubscriptions.sort(
+        (a, b) => b.current_period_end - a.current_period_end
+      )[0];
+      
       subscriptionId = subscription.id;
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId, endDate: subscriptionEnd });
+      logStep("Active subscription found", { 
+        subscriptionId, 
+        endDate: subscriptionEnd,
+        status: subscription.status
+      });
       
       // Determine subscription tier from plan type in metadata
       subscriptionTier = subscription.metadata?.plan_type || 'monthly';

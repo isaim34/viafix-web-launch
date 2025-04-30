@@ -42,6 +42,7 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
     
     let userEmail: string | undefined;
+    let userId: string | undefined;
     
     // Try to get user from auth header first (Supabase auth)
     const authHeader = req.headers.get('Authorization');
@@ -58,6 +59,7 @@ serve(async (req) => {
           // Continue to local auth check
         } else if (data.user) {
           userEmail = data.user.email;
+          userId = data.user.id;
           logStep('User authenticated via Supabase', { userId: data.user.id, email: userEmail });
         }
       } catch (authError) {
@@ -104,6 +106,9 @@ serve(async (req) => {
     } else {
       const customer = await stripe.customers.create({
         email: userEmail,
+        metadata: {
+          user_id: userId || 'local_auth_user'
+        }
       });
       customerId = customer.id;
       logStep('Created new customer', { customerId });
@@ -148,7 +153,11 @@ serve(async (req) => {
         currency: 'usd',
         product_data: {
           name: `ViaFix ${planType.charAt(0).toUpperCase() + planType.slice(1)} Subscription`,
-          description: `Mechanic subscription plan (${planType})`
+          description: `Mechanic subscription plan (${planType})`,
+          metadata: {
+            plan_type: planType,
+            user_id: userId || 'local_auth_user'
+          }
         },
         unit_amount: priceAmounts[planType as keyof typeof priceAmounts],
         recurring: {
@@ -168,13 +177,16 @@ serve(async (req) => {
           },
         ],
         mode: 'subscription',
-        success_url: `${origin}/mechanic-dashboard?success=subscription`,
+        success_url: `${origin}/mechanic-dashboard?success=subscription&plan=${planType}`,
         cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
         subscription_data: {
           metadata: {
-            plan_type: planType
+            plan_type: planType,
+            user_id: userId || 'local_auth_user'
           }
-        }
+        },
+        client_reference_id: userId || userEmail, // Add reference for tracking
+        automatic_tax: { enabled: false }
       });
     } else {
       // One-off payment for featured listing or message packages
@@ -211,6 +223,11 @@ serve(async (req) => {
                 description: paymentType === 'featured' 
                   ? `${quantity} days of featured listing`
                   : `${quantity} messages`,
+                metadata: {
+                  payment_type: paymentType,
+                  quantity: quantity ? quantity.toString() : '1',
+                  user_id: userId || 'local_auth_user'
+                }
               },
               unit_amount: finalAmount,
             },
@@ -218,20 +235,22 @@ serve(async (req) => {
           },
         ],
         mode: 'payment',
-        success_url: `${origin}/mechanic-dashboard?success=${paymentType}`,
+        success_url: `${origin}/mechanic-dashboard?success=${paymentType}&quantity=${quantity}`,
         cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
         payment_intent_data: {
           metadata: {
             payment_type: paymentType,
-            quantity: quantity ? quantity.toString() : '1'
+            quantity: quantity ? quantity.toString() : '1',
+            user_id: userId || 'local_auth_user'
           }
-        }
+        },
+        client_reference_id: userId || userEmail // Add reference for tracking
       });
     }
 
     logStep('Checkout session created', { sessionId: session.id, url: session.url });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });

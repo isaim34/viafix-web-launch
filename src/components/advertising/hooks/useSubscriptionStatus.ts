@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { checkSubscription } from '@/lib/stripe';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { isSubscriptionDataStale } from '@/lib/stripe/utils';
 
 export interface SubscriptionStatus {
   isAuthenticated: boolean;
@@ -53,18 +54,18 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
   };
 
   useEffect(() => {
-    checkAuth();
+    // Check if we need a fresh subscription check
+    const shouldRefresh = isSubscriptionDataStale();
+    if (shouldRefresh) {
+      checkAuth();
+    } else {
+      // Load from localStorage if data isn't stale
+      loadSubscriptionFromLocalStorage();
+    }
     
     // Listen for storage events that might update subscription status
     const handleStorageEvent = () => {
-      const status = localStorage.getItem('subscription_status');
-      const plan = localStorage.getItem('subscription_plan');
-      const endDate = localStorage.getItem('subscription_end');
-      
-      // Make sure to convert to boolean using comparison
-      setIsSubscribed(status === 'active' || status === 'trialing');
-      setSubscriptionTier(plan || null);
-      setSubscriptionEnd(endDate || null);
+      loadSubscriptionFromLocalStorage();
     };
     
     window.addEventListener('storage', handleStorageEvent);
@@ -75,7 +76,14 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('success') === 'subscription') {
         // If returning from a successful checkout, immediately check status
-        setTimeout(() => refreshSubscriptionStatus(), 1000);
+        console.log("Detected return from subscription checkout, refreshing status");
+        setTimeout(() => refreshSubscriptionStatus(), 500);
+        
+        // Show a loading toast
+        toast({
+          title: "Checking subscription status",
+          description: "Please wait while we verify your subscription",
+        });
       }
     };
     
@@ -87,6 +95,23 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
     };
   }, []);
   
+  const loadSubscriptionFromLocalStorage = () => {
+    const status = localStorage.getItem('subscription_status');
+    const plan = localStorage.getItem('subscription_plan');
+    const endDate = localStorage.getItem('subscription_end');
+    
+    // Make sure to convert to boolean using comparison
+    setIsSubscribed(status === 'active' || status === 'trialing');
+    setSubscriptionTier(plan || null);
+    setSubscriptionEnd(endDate || null);
+    
+    // Check if we're authenticated (either Supabase or local)
+    const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+    const userEmail = localStorage.getItem('userEmail');
+    
+    setIsAuthenticated(isLoggedInLocally && !!userEmail);
+  };
+  
   const refreshSubscriptionStatus = async () => {
     try {
       setIsCheckingStatus(true);
@@ -96,6 +121,7 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       localStorage.removeItem('subscription_status');
       localStorage.removeItem('subscription_plan');
       localStorage.removeItem('subscription_end');
+      localStorage.removeItem('subscription_updated_at');
       
       const result = await checkSubscription();
       

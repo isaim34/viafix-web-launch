@@ -32,3 +32,30 @@ export const updateLocalSubscriptionData = (data: any) => {
     window.dispatchEvent(new Event('storage-event'));
   }
 };
+
+/**
+ * Checks if the subscription data in localStorage is stale (older than 5 minutes)
+ */
+export const isSubscriptionDataStale = (): boolean => {
+  const updatedAt = localStorage.getItem('subscription_updated_at');
+  if (!updatedAt) return true;
+  
+  const lastUpdate = new Date(updatedAt).getTime();
+  const now = new Date().getTime();
+  const fiveMinutesMs = 5 * 60 * 1000;
+  
+  return (now - lastUpdate) > fiveMinutesMs;
+};
+
+/**
+ * Clear all subscription data from localStorage
+ */
+export const clearSubscriptionData = () => {
+  localStorage.removeItem('subscription_status');
+  localStorage.removeItem('subscription_plan');
+  localStorage.removeItem('subscription_end');
+  localStorage.removeItem('subscription_updated_at');
+  
+  // Dispatch storage event to notify components
+  window.dispatchEvent(new Event('storage-event'));
+};
