@@ -25,17 +25,27 @@ export const PortalAccessButton = ({
       setIsLoading(true);
       setError(null);
 
-      // Check authentication status directly
+      // First try Supabase auth
       const { data } = await supabase.auth.getSession();
       
+      // If no Supabase session, check local auth as fallback
       if (!data.session) {
-        setError("You must be logged in to access subscription management");
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to manage your subscription",
-          variant: "destructive"
-        });
-        return;
+        const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+        const userEmail = localStorage.getItem('userEmail');
+        
+        if (!isLoggedInLocally || !userEmail) {
+          // Neither auth method worked
+          setError("You must be logged in to access subscription management");
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to manage your subscription",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Log that we're using local auth
+        console.log("Using local authentication for portal access");
       }
       
       toast({

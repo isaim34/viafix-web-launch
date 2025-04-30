@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -48,30 +47,32 @@ export const SubscriptionPlansSection = () => {
 
     const checkAuth = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        
         // Set auth checked first to avoid showing signin error message prematurely
         setAuthChecked(true);
         
-        if (!data.session) {
-          console.warn("No Supabase session found");
-          
-          // Check if we're authenticated through the app's local storage mechanism
-          const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
-          const userRole = localStorage.getItem('userRole');
-          const userEmail = localStorage.getItem('userEmail');
-          
-          if (isLoggedInLocally && userRole && userEmail) {
-            console.log("Using local auth status: user is logged in via localStorage");
-            // Continue as if authenticated - we'll use the local auth state
-          } else {
-            setError("You need to be signed in to purchase a subscription");
-            setIsLoadingSubscription(false);
-            return;
-          }
-        } else {
-          console.log("Authenticated with Supabase session");
+        // First try to get session from Supabase
+        const { data } = await supabase.auth.getSession();
+        const isAuthenticated = !!data.session;
+        
+        // Also check local authentication as fallback
+        const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+        const userRole = localStorage.getItem('userRole');
+        const userEmail = localStorage.getItem('userEmail');
+        const hasLocalAuth = isLoggedInLocally && userRole && userEmail;
+        
+        // If neither Supabase nor local auth is present, show error
+        if (!isAuthenticated && !hasLocalAuth) {
+          console.warn("No authentication found");
+          setError("You need to be signed in to view subscription status");
+          setIsLoadingSubscription(false);
+          return;
         }
+        
+        // If we have any form of authentication, proceed with subscription check
+        console.log("Using authentication: ", {
+          supabase: isAuthenticated, 
+          local: hasLocalAuth
+        });
         
         // Check subscription status with Stripe
         setIsLoadingSubscription(true);
@@ -183,8 +184,15 @@ export const SubscriptionPlansSection = () => {
       setRefreshing(true);
       setError(null);
       
+      // First try Supabase auth
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      
+      // Then check local auth as backup
+      const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      const userEmail = localStorage.getItem('userEmail');
+      
+      // If neither authentication method works, show error
+      if (!session && (!isLoggedInLocally || !userEmail)) {
         setError("You need to be signed in to view subscription status");
         toast({
           title: "Authentication required",
