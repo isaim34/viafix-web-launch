@@ -5,7 +5,7 @@ import { Star } from 'lucide-react';
 import { FeaturedPlanCard } from './FeaturedPlanCard';
 import { Button } from '@/components/ui/button';
 import { createCheckoutSession } from '@/lib/stripe';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 export interface SelectedPlan {
@@ -14,7 +14,7 @@ export interface SelectedPlan {
   title: string;
 }
 
-interface FeaturedPlansSectionProps {
+export interface FeaturedPlansSectionProps {
   featuredDailyPrice: number;
   onPurchaseFeatured: (days: number) => void;
 }
@@ -25,7 +25,9 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const handleSelectPlan = (plan: SelectedPlan) => {
     setSelectedPlan(prev => {
@@ -40,13 +42,15 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
     if (selectedPlan) {
       try {
         setIsLoading(true);
+        setError(null);
         
-        const { url, error, authError } = await createCheckoutSession({
+        const { url, error: checkoutError, authError } = await createCheckoutSession({
           paymentType: 'featured',
           quantity: selectedPlan.days
         });
 
         if (authError) {
+          setError("Authentication required");
           toast({
             title: "Authentication Required",
             description: "Please sign in to purchase a featured plan",
@@ -56,18 +60,19 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
           return;
         }
 
-        if (error) {
-          throw new Error(error);
+        if (checkoutError) {
+          setError(checkoutError);
+          throw new Error(checkoutError);
         }
         
         if (url) {
           window.location.href = url;
         }
-      } catch (error) {
-        console.error('Payment error:', error);
+      } catch (err) {
+        console.error('Payment error:', err);
         toast({
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to initiate checkout",
+          description: err instanceof Error ? err.message : "Failed to initiate checkout",
           variant: "destructive"
         });
       } finally {

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,9 +15,9 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { createCheckoutSession } from '@/lib/stripe';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
-interface MessagePackagesSectionProps {
+export interface MessagePackagesSectionProps {
   messageCost: number;
   messagesRemaining: number;
   onBuyMessages: (quantity: number) => void;
@@ -29,6 +30,8 @@ export const MessagePackagesSection: React.FC<MessagePackagesSectionProps> = ({
 }) => {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const handlePackageClick = (quantity: number) => {
     setSelectedPackage(quantity);
@@ -38,15 +41,28 @@ export const MessagePackagesSection: React.FC<MessagePackagesSectionProps> = ({
   const handleConfirmPurchase = async () => {
     if (selectedPackage) {
       try {
-        const { url } = await createCheckoutSession({
+        setError(null);
+        const { url, error: checkoutError } = await createCheckoutSession({
           paymentType: 'messages',
           quantity: selectedPackage
         });
         
+        if (checkoutError) {
+          setError(checkoutError);
+          toast({
+            title: "Error",
+            description: checkoutError,
+            variant: "destructive"
+          });
+          return;
+        }
+        
         if (url) {
           window.location.href = url;
         }
-      } catch (error) {
+      } catch (err) {
+        console.error('Payment error:', err);
+        setError(err instanceof Error ? err.message : "Unknown error");
         toast({
           title: "Error",
           description: "Failed to initiate checkout. Please try again.",

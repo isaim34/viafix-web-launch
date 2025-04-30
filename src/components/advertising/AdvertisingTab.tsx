@@ -6,7 +6,7 @@ import { MessageCircle, CreditCard, Star, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FeaturedPlansSection } from './FeaturedPlansSection';
 import { MessagePackagesSection } from './MessagePackagesSection';
-import { PaymentMethodsTab } from './PaymentMethodsTab';
+import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
 
 export default function AdvertisingTab() {
@@ -39,19 +39,26 @@ export default function AdvertisingTab() {
             </TabsList>
             
             <TabsContent value="subscription">
-              <SubscriptionPlansSection setError={setError} />
+              <SubscriptionPlansSection />
             </TabsContent>
             
             <TabsContent value="featured">
-              <FeaturedPlansSection setError={setError} />
+              <FeaturedPlansSection 
+                featuredDailyPrice={9.99}
+                onPurchaseFeatured={(days) => console.log(`Purchased ${days} days of featuring`)}
+              />
             </TabsContent>
             
             <TabsContent value="messages">
-              <MessagePackagesSection setError={setError} />
+              <MessagePackagesSection 
+                messageCost={0.99}
+                messagesRemaining={10}
+                onBuyMessages={(quantity) => console.log(`Purchased ${quantity} messages`)}
+              />
             </TabsContent>
             
             <TabsContent value="payment">
-              <PaymentMethodsTab setError={setError} />
+              <PaymentMethodsTab />
             </TabsContent>
           </Tabs>
         </CardContent>
