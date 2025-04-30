@@ -113,31 +113,57 @@ serve(async (req) => {
     let session;
     
     if (paymentType === 'subscription') {
-      // Using the actual price IDs from your Stripe dashboard
-      const prices = {
-        monthly: 'price_1RHQvyQ2fyi7p18OwHgMc713',    // $50/month
-        quarterly: 'price_1RHQwmQ2fyi7p18OrDott3L3',  // $45/month (billed quarterly)
-        biannual: 'price_1RHQxFQ2fyi7p18OKwn92RrR',   // $42.50/month (billed bi-annually)
-        annual: 'price_1RHQyRQ2fyi7p18O0dUNCTo1',     // $40/month (billed annually)
+      // Calculate price amounts based on plan type
+      const priceAmounts = {
+        monthly: 5000,     // $50/month
+        quarterly: 13500,  // $45/month (billed quarterly at $135)
+        biannual: 25500,   // $42.50/month (billed bi-annually at $255)
+        annual: 48000,     // $40/month (billed annually at $480)
       };
-
-      if (!planType || !prices[planType as keyof typeof prices]) {
+      
+      const intervals = {
+        monthly: 'month',
+        quarterly: 'month', 
+        biannual: 'month',
+        annual: 'year'
+      };
+      
+      const intervalCounts = {
+        monthly: 1,
+        quarterly: 3, 
+        biannual: 6,
+        annual: 1
+      };
+      
+      if (!planType || !priceAmounts[planType as keyof typeof priceAmounts]) {
         throw new Error(`Invalid plan type: ${planType}`);
       }
 
-      logStep('Creating subscription checkout', { 
-        planType, 
-        priceId: prices[planType as keyof typeof prices] 
-      });
+      logStep('Creating subscription checkout', { planType });
       
       // Get origin from request headers or set a default
       const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://viafix-web.com';
+      
+      const priceData = {
+        currency: 'usd',
+        product_data: {
+          name: `ViaFix ${planType.charAt(0).toUpperCase() + planType.slice(1)} Subscription`,
+          description: `Mechanic subscription plan (${planType})`
+        },
+        unit_amount: priceAmounts[planType as keyof typeof priceAmounts],
+        recurring: {
+          interval: intervals[planType as keyof typeof intervals],
+          interval_count: intervalCounts[planType as keyof typeof intervalCounts]
+        }
+      };
+      
+      logStep('Price data created', priceData);
       
       session = await stripe.checkout.sessions.create({
         customer: customerId,
         line_items: [
           {
-            price: prices[planType as keyof typeof prices],
+            price_data: priceData,
             quantity: 1,
           },
         ],
