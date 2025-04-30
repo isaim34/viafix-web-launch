@@ -33,12 +33,12 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       const userEmail = localStorage.getItem('userEmail');
       const hasLocalAuth = isLoggedInLocally && userEmail;
       
-      setIsAuthenticated(hasSession || hasLocalAuth);
+      setIsAuthenticated(hasSession || !!hasLocalAuth); // Convert to boolean with !! operator
       
       if (hasSession || hasLocalAuth) {
         setIsCheckingStatus(true);
         const result = await checkSubscription();
-        setIsSubscribed(result.subscribed || false);
+        setIsSubscribed(!!result.subscribed); // Convert to boolean with !! operator
         setSubscriptionTier(result.subscription_tier || null);
         setSubscriptionEnd(result.subscription_end || null);
         if (result.error) {
@@ -61,6 +61,7 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       const plan = localStorage.getItem('subscription_plan');
       const endDate = localStorage.getItem('subscription_end');
       
+      // Make sure to convert to boolean using comparison
       setIsSubscribed(status === 'active' || status === 'trialing');
       setSubscriptionTier(plan || null);
       setSubscriptionEnd(endDate || null);
@@ -106,7 +107,8 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
         });
         setError(result.error);
       } else {
-        setIsSubscribed(result.subscribed || false);
+        // Convert to boolean using !! operator to ensure boolean type
+        setIsSubscribed(!!result.subscribed);
         setSubscriptionTier(result.subscription_tier);
         setSubscriptionEnd(result.subscription_end);
         
