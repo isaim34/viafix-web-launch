@@ -23,27 +23,36 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        const hasSession = !!data.session;
-        setIsAuthenticated(hasSession);
-        
-        if (hasSession) {
-          setIsCheckingStatus(true);
-          const result = await checkSubscription();
-          setIsSubscribed(result.subscribed || false);
-          setSubscriptionTier(result.subscription_tier || localStorage.getItem('subscription_plan'));
-          setSubscriptionEnd(result.subscription_end || localStorage.getItem('subscription_end'));
-          setIsCheckingStatus(false);
+  const checkAuth = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const hasSession = !!data.session;
+      
+      // Also check local auth as fallback
+      const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
+      const userEmail = localStorage.getItem('userEmail');
+      const hasLocalAuth = isLoggedInLocally && userEmail;
+      
+      setIsAuthenticated(hasSession || hasLocalAuth);
+      
+      if (hasSession || hasLocalAuth) {
+        setIsCheckingStatus(true);
+        const result = await checkSubscription();
+        setIsSubscribed(result.subscribed || false);
+        setSubscriptionTier(result.subscription_tier || null);
+        setSubscriptionEnd(result.subscription_end || null);
+        if (result.error) {
+          setError(result.error);
         }
-      } catch (error) {
-        console.error("Error checking auth status:", error);
         setIsCheckingStatus(false);
       }
-    };
-    
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      setIsCheckingStatus(false);
+    }
+  };
+
+  useEffect(() => {
     checkAuth();
     
     // Listen for storage events that might update subscription status
@@ -60,6 +69,17 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
     window.addEventListener('storage', handleStorageEvent);
     window.addEventListener('storage-event', handleStorageEvent);
     
+    // Also listen for URL changes to detect returning from checkout
+    const checkURLForCheckoutSuccess = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'subscription') {
+        // If returning from a successful checkout, immediately check status
+        setTimeout(() => refreshSubscriptionStatus(), 1000);
+      }
+    };
+    
+    checkURLForCheckoutSuccess();
+    
     return () => {
       window.removeEventListener('storage', handleStorageEvent);
       window.removeEventListener('storage-event', handleStorageEvent);
@@ -71,6 +91,11 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       setIsCheckingStatus(true);
       setError(null);
       
+      // Force fetch fresh data
+      localStorage.removeItem('subscription_status');
+      localStorage.removeItem('subscription_plan');
+      localStorage.removeItem('subscription_end');
+      
       const result = await checkSubscription();
       
       if (result.error) {
@@ -79,6 +104,7 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
           description: result.error,
           variant: "destructive"
         });
+        setError(result.error);
       } else {
         setIsSubscribed(result.subscribed || false);
         setSubscriptionTier(result.subscription_tier);

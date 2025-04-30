@@ -326,6 +326,25 @@ export const SubscriptionPlansSection = () => {
     );
   }
   
+  // Add auto-refresh when returning from checkout
+  useEffect(() => {
+    const checkURLForCheckoutSuccess = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'subscription') {
+        toast({
+          title: "Subscription purchase successful!",
+          description: "Your subscription has been activated. Refreshing status...",
+          variant: "default"
+        });
+        
+        // Short delay before refreshing to allow Stripe to process the payment
+        setTimeout(() => refreshSubscriptionStatus(), 2000);
+      }
+    };
+    
+    checkURLForCheckoutSuccess();
+  }, []);
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

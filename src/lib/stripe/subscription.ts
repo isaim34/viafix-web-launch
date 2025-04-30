@@ -10,7 +10,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     let userEmail;
     
     if (sessionError || !sessionData.session) {
-      console.warn("No Supabase session found, checking local auth");
+      console.log("No Supabase session found, checking local auth");
       
       const { isLoggedInLocally, userEmail: localEmail } = checkLocalAuth();
       userEmail = localEmail;
@@ -28,7 +28,8 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       
       // Call the check-subscription function with email in the body
       const response = await supabase.functions.invoke('check-subscription', {
-        body: { email: userEmail }
+        body: { email: userEmail },
+        headers: { 'Cache-Control': 'no-cache' } // Prevent caching
       });
       
       if (response.error) {
@@ -51,7 +52,9 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     }
     
     // Use Supabase session authentication
-    const response = await supabase.functions.invoke('check-subscription', {});
+    const response = await supabase.functions.invoke('check-subscription', {
+      headers: { 'Cache-Control': 'no-cache' } // Prevent caching
+    });
     
     if (response.error) {
       console.error("Subscription check error:", response.error);

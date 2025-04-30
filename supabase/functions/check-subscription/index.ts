@@ -67,13 +67,20 @@ serve(async (req) => {
           
           // Continue with subscription check using the found customer
           const customerId = customers.data[0].id;
-          // ... continue code for checking subscription with this customerId
+          logStep("Found customer", { customerId });
           
-          // Similar to the code further down
+          // Get all subscriptions for the customer
           const subscriptions = await stripe.subscriptions.list({
             customer: customerId,
             status: "active",
-            limit: 1,
+            expand: ['data.plan'],
+            limit: 5, // Get up to 5 active subscriptions (most users will have only 1)
+          });
+          
+          // Get all payments for the customer (for one-time purchases)
+          const payments = await stripe.paymentIntents.list({
+            customer: customerId,
+            limit: 10,
           });
           
           const hasActiveSub = subscriptions.data.length > 0;
@@ -82,10 +89,17 @@ serve(async (req) => {
           let subscriptionId = null;
           
           if (hasActiveSub) {
-            const subscription = subscriptions.data[0];
+            const subscription = subscriptions.data[0]; // Use the most recent subscription
             subscriptionId = subscription.id;
             subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
             subscriptionTier = subscription.metadata?.plan_type || 'monthly';
+            logStep("Active subscription found", { 
+              subscriptionId, 
+              endDate: subscriptionEnd,
+              tier: subscriptionTier
+            });
+          } else {
+            logStep("No active subscription found");
           }
           
           logStep("Returning subscription info without updating database (no user_id available)", { subscribed: hasActiveSub });
@@ -161,7 +175,7 @@ serve(async (req) => {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
-      limit: 1,
+      limit: 5, // Check for multiple subscriptions just in case
     });
     
     const hasActiveSub = subscriptions.data.length > 0;
