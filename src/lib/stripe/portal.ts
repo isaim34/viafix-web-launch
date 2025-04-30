@@ -1,68 +1,57 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { PortalResult } from "./types";
-import { checkLocalAuth } from "./utils";
+import { supabase } from '@/integrations/supabase/client';
+import { PortalResult } from './types';
+import { checkLocalAuth } from './utils';
 
+/**
+ * Get customer portal URL for managing subscriptions
+ */
 export const getCustomerPortal = async (): Promise<PortalResult> => {
   try {
-    // Check if user is authenticated with Supabase
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    let userEmail;
+    // First try Supabase authentication
+    const { data } = await supabase.auth.getSession();
     
-    if (sessionError || !sessionData.session) {
-      console.warn("No Supabase session found, checking local auth");
-      
-      const { isLoggedInLocally, userEmail: localEmail } = checkLocalAuth();
-      userEmail = localEmail;
+    // If no Supabase session, check local auth as fallback
+    if (!data.session) {
+      const { isLoggedInLocally, userEmail } = checkLocalAuth();
       
       if (!isLoggedInLocally || !userEmail) {
-        console.error("No authentication found");
-        return { 
+        return {
           url: null, 
-          error: "Authentication error. Please try signing in again.",
+          error: "Authentication required",
           authError: true
         };
       }
       
-      console.log("Using local authentication with email:", userEmail);
-    } else {
-      userEmail = sessionData.session.user.email;
+      console.log("Using local authentication for portal access");
     }
-    
-    if (!userEmail) {
-      return { 
-        url: null, 
-        error: "User email not found. Please log in again." 
-      };
-    }
-    
-    // Call the customer-portal function
-    const response = await supabase.functions.invoke('customer-portal', {
-      body: { email: userEmail }
+
+    // Call the Stripe customer portal function
+    const response = await fetch('/api/customer-portal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
     
-    if (response.error) {
-      console.error("Customer portal error:", response.error);
+    if (!response.ok) {
+      const errorData = await response.json();
       return { 
         url: null, 
-        error: response.error.message || "Failed to access customer portal"
+        error: errorData.error || `Server error: ${response.status}`
       };
     }
     
-    if (!response.data?.url) {
-      return { 
-        url: null, 
-        error: response.data?.error || "Failed to create portal session"
-      };
-    }
-    
-    console.log("Portal access successful:", response.data.url);
-    return { url: response.data.url, error: null };
-  } catch (err) {
-    console.error("Error in getCustomerPortal:", err);
+    const result = await response.json();
+    return { 
+      url: result.url, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Customer portal error:', error);
     return { 
       url: null, 
-      error: err instanceof Error ? err.message : String(err)
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 };

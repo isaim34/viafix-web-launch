@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,10 +21,13 @@ import MechanicChat from '@/components/MechanicChat';
 import CompletedJobsTab from '@/components/CompletedJobsTab';
 import WeeklyPlannerTab from '@/components/WeeklyPlannerTab';
 import StatsOverview from '@/components/stats/StatsOverview';
-import AdvertisingTab from '@/components/advertising/AdvertisingTab';
 import CancelledGigsTab from '@/components/CancelledGigsTab';
 import ReviewsTab from '@/components/ReviewsTab';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { lazy, Suspense } from 'react';
+
+// Lazy load the AdvertisingTab component
+const AdvertisingTab = lazy(() => import('@/components/advertising/AdvertisingTab'));
 
 const MechanicDashboard = () => {
   const isMobile = useIsMobile();
@@ -119,7 +123,9 @@ const MechanicDashboard = () => {
           </TabsContent>
           
           <TabsContent value="advertising">
-            <AdvertisingTab />
+            <Suspense fallback={<div className="p-4 text-center">Loading advertising options...</div>}>
+              <AdvertisingTab />
+            </Suspense>
           </TabsContent>
           
           <TabsContent value="stats">
