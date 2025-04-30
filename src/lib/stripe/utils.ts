@@ -11,30 +11,41 @@ export const checkLocalAuth = () => {
 
 /**
  * Store subscription info in localStorage for easy access
+ * Now with improved reliability and timestamp
  */
 export const updateLocalSubscriptionData = (data: any) => {
   if (data) {
-    if (data.subscribed) {
-      localStorage.setItem('subscription_status', 'active');
-      localStorage.setItem('subscription_plan', data.subscription_tier || '');
-      localStorage.setItem('subscription_end', data.subscription_end || '');
+    try {
+      if (data.subscribed) {
+        localStorage.setItem('subscription_status', 'active');
+        localStorage.setItem('subscription_plan', data.subscription_tier || '');
+        localStorage.setItem('subscription_end', data.subscription_end || '');
+      } else {
+        localStorage.setItem('subscription_status', 'inactive');
+        localStorage.removeItem('subscription_plan');
+        localStorage.removeItem('subscription_end');
+      }
       
-      // Add timestamp to prevent stale data
+      // Add timestamp to prevent stale data and force refresh
       localStorage.setItem('subscription_updated_at', new Date().toISOString());
-    } else {
-      localStorage.setItem('subscription_status', 'inactive');
-      localStorage.removeItem('subscription_plan');
-      localStorage.removeItem('subscription_end');
-      localStorage.setItem('subscription_updated_at', new Date().toISOString());
+      
+      // Dispatch storage event to notify components about the update
+      window.dispatchEvent(new Event('storage-event'));
+      
+      console.log('Local subscription data updated:', {
+        status: data.subscribed ? 'active' : 'inactive',
+        tier: data.subscription_tier,
+        end: data.subscription_end
+      });
+    } catch (err) {
+      console.error('Error updating local subscription data:', err);
     }
-    
-    // Dispatch storage event to notify components about the update
-    window.dispatchEvent(new Event('storage-event'));
   }
 };
 
 /**
- * Checks if the subscription data in localStorage is stale (older than 5 minutes)
+ * Checks if the subscription data in localStorage is stale (older than 2 minutes)
+ * Reduced from 5 minutes to ensure more frequent refreshes
  */
 export const isSubscriptionDataStale = (): boolean => {
   const updatedAt = localStorage.getItem('subscription_updated_at');
@@ -42,9 +53,9 @@ export const isSubscriptionDataStale = (): boolean => {
   
   const lastUpdate = new Date(updatedAt).getTime();
   const now = new Date().getTime();
-  const fiveMinutesMs = 5 * 60 * 1000;
+  const twoMinutesMs = 2 * 60 * 1000;
   
-  return (now - lastUpdate) > fiveMinutesMs;
+  return (now - lastUpdate) > twoMinutesMs;
 };
 
 /**
@@ -58,4 +69,6 @@ export const clearSubscriptionData = () => {
   
   // Dispatch storage event to notify components
   window.dispatchEvent(new Event('storage-event'));
+  
+  console.log('Local subscription data cleared');
 };

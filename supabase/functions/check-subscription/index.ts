@@ -38,6 +38,7 @@ serve(async (req) => {
     
     // Use the service role key to perform writes in Supabase
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
+    logStep("Supabase client initialized");
 
     // First check for auth header
     const authHeader = req.headers.get("Authorization");
@@ -107,7 +108,6 @@ serve(async (req) => {
           
           logStep("Returning subscription info without updating database (no user_id available)", { subscribed: hasActiveSub });
           
-          // Update local storage via script in response
           return new Response(JSON.stringify({
             subscribed: hasActiveSub,
             subscription_tier: subscriptionTier,
@@ -142,6 +142,7 @@ serve(async (req) => {
     // Add cache-busting query param to prevent cached results
     const timestamp = new Date().getTime();
     
+    logStep("Finding Stripe customer for user", { email: user.email });
     const customers = await stripe.customers.list({ 
       email: user.email, 
       limit: 1,
@@ -151,20 +152,48 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
       
+      // Check if user already exists in subscribers table
+      const { data: existingSubscriber } = await supabaseClient
+        .from("subscribers")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+        
       // Store subscription status in Supabase subscribers table
       try {
-        const { error: insertError } = await supabaseClient.from("subscribers").upsert({
-          user_id: user.id,
-          email: user.email,
-          stripe_customer_id: null,
-          subscribed: false,
-          subscription_tier: null,
-          subscription_end: null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-        
-        if (insertError) {
-          logStep("Error updating subscription status", { error: insertError });
+        if (existingSubscriber) {
+          logStep("Updating existing subscriber record", { userId: user.id });
+          
+          const { error: updateError } = await supabaseClient
+            .from("subscribers")
+            .update({
+              subscribed: false,
+              subscription_tier: null,
+              subscription_end: null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", user.id);
+            
+          if (updateError) {
+            logStep("Error updating subscription status", { error: updateError });
+          }
+        } else {
+          logStep("Creating new subscriber record", { userId: user.id });
+          
+          const { error: insertError } = await supabaseClient
+            .from("subscribers")
+            .insert({
+              user_id: user.id,
+              email: user.email,
+              stripe_customer_id: null,
+              subscribed: false,
+              subscription_tier: null,
+              subscription_end: null,
+            });
+            
+          if (insertError) {
+            logStep("Error inserting subscription status", { error: insertError });
+          }
         }
       } catch (dbError) {
         logStep("Database error when updating subscriber record", { error: dbError });
@@ -198,7 +227,8 @@ serve(async (req) => {
       logStep(`Subscription ${idx+1} found`, { 
         id: sub.id, 
         status: sub.status, 
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString() 
+        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        metadata: sub.metadata
       });
     });
     
@@ -223,7 +253,8 @@ serve(async (req) => {
       logStep("Active subscription found", { 
         subscriptionId, 
         endDate: subscriptionEnd,
-        status: subscription.status
+        status: subscription.status,
+        metadata: subscription.metadata
       });
       
       // Determine subscription tier from plan type in metadata
@@ -234,29 +265,70 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
+    // Check if user already exists in subscribers table
+    const { data: existingSubscriber } = await supabaseClient
+      .from("subscribers")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
     // Store subscription status in Supabase subscribers table
     try {
-      const { error: upsertError } = await supabaseClient.from("subscribers").upsert({
-        user_id: user.id,
-        email: user.email,
-        stripe_customer_id: customerId,
-        stripe_subscription_id: subscriptionId,
-        subscribed: hasActiveSub,
-        subscription_tier: subscriptionTier,
-        subscription_end: subscriptionEnd,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
-
-      if (upsertError) {
-        logStep("Error updating subscription status", { error: upsertError });
+      if (existingSubscriber) {
+        logStep("Updating existing subscriber record", { 
+          userId: user.id,
+          id: existingSubscriber.id 
+        });
+        
+        const { error: updateError } = await supabaseClient
+          .from("subscribers")
+          .update({
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            subscribed: hasActiveSub,
+            subscription_tier: subscriptionTier,
+            subscription_end: subscriptionEnd,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingSubscriber.id);
+          
+        if (updateError) {
+          logStep("Error updating subscription status", { error: updateError });
+        } else {
+          logStep("Successfully updated subscriber record");
+        }
+      } else {
+        logStep("Creating new subscriber record", { userId: user.id });
+        
+        const { error: insertError } = await supabaseClient
+          .from("subscribers")
+          .insert({
+            user_id: user.id,
+            email: user.email,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            subscribed: hasActiveSub,
+            subscription_tier: subscriptionTier,
+            subscription_end: subscriptionEnd,
+          });
+          
+        if (insertError) {
+          logStep("Error inserting subscriber record", { error: insertError });
+        } else {
+          logStep("Successfully inserted subscriber record");
+        }
       }
     } catch (dbError) {
       logStep("Database error when updating subscriber record", { error: dbError });
       // Continue despite DB error - we should still return the subscription status
     }
 
-    // Also store subscription info in localStorage for frontend access
-    logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
+    // Return subscription info
+    logStep("Returning subscription info", { 
+      subscribed: hasActiveSub, 
+      subscriptionTier,
+      subscriptionEnd 
+    });
     
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,

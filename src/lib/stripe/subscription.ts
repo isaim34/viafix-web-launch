@@ -5,6 +5,8 @@ import { checkLocalAuth, updateLocalSubscriptionData } from "./utils";
 
 export const checkSubscription = async (): Promise<SubscriptionResult> => {
   try {
+    console.log("Checking subscription status...");
+    
     // Check if user is authenticated with Supabase
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     let userEmail;
@@ -26,9 +28,12 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       
       console.log("Using local authentication with email:", userEmail);
       
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      
       // Call the check-subscription function with email in the body
       const response = await supabase.functions.invoke('check-subscription', {
-        body: { email: userEmail },
+        body: { email: userEmail, timestamp },
         headers: { 'Cache-Control': 'no-cache' } // Prevent caching
       });
       
@@ -39,6 +44,8 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           error: response.error.message || "Failed to check subscription status"
         };
       }
+      
+      console.log("Received subscription data:", response.data);
       
       // Store subscription info in localStorage for easy access
       updateLocalSubscriptionData(response.data);
@@ -52,7 +59,13 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     }
     
     // Use Supabase session authentication
+    console.log("Using Supabase authentication");
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
     const response = await supabase.functions.invoke('check-subscription', {
+      body: { timestamp }, // Add timestamp to prevent caching
       headers: { 'Cache-Control': 'no-cache' } // Prevent caching
     });
     
@@ -63,6 +76,8 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         error: response.error.message || "Failed to check subscription status"
       };
     }
+    
+    console.log("Received subscription data:", response.data);
     
     // Store subscription info in localStorage for easy access
     updateLocalSubscriptionData(response.data);

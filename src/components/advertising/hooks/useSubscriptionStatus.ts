@@ -34,21 +34,30 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       const userEmail = localStorage.getItem('userEmail');
       const hasLocalAuth = isLoggedInLocally && userEmail;
       
-      setIsAuthenticated(hasSession || !!hasLocalAuth); // Convert to boolean with !! operator
+      setIsAuthenticated(hasSession || !!hasLocalAuth);
       
       if (hasSession || hasLocalAuth) {
         setIsCheckingStatus(true);
+        console.log("Checking subscription status with Stripe...");
         const result = await checkSubscription();
-        setIsSubscribed(!!result.subscribed); // Convert to boolean with !! operator
+        
+        console.log("Subscription check result:", result);
+        setIsSubscribed(!!result.subscribed);
         setSubscriptionTier(result.subscription_tier || null);
         setSubscriptionEnd(result.subscription_end || null);
+        
         if (result.error) {
+          console.error("Error checking subscription:", result.error);
           setError(result.error);
+        } else {
+          setError(null);
         }
+        
         setIsCheckingStatus(false);
       }
     } catch (error) {
       console.error("Error checking auth status:", error);
+      setError("Error verifying authentication status");
       setIsCheckingStatus(false);
     }
   };
@@ -56,10 +65,12 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
   useEffect(() => {
     // Check if we need a fresh subscription check
     const shouldRefresh = isSubscriptionDataStale();
+    
     if (shouldRefresh) {
+      console.log("Subscription data is stale, refreshing from server");
       checkAuth();
     } else {
-      // Load from localStorage if data isn't stale
+      console.log("Using cached subscription data from localStorage");
       loadSubscriptionFromLocalStorage();
     }
     
@@ -117,13 +128,13 @@ export const useSubscriptionStatus = (): SubscriptionStatus => {
       setIsCheckingStatus(true);
       setError(null);
       
-      // Force fetch fresh data
-      localStorage.removeItem('subscription_status');
-      localStorage.removeItem('subscription_plan');
-      localStorage.removeItem('subscription_end');
+      // Force fetch fresh data by clearing the cache
       localStorage.removeItem('subscription_updated_at');
       
+      console.log("Manually refreshing subscription status...");
       const result = await checkSubscription();
+      
+      console.log("Manual refresh result:", result);
       
       if (result.error) {
         toast({
