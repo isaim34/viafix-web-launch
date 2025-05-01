@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 type AuthContextType = {
@@ -29,7 +30,13 @@ const defaultContext: AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType>(defaultContext);
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    console.error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -154,10 +161,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check auth status on component mount and listen for changes
   useEffect(() => {
+    console.log("AuthProvider initializing");
+    
     const checkUserAuth = async () => {
       try {
+        console.log("Checking user auth status");
+        
         // First check if we have an active session in Supabase
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Supabase auth session error:", error);
+        }
+        
+        const session = data?.session;
         
         if (session?.user) {
           console.log("Active Supabase session found:", session.user.email);
@@ -182,11 +199,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setCurrentUserRole(userType);
           setUserEmail(email);
         } else {
+          console.log("No Supabase session, checking localStorage");
           // No Supabase session, fall back to localStorage
           const userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
           const userRole = localStorage.getItem('userRole');
           const userName = localStorage.getItem('userName');
           const email = localStorage.getItem('userEmail');
+          
+          console.log("LocalStorage auth:", { userLoggedIn, userRole, userName, email });
           
           // For mechanics, we need to be even more aggressive about finding a proper name
           let storedName = userName || '';
@@ -226,6 +246,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Error checking auth state:', error);
       } finally {
+        console.log("Auth check complete, setting authChecked to true");
         setAuthChecked(true);
       }
     };
@@ -234,25 +255,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkUserAuth();
     
     // Set up listener for auth state changes from Supabase
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        // Use setTimeout to prevent potential auth deadlocks
-        setTimeout(() => checkUserAuth(), 0);
-      }
-    );
-    
-    // Listen for storage events for cross-tab sync and custom storage events
-    window.addEventListener('storage', checkUserAuth);
-    window.addEventListener('storage-event', checkUserAuth);
-    
-    return () => {
-      subscription?.unsubscribe();
-      window.removeEventListener('storage', checkUserAuth);
-      window.removeEventListener('storage-event', checkUserAuth);
-    };
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+          
+          // Use setTimeout to prevent potential auth deadlocks
+          setTimeout(() => checkUserAuth(), 0);
+        }
+      );
+      
+      // Listen for storage events for cross-tab sync and custom storage events
+      const handleStorageEvent = () => {
+        console.log("Storage event detected, rechecking auth");
+        checkUserAuth();
+      };
+      
+      window.addEventListener('storage', handleStorageEvent);
+      window.addEventListener('storage-event', handleStorageEvent);
+      
+      return () => {
+        console.log("AuthProvider cleanup");
+        subscription?.unsubscribe();
+        window.removeEventListener('storage', handleStorageEvent);
+        window.removeEventListener('storage-event', handleStorageEvent);
+      };
+    } catch (e) {
+      console.error("Error setting up auth listeners:", e);
+      // Make sure we still mark auth as checked even if there's an error
+      setAuthChecked(true);
+    }
   }, []);
+
+  console.log("AuthProvider render with state:", { 
+    isLoggedIn: isCustomerLoggedIn || isMechanicLoggedIn,
+    authChecked, 
+    currentUserRole
+  });
 
   const value = {
     isLoggedIn: isCustomerLoggedIn || isMechanicLoggedIn,

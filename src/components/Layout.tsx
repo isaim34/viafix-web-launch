@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { Header } from './Header';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -8,6 +9,12 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  // Add debug logging
+  useEffect(() => {
+    console.log("Layout component mounted");
+    return () => console.log("Layout component unmounted");
+  }, []);
+
   const handleSupportClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const email = 'support@tryviafix.com';
