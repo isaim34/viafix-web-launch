@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -61,7 +62,7 @@ function App() {
                           <p className="text-gray-600 mt-2">Please refresh the page to try again</p>
                         </div>
                       }>
-                        <Index />
+                        <IndexRedirect />
                       </ErrorBoundary>
                     } />
                     <Route path="/signin" element={<Signin />} />
@@ -98,5 +99,26 @@ function App() {
     </ErrorBoundary>
   );
 }
+
+// New component to handle index route redirection
+const IndexRedirect = () => {
+  const { isLoggedIn, authChecked } = useAuth();
+  
+  useEffect(() => {
+    console.log("IndexRedirect mounted, authChecked:", authChecked, "isLoggedIn:", isLoggedIn);
+  }, [authChecked, isLoggedIn]);
+  
+  // Show simple loading while checking auth
+  if (!authChecked) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-pulse text-gray-400">Checking authentication...</div>
+      </div>
+    );
+  }
+  
+  // Redirect to signin if not logged in, otherwise show Index page
+  return isLoggedIn ? <Index /> : <Navigate to="/signin" replace />;
+};
 
 export default App;

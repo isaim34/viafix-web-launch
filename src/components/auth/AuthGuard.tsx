@@ -28,12 +28,12 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     };
   }, [isLoggedIn, authChecked]);
 
-  // Show simple loading during the brief check period
+  // Show consistent loading during the check period
   if (isChecking || !authChecked) {
     console.log("AuthGuard is still checking...");
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-pulse text-gray-400">Loading...</div>
+        <div className="animate-pulse text-gray-400">Checking authentication...</div>
       </div>
     );
   }
