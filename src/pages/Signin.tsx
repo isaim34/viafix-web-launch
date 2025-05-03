@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
-// Import the sign in forms directly without lazy loading
+// Import the sign in forms directly
 import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
 
@@ -36,6 +36,20 @@ const Signin = () => {
     
     return () => clearTimeout(timer);
   }, []);
+
+  // Add additional debug logging
+  useEffect(() => {
+    console.log("Signin component mounted with state:", {
+      activeTab,
+      redirectChecked,
+      isLoggedIn,
+      authChecked,
+      currentUserRole,
+      locationState: location.state
+    });
+    
+    return () => console.log("Signin component unmounted");
+  }, [activeTab, redirectChecked, isLoggedIn, authChecked, currentUserRole, location.state]);
 
   // Only redirect if we've confirmed auth state and the user is logged in
   if (redirectChecked && authChecked && isLoggedIn) {

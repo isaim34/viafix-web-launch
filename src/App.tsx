@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -5,6 +6,7 @@ import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthGuard } from './components/auth/AuthGuard';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext'; 
 import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
