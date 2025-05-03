@@ -1,11 +1,10 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Toaster } from './components/ui/toaster';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthGuard } from './components/auth/AuthGuard';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
@@ -38,19 +37,6 @@ const PageLoader = () => (
   </div>
 );
 
-// IndexRedirect component to handle root path redirection
-const IndexRedirect = () => {
-  const { isLoggedIn, authChecked } = useAuth();
-  
-  // Show loading until auth is checked
-  if (!authChecked) {
-    return <PageLoader />;
-  }
-  
-  // Redirect to signin if not logged in, otherwise show Index
-  return isLoggedIn ? <Index /> : <Navigate to="/signin" />;
-};
-
 function App() {
   // Add debug logging
   useEffect(() => {
@@ -75,7 +61,7 @@ function App() {
                           <p className="text-gray-600 mt-2">Please refresh the page to try again</p>
                         </div>
                       }>
-                        <IndexRedirect />
+                        <Index />
                       </ErrorBoundary>
                     } />
                     <Route path="/signin" element={<Signin />} />
