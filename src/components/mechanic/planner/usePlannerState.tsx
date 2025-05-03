@@ -1,157 +1,169 @@
 
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
-import { PlannerEntry, WeeklyPlan } from '@/types/mechanic';
-import { FilterOptions } from './types/plannerTypes';
-import { sampleWeeklyPlan, getEmptyEntry } from './data/sampleData';
-import { filterEntries, getUniqueServiceTypes } from './utils/filterUtils';
-import { formatDisplayDate } from './utils/dateUtils';
+import { useState, useEffect, useCallback } from 'react';
+import { PlannerEntry, PlannerFilterOptions } from './types/plannerTypes';
+import { filterEntries } from './utils/filterUtils';
+import { formatDate } from './utils/dateUtils';
+import { sampleData } from './data/sampleData';
 
-export { formatDisplayDate } from './utils/dateUtils';
-export type { FilterOptions } from './types/plannerTypes';
-
-export function usePlannerState() {
-  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(sampleWeeklyPlan);
+export const usePlannerState = () => {
+  // Initialize with sample data or load from localStorage
+  const getInitialData = () => {
+    try {
+      const savedData = localStorage.getItem('mechanic-planner');
+      return savedData ? JSON.parse(savedData) : { 
+        week: `Week of ${formatDate(new Date().toISOString())}`,
+        entries: sampleData 
+      };
+    } catch (error) {
+      console.error('Error loading planner data:', error);
+      return { 
+        week: `Week of ${formatDate(new Date().toISOString())}`,
+        entries: [] 
+      };
+    }
+  };
+  
+  const [weeklyPlan, setWeeklyPlan] = useState(getInitialData);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<PlannerEntry | null>(null);
-  const [newEntry, setNewEntry] = useState<Omit<PlannerEntry, 'id'>>(getEmptyEntry());
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editedNote, setEditedNote] = useState<string>('');
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    startDate: undefined,
-    endDate: undefined,
-    serviceType: undefined,
+  const [editedNote, setEditedNote] = useState('');
+  
+  // Filter state
+  const [filterOptions, setFilterOptions] = useState<PlannerFilterOptions>({
+    startDate: '',
+    endDate: '',
+    serviceType: ''
   });
-  const { toast } = useToast();
 
-  // Get unique service types for the filter dropdown
-  const uniqueServiceTypes = getUniqueServiceTypes(weeklyPlan.entries);
-
-  // Apply filters to entries
-  const filteredEntries = filterEntries(weeklyPlan.entries, filterOptions);
-
-  const handleAddEntry = () => {
-    if (!newEntry.customerName || !newEntry.serviceType) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in at least customer name and service type",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const entry: PlannerEntry = {
-      id: Date.now().toString(),
-      ...newEntry
-    };
-
-    setWeeklyPlan({
-      ...weeklyPlan,
-      entries: [...weeklyPlan.entries, entry]
-    });
-
-    // Reset form and close dialog
-    setNewEntry(getEmptyEntry());
-    setIsAddDialogOpen(false);
-
-    toast({
-      title: "Entry added",
-      description: "The job has been added to your weekly planner"
-    });
+  // Default new entry
+  const defaultNewEntry = {
+    id: '',
+    date: new Date().toISOString().split('T')[0],
+    customerName: '',
+    serviceType: '',
+    estimatedTime: '1h',
+    notes: ''
   };
+  
+  const [newEntry, setNewEntry] = useState<PlannerEntry>(defaultNewEntry);
+  
+  // Get unique service types for filter dropdown
+  const uniqueServiceTypes = Array.from(
+    new Set(weeklyPlan.entries?.map(entry => entry.serviceType) || [])
+  ).filter(Boolean);
 
-  const handleEditEntry = () => {
-    if (!editingEntry || !editingEntry.customerName || !editingEntry.serviceType) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in at least customer name and service type",
-        variant: "destructive"
-      });
-      return;
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('mechanic-planner', JSON.stringify(weeklyPlan));
+    } catch (error) {
+      console.error('Error saving planner data:', error);
     }
-
-    setWeeklyPlan({
-      ...weeklyPlan,
-      entries: weeklyPlan.entries.map(entry => 
-        entry.id === editingEntry.id ? editingEntry : entry
+  }, [weeklyPlan]);
+  
+  // Add entry
+  const handleAddEntry = useCallback((entry: PlannerEntry) => {
+    const entryWithId = {
+      ...entry,
+      id: Date.now().toString()
+    };
+    
+    setWeeklyPlan(prev => ({
+      ...prev,
+      entries: [entryWithId, ...(prev.entries || [])]
+    }));
+    
+    setIsAddDialogOpen(false);
+    setNewEntry(defaultNewEntry);
+  }, [defaultNewEntry]);
+  
+  // Edit entry
+  const handleEditEntry = useCallback((updatedEntry: PlannerEntry) => {
+    setWeeklyPlan(prev => ({
+      ...prev,
+      entries: (prev.entries || []).map(entry => 
+        entry.id === updatedEntry.id ? updatedEntry : entry
       )
-    });
-
+    }));
+    
     setIsEditDialogOpen(false);
     setEditingEntry(null);
-
-    toast({
-      title: "Entry updated",
-      description: "The job has been updated in your weekly planner"
-    });
-  };
-
-  const handleDeleteEntry = (id: string) => {
-    setWeeklyPlan({
-      ...weeklyPlan,
-      entries: weeklyPlan.entries.filter(entry => entry.id !== id)
-    });
-
-    toast({
-      title: "Entry deleted",
-      description: "The job has been removed from your weekly planner"
-    });
-  };
-
-  const openEditDialog = (entry: PlannerEntry) => {
+  }, []);
+  
+  // Delete entry
+  const handleDeleteEntry = useCallback((id: string) => {
+    setWeeklyPlan(prev => ({
+      ...prev,
+      entries: (prev.entries || []).filter(entry => entry.id !== id)
+    }));
+    
+    if (editingNoteId === id) {
+      setEditingNoteId(null);
+    }
+  }, [editingNoteId]);
+  
+  // Open edit dialog
+  const openEditDialog = useCallback((entry: PlannerEntry) => {
     setEditingEntry(entry);
     setIsEditDialogOpen(true);
-  };
-
-  // Start inline note editing
-  const startEditingNote = (entry: PlannerEntry) => {
+  }, []);
+  
+  // Start editing note
+  const startEditingNote = useCallback((entry: PlannerEntry) => {
     setEditingNoteId(entry.id);
-    setEditedNote(entry.notes);
-  };
-
+    setEditedNote(entry.notes || '');
+  }, []);
+  
   // Save edited note
-  const saveEditedNote = (id: string) => {
-    setWeeklyPlan({
-      ...weeklyPlan,
-      entries: weeklyPlan.entries.map(entry => 
-        entry.id === id ? {...entry, notes: editedNote} : entry
+  const saveEditedNote = useCallback((id: string) => {
+    setWeeklyPlan(prev => ({
+      ...prev,
+      entries: (prev.entries || []).map(entry => 
+        entry.id === id ? { ...entry, notes: editedNote } : entry
       )
-    });
+    }));
     
     setEditingNoteId(null);
-    setEditedNote('');
-    
-    toast({
-      title: "Note updated",
-      description: "The job notes have been updated"
-    });
-  };
-
-  // Cancel note editing
-  const cancelEditingNote = () => {
+  }, [editedNote]);
+  
+  // Cancel editing note
+  const cancelEditingNote = useCallback(() => {
     setEditingNoteId(null);
     setEditedNote('');
-  };
-
-  // Handle filter changes
-  const handleFilterChange = (newOptions: Partial<FilterOptions>) => {
+  }, []);
+  
+  // Format display date
+  const formatDisplayDate = useCallback((dateString: string) => {
+    try {
+      return formatDate(dateString);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  }, []);
+  
+  // Handle filter change
+  const handleFilterChange = useCallback((key: keyof PlannerFilterOptions, value: string) => {
     setFilterOptions(prev => ({
       ...prev,
-      ...newOptions
+      [key]: value
     }));
-  };
-
-  // Clear all filters
-  const clearFilters = () => {
+  }, []);
+  
+  // Clear filters
+  const clearFilters = useCallback(() => {
     setFilterOptions({
-      startDate: undefined,
-      endDate: undefined,
-      serviceType: undefined,
+      startDate: '',
+      endDate: '',
+      serviceType: ''
     });
-  };
-
+  }, []);
+  
+  // Filter entries based on current filter options
+  const filteredEntries = filterEntries(weeklyPlan.entries || [], filterOptions);
+  
   return {
     weeklyPlan,
     filteredEntries,
@@ -179,4 +191,4 @@ export function usePlannerState() {
     clearFilters,
     uniqueServiceTypes
   };
-}
+};

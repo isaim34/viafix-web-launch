@@ -25,12 +25,19 @@ import CancelledGigsTab from '@/components/CancelledGigsTab';
 import ReviewsTab from '@/components/ReviewsTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
+import ErrorBoundary from '@/ErrorBoundary';
 
 // Lazy load the AdvertisingTab component
 const AdvertisingTab = lazy(() => import('@/components/advertising/AdvertisingTab'));
 
 const MechanicDashboard = () => {
   const isMobile = useIsMobile();
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("MechanicDashboard component mounted");
+    return () => console.log("MechanicDashboard component unmounted");
+  }, []);
 
   return (
     <Layout>
@@ -103,45 +110,65 @@ const MechanicDashboard = () => {
           </TabsList>
           
           <TabsContent value="gigs">
-            <GigManagement />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading gigs section</div>}>
+              <GigManagement />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="completed-jobs">
-            <CompletedJobsTab />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading completed jobs</div>}>
+              <CompletedJobsTab />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="planner">
-            <WeeklyPlannerTab />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading planner</div>}>
+              <WeeklyPlannerTab />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="inbox">
-            <MechanicMailbox />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading inbox</div>}>
+              <MechanicMailbox />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="chat">
-            <MechanicChat />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading chat</div>}>
+              <MechanicChat />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="advertising">
-            <Suspense fallback={<div className="p-4 text-center">Loading advertising options...</div>}>
-              <AdvertisingTab />
-            </Suspense>
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading advertising options</div>}>
+              <Suspense fallback={<div className="p-4 text-center">Loading advertising options...</div>}>
+                <AdvertisingTab />
+              </Suspense>
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="stats">
-            <StatsOverview />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading statistics</div>}>
+              <StatsOverview />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="profile">
-            <ProfileEditor />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading profile</div>}>
+              <ProfileEditor />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="cancelled">
-            <CancelledGigsTab />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading cancelled gigs</div>}>
+              <CancelledGigsTab />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="reviews">
-            <ReviewsTab />
+            <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading reviews</div>}>
+              <ReviewsTab />
+            </ErrorBoundary>
           </TabsContent>
         </Tabs>
       </div>

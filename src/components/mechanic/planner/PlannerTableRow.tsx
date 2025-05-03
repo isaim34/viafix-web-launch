@@ -22,7 +22,7 @@ interface PlannerTableRowProps {
 const PlannerTableRow: React.FC<PlannerTableRowProps> = ({
   entry,
   editingNoteId,
-  editedNote,
+  editedNote = '',
   formatDisplayDate,
   onEditClick,
   onDeleteClick,
@@ -31,6 +31,43 @@ const PlannerTableRow: React.FC<PlannerTableRowProps> = ({
   onCancelEditingNote,
   onEditedNoteChange
 }) => {
+  if (!entry || !entry.id) {
+    console.error("Invalid entry data", entry);
+    return null;
+  }
+
+  const handleEditClick = () => {
+    try {
+      onEditClick(entry);
+    } catch (error) {
+      console.error("Error handling edit click:", error);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    try {
+      onDeleteClick(entry.id);
+    } catch (error) {
+      console.error("Error handling delete click:", error);
+    }
+  };
+
+  const handleStartEditingNote = () => {
+    try {
+      onStartEditingNote(entry);
+    } catch (error) {
+      console.error("Error starting note edit:", error);
+    }
+  };
+
+  const handleSaveEditedNote = () => {
+    try {
+      onSaveEditedNote(entry.id);
+    } catch (error) {
+      console.error("Error saving edited note:", error);
+    }
+  };
+
   return (
     <TableRow key={entry.id}>
       <TableCell className="font-medium">
@@ -39,12 +76,12 @@ const PlannerTableRow: React.FC<PlannerTableRowProps> = ({
           {formatDisplayDate(entry.date)}
         </div>
       </TableCell>
-      <TableCell>{entry.customerName}</TableCell>
-      <TableCell>{entry.serviceType}</TableCell>
+      <TableCell>{entry.customerName || 'N/A'}</TableCell>
+      <TableCell>{entry.serviceType || 'N/A'}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-muted-foreground" />
-          {entry.estimatedTime}
+          {entry.estimatedTime || 'N/A'}
         </div>
       </TableCell>
       <TableCell className="max-w-xs">
@@ -61,7 +98,7 @@ const PlannerTableRow: React.FC<PlannerTableRowProps> = ({
                 size="sm" 
                 variant="outline"
                 className="h-7 px-2 text-xs"
-                onClick={() => onSaveEditedNote(entry.id)}
+                onClick={handleSaveEditedNote}
               >
                 <CheckSquare className="h-3.5 w-3.5 mr-1" />
                 Save
@@ -79,12 +116,12 @@ const PlannerTableRow: React.FC<PlannerTableRowProps> = ({
           </div>
         ) : (
           <div className="flex items-start justify-between group">
-            <span className="mr-2" title={entry.notes}>{entry.notes || "No notes"}</span>
+            <span className="mr-2" title={entry.notes || ""}>{entry.notes || "No notes"}</span>
             <Button
               variant="ghost"
               size="icon"
               className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => onStartEditingNote(entry)}
+              onClick={handleStartEditingNote}
             >
               <Edit size={14} />
             </Button>
@@ -96,14 +133,14 @@ const PlannerTableRow: React.FC<PlannerTableRowProps> = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => onEditClick(entry)}
+            onClick={handleEditClick}
           >
             <Pencil size={16} />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => onDeleteClick(entry.id)}
+            onClick={handleDeleteClick}
           >
             <Trash2 size={16} />
           </Button>

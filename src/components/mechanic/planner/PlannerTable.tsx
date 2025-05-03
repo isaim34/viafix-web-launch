@@ -25,9 +25,9 @@ interface PlannerTableProps {
 }
 
 const PlannerTable: React.FC<PlannerTableProps> = ({
-  entries,
+  entries = [],
   editingNoteId,
-  editedNote,
+  editedNote = '',
   formatDisplayDate,
   onEditClick,
   onDeleteClick,
@@ -36,6 +36,25 @@ const PlannerTable: React.FC<PlannerTableProps> = ({
   onCancelEditingNote,
   onEditedNoteChange
 }) => {
+  // Add debug logging
+  React.useEffect(() => {
+    console.log("PlannerTable component mounted with entries:", entries.length);
+    return () => console.log("PlannerTable component unmounted");
+  }, [entries.length]);
+
+  // Make sure we have a valid formatDisplayDate function
+  const safeFormatDate = (date: string) => {
+    try {
+      if (typeof formatDisplayDate === 'function') {
+        return formatDisplayDate(date);
+      }
+      return date;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return date;
+    }
+  };
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -59,7 +78,7 @@ const PlannerTable: React.FC<PlannerTableProps> = ({
                   entry={entry}
                   editingNoteId={editingNoteId}
                   editedNote={editedNote}
-                  formatDisplayDate={formatDisplayDate}
+                  formatDisplayDate={safeFormatDate}
                   onEditClick={onEditClick}
                   onDeleteClick={onDeleteClick}
                   onStartEditingNote={onStartEditingNote}
