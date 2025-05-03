@@ -7,6 +7,17 @@ export type FilterOptions = {
   serviceType: string | undefined;
 };
 
+export type PlannerFilterOptions = FilterOptions;
+
+export type PlannerEntry = {
+  id: string;
+  date: string;
+  customerName: string;
+  serviceType: string;
+  estimatedTime: string;
+  notes: string;
+};
+
 export type NotesEditingState = {
   editingNoteId: string | null;
   editedNote: string;

@@ -15,11 +15,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { FilterOptions } from './usePlannerState';
+import { FilterOptions } from './types/plannerTypes';
 
 interface PlannerFiltersProps {
   filterOptions: FilterOptions;
-  onFilterChange: (options: Partial<FilterOptions>) => void;
+  onFilterChange: (key: keyof FilterOptions, value: string) => void;
   onClearFilters: () => void;
   serviceTypes: string[];
   activeFilterCount: number;
@@ -52,7 +52,7 @@ const PlannerFilters: React.FC<PlannerFiltersProps> = ({
                 id="startDate"
                 type="date"
                 value={filterOptions.startDate || ''}
-                onChange={(e) => onFilterChange({ startDate: e.target.value || undefined })}
+                onChange={(e) => onFilterChange('startDate', e.target.value || undefined)}
                 className="mt-1"
               />
             </div>
@@ -62,7 +62,7 @@ const PlannerFilters: React.FC<PlannerFiltersProps> = ({
                 id="endDate"
                 type="date"
                 value={filterOptions.endDate || ''}
-                onChange={(e) => onFilterChange({ endDate: e.target.value || undefined })}
+                onChange={(e) => onFilterChange('endDate', e.target.value || undefined)}
                 className="mt-1"
               />
             </div>
@@ -72,7 +72,7 @@ const PlannerFilters: React.FC<PlannerFiltersProps> = ({
 
       <Select
         value={filterOptions.serviceType || ''}
-        onValueChange={(value) => onFilterChange({ serviceType: value || undefined })}
+        onValueChange={(value) => onFilterChange('serviceType', value || undefined)}
       >
         <SelectTrigger className="w-[180px] h-9 text-sm">
           <div className="flex items-center gap-2">

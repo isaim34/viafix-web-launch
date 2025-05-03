@@ -1,6 +1,5 @@
 
-import { PlannerEntry } from '@/types/mechanic';
-import { FilterOptions } from '../types/plannerTypes';
+import { PlannerEntry, FilterOptions } from '../types/plannerTypes';
 
 // Apply filters to entries
 export const filterEntries = (entries: PlannerEntry[], filterOptions: FilterOptions): PlannerEntry[] => {
@@ -26,5 +25,5 @@ export const filterEntries = (entries: PlannerEntry[], filterOptions: FilterOpti
 
 // Get unique service types from entries
 export const getUniqueServiceTypes = (entries: PlannerEntry[]): string[] => {
-  return Array.from(new Set(entries.map(entry => entry.serviceType)));
+  return Array.from(new Set(entries.map(entry => entry.serviceType))).filter(Boolean) as string[];
 };

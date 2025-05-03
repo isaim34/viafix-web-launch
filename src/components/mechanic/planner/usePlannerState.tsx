@@ -5,6 +5,12 @@ import { filterEntries } from './utils/filterUtils';
 import { formatDate } from './utils/dateUtils';
 import { sampleData } from './data/sampleData';
 
+export type FilterOptions = {
+  startDate: string | undefined;
+  endDate: string | undefined;
+  serviceType: string | undefined;
+};
+
 export const usePlannerState = () => {
   // Initialize with sample data or load from localStorage
   const getInitialData = () => {
@@ -31,7 +37,7 @@ export const usePlannerState = () => {
   const [editedNote, setEditedNote] = useState('');
   
   // Filter state
-  const [filterOptions, setFilterOptions] = useState<PlannerFilterOptions>({
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     startDate: '',
     endDate: '',
     serviceType: ''
@@ -52,7 +58,7 @@ export const usePlannerState = () => {
   // Get unique service types for filter dropdown
   const uniqueServiceTypes = Array.from(
     new Set(weeklyPlan.entries?.map(entry => entry.serviceType) || [])
-  ).filter(Boolean);
+  ).filter(Boolean) as string[];
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -134,21 +140,11 @@ export const usePlannerState = () => {
     setEditedNote('');
   }, []);
   
-  // Format display date
-  const formatDisplayDate = useCallback((dateString: string) => {
-    try {
-      return formatDate(dateString);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
-    }
-  }, []);
-  
   // Handle filter change
-  const handleFilterChange = useCallback((key: keyof PlannerFilterOptions, value: string) => {
+  const handleFilterChange = useCallback((key: keyof FilterOptions, value: string) => {
     setFilterOptions(prev => ({
       ...prev,
-      [key]: value
+      [key]: value || undefined
     }));
   }, []);
   
@@ -185,7 +181,7 @@ export const usePlannerState = () => {
     startEditingNote,
     saveEditedNote,
     cancelEditingNote,
-    formatDisplayDate,
+    formatDisplayDate: formatDate,
     filterOptions,
     handleFilterChange,
     clearFilters,

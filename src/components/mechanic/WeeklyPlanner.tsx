@@ -90,7 +90,7 @@ const WeeklyPlanner = () => {
               filterOptions={filterOptions}
               onFilterChange={handleFilterChange}
               onClearFilters={clearFilters}
-              serviceTypes={uniqueServiceTypes || []}
+              serviceTypes={uniqueServiceTypes}
               activeFilterCount={activeFilterCount}
             />
           </ErrorBoundary>

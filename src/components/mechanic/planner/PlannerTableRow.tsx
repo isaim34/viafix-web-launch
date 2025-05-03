@@ -4,7 +4,7 @@ import { Calendar, Clock, Edit, Pencil, Trash2, CheckSquare, X } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { TableRow, TableCell } from '@/components/ui/table';
-import { PlannerEntry } from '@/types/mechanic';
+import { PlannerEntry } from './types/plannerTypes';
 
 interface PlannerTableRowProps {
   entry: PlannerEntry;

@@ -8,7 +8,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { PlannerEntry } from '@/types/mechanic';
+import { PlannerEntry } from './types/plannerTypes';
 import PlannerTableRow from './PlannerTableRow';
 
 interface PlannerTableProps {
