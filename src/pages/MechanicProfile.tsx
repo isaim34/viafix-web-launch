@@ -18,7 +18,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/Button';
 import { Flag } from 'lucide-react';
 import { CustomOfferDialog, CustomOfferDetails } from '@/components/mechanic/CustomOfferDialog';
-import { Service } from '@/types/mechanic';
+import { Service, MechanicDetail } from '@/types/mechanic';
 import { useToast } from '@/hooks/use-toast';
 
 const MechanicProfile = () => {
@@ -41,7 +41,7 @@ const MechanicProfile = () => {
   }, [id, navigate]);
   
   // Get mechanic data based on the ID
-  const getMechanicData = () => {
+  const getMechanicData = (): MechanicDetail => {
     // If it's a default vendor or local mechanic profile with no matching entry in mechanicsDetailedData
     if ((id === 'default-vendor' || id === 'local-mechanic')) {
       const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
@@ -50,7 +50,7 @@ const MechanicProfile = () => {
       
       // Get mechanic profile from localStorage if available
       const storedProfile = localStorage.getItem('mechanicProfile');
-      let mechanicProfile = {};
+      let mechanicProfile: Partial<MechanicDetail> = {};
       
       if (storedProfile) {
         try {
@@ -62,11 +62,11 @@ const MechanicProfile = () => {
       
       // Create custom mechanic data for the local/default mechanic
       return {
-        id: id,
+        id: id || 'local-mechanic',
         name: vendorName,
         avatar: vendorAvatar,
         specialties: typeof mechanicProfile?.specialties === 'string' 
-          ? mechanicProfile.specialties.split(',').map((s: string) => s.trim())
+          ? mechanicProfile.specialties.split(',').map(s => s.trim())
           : mechanicProfile.specialties || ['General Repairs', 'Diagnostics'],
         rating: 5.0,
         reviewCount: 12,
