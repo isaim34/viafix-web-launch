@@ -22,6 +22,7 @@ import ZipcodeTest from './pages/ZipcodeTest';
 import TwoFactorAuth from './pages/TwoFactorAuth';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Messages from './pages/Messages';
 
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './contexts/auth';
@@ -49,6 +50,9 @@ function App() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
+            
+            {/* Messages page */}
+            <Route path="/messages" element={<Messages />} />
             
             {/* Mechanic-specific routes */}
             <Route path="/mechanic-dashboard" element={

@@ -24,6 +24,13 @@ const NotFound = () => {
       return;
     }
     
+    // Handle message routes
+    if (path.includes('message') || path.includes('inbox') || path.includes('chat')) {
+      console.log("Redirecting to messages page");
+      navigate('/messages', { replace: true });
+      return;
+    }
+    
     // Handle how it works variations
     if (path.includes('how') && path.includes('work')) {
       console.log("Redirecting to correct how it works route");
@@ -38,7 +45,9 @@ const NotFound = () => {
       '/mechanicdashboard': '/mechanic-dashboard',
       '/mechanic_dashboard': '/mechanic-dashboard',
       '/vehicle-safety': '/vehicle-safety-check',
-      '/vehiclesafetycheck': '/vehicle-safety-check'
+      '/vehiclesafetycheck': '/vehicle-safety-check',
+      '/inbox': '/messages',
+      '/chat': '/messages'
     };
     
     // Check for potential matches removing special characters
