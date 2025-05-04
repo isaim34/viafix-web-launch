@@ -1,24 +1,12 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-
-interface Mechanic {
-  id: string;
-  name: string;
-  avatar: string;
-  specialties: string[];
-  rating: number;
-  reviewCount: number;
-  location: string;
-  hourlyRate: number;
-  galleryImages?: string[];
-  zipCode?: string;
-}
+import { MechanicProfile } from '@/hooks/useMechanics';
 
 interface MechanicsSEOProps {
   zipCode: string;
   locationName: string;
-  filteredMechanics: Mechanic[];
+  filteredMechanics: MechanicProfile[];
 }
 
 const MechanicsSEO = ({ zipCode, locationName, filteredMechanics }: MechanicsSEOProps) => {
@@ -49,26 +37,28 @@ const MechanicsSEO = ({ zipCode, locationName, filteredMechanics }: MechanicsSEO
                   "position": ${index + 1},
                   "item": {
                     "@type": "Service",
-                    "name": "${mechanic.name} - Mobile Mechanic",
-                    "description": "${mechanic.specialties.join(', ')} specialist in ${mechanic.location}",
+                    "name": "${mechanic.name || 'Mobile Mechanic'} - Mobile Mechanic",
+                    "description": "${Array.isArray(mechanic.specialties) ? mechanic.specialties.join(', ') : 
+                                   typeof mechanic.specialties === 'string' ? mechanic.specialties : 
+                                   'General Repairs'} specialist in ${mechanic.location || 'Local Area'}",
                     "provider": {
                       "@type": "Person",
-                      "name": "${mechanic.name}",
-                      "image": "${mechanic.avatar}",
-                      "areaServed": "${mechanic.location}"
+                      "name": "${mechanic.name || 'Mobile Mechanic'}",
+                      "image": "${mechanic.avatar || ''}",
+                      "areaServed": "${mechanic.location || 'Local Area'}"
                     },
                     "aggregateRating": {
                       "@type": "AggregateRating",
-                      "ratingValue": "${mechanic.rating}",
-                      "reviewCount": "${mechanic.reviewCount}"
+                      "ratingValue": "${mechanic.rating || 0}",
+                      "reviewCount": "${mechanic.reviewCount || 0}"
                     },
                     "offers": {
                       "@type": "Offer",
-                      "price": "${mechanic.hourlyRate}",
+                      "price": "${mechanic.hourlyRate || 0}",
                       "priceCurrency": "USD",
                       "priceSpecification": {
                         "@type": "PriceSpecification",
-                        "price": "${mechanic.hourlyRate}",
+                        "price": "${mechanic.hourlyRate || 0}",
                         "priceCurrency": "USD",
                         "unitText": "HOUR"
                       }
