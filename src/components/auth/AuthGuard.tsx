@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -34,14 +35,18 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   if (isChecking || !authChecked) {
     console.log("AuthGuard is still checking...");
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-pulse text-gray-400">Loading...</div>
+      <div className="flex items-center justify-center h-[50vh]">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
       </div>
     );
   }
 
   if (!isLoggedIn) {
     console.log('User is not logged in, redirecting to signin');
+    // Pass the current path as state so we can redirect back after login
     return <Navigate to="/signin" state={{ redirectTo: location.pathname }} />;
   }
 

@@ -25,6 +25,7 @@ import Terms from './pages/Terms';
 
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './contexts/AuthContext';
+import { AuthGuard } from './components/auth/AuthGuard';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         </Helmet>
         <Router>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/mechanics" element={<Mechanics />} />
             <Route path="/mechanics/:id" element={<MechanicProfile />} />
@@ -44,17 +46,36 @@ function App() {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/signin" element={<Signin />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
-            <Route path="/customer-profile" element={<CustomerProfile />} />
-            {/* Add redirect from /profile to /customer-profile for backward compatibility */}
-            <Route path="/profile" element={<Navigate to="/customer-profile" replace />} />
-            <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />
-            <Route path="/account-settings" element={<AccountSettings />} />
-            <Route path="/debug" element={<Debug />} />
-            <Route path="/zipcode-test" element={<ZipcodeTest />} />
-            <Route path="/2fa" element={<TwoFactorAuth />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/2fa" element={<TwoFactorAuth />} />
+            
+            {/* Protected Routes */}
+            <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+            <Route path="/customer-profile" element={
+              <AuthGuard>
+                <CustomerProfile />
+              </AuthGuard>
+            } />
+            <Route path="/vehicle-safety-check" element={
+              <AuthGuard>
+                <VehicleSafetyCheck />
+              </AuthGuard>
+            } />
+            <Route path="/account-settings" element={
+              <AuthGuard>
+                <AccountSettings />
+              </AuthGuard>
+            } />
+            
+            {/* Add redirect from /profile to /customer-profile for backward compatibility */}
+            <Route path="/profile" element={<Navigate to="/customer-profile" replace />} />
+            
+            {/* Debug Routes */}
+            <Route path="/debug" element={<Debug />} />
+            <Route path="/zipcode-test" element={<ZipcodeTest />} />
+            
+            {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
