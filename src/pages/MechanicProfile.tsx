@@ -40,10 +40,74 @@ const MechanicProfile = () => {
     }
   }, [id, navigate]);
   
-  // Default to first mechanic if ID not found (for demo purposes)
-  const mechanic = id && mechanicsDetailedData[id] 
-    ? mechanicsDetailedData[id]
-    : mechanicsDetailedData['1'];
+  // Get mechanic data based on the ID
+  const getMechanicData = () => {
+    // If it's a default vendor or local mechanic profile with no matching entry in mechanicsDetailedData
+    if ((id === 'default-vendor' || id === 'local-mechanic')) {
+      const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+      const vendorAvatar = localStorage.getItem('vendorAvatar') || 
+                       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
+      
+      // Get mechanic profile from localStorage if available
+      const storedProfile = localStorage.getItem('mechanicProfile');
+      let mechanicProfile = {};
+      
+      if (storedProfile) {
+        try {
+          mechanicProfile = JSON.parse(storedProfile);
+        } catch (error) {
+          console.error('Error parsing mechanic profile:', error);
+        }
+      }
+      
+      // Create custom mechanic data for the local/default mechanic
+      return {
+        id: id,
+        name: vendorName,
+        avatar: vendorAvatar,
+        specialties: typeof mechanicProfile?.specialties === 'string' 
+          ? mechanicProfile.specialties.split(',').map((s: string) => s.trim())
+          : mechanicProfile.specialties || ['General Repairs', 'Diagnostics'],
+        rating: 5.0,
+        reviewCount: 12,
+        location: mechanicProfile.location || 'Worcester, MA',
+        hourlyRate: mechanicProfile.hourlyRate || 75,
+        yearsExperience: mechanicProfile.yearsExperience || 5,
+        about: mechanicProfile.about || "Certified mechanic specializing in general vehicle maintenance and repairs. I provide honest, reliable service at competitive rates.",
+        responseTime: "Under 1 hour",
+        services: [
+          { name: "Diagnostic Scan", price: 75 },
+          { name: "Oil Change", price: 65 },
+          { name: "Brake Inspection", price: 45 },
+          { name: "General Tune-Up", price: 120 }
+        ],
+        reviews: [
+          { author: "Customer", rating: 5, text: "Very professional and knowledgeable. Highly recommended!" }
+        ],
+        galleryImages: [
+          'https://images.unsplash.com/photo-1632931612869-c1a971a02054?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+          'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+        ]
+      };
+    }
+    
+    // Try to get mechanic data from mechanicsDetailedData
+    if (id && mechanicsDetailedData[id]) {
+      return mechanicsDetailedData[id];
+    }
+    
+    // Default to first mechanic only if nothing else works
+    return mechanicsDetailedData['1'];
+  };
+  
+  const mechanic = getMechanicData();
+
+  // Log the selected mechanic for debugging
+  console.log('Selected mechanic profile:', {
+    id: id,
+    mechanicId: mechanic.id,
+    mechanicName: mechanic.name
+  });
 
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isCustomOfferOpen, setIsCustomOfferOpen] = useState(false);
