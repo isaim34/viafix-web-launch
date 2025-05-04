@@ -12,7 +12,7 @@ import { ChatThread } from '@/types/mechanic';
 
 const Messages = () => {
   const { isLoggedIn, currentUserRole, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>("inbox");
+  const [activeTab, setActiveTab] = useState<string>("chat");  // Default to "chat" for customers
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
