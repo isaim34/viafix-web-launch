@@ -23,7 +23,7 @@ const SpecialtiesField: React.FC<SpecialtiesFieldProps> = ({ control }) => {
         // Convert array to comma-separated string if it's an array
         const displayValue = Array.isArray(field.value) 
           ? field.value.join(', ') 
-          : field.value || '';
+          : typeof field.value === 'string' ? field.value : '';
         
         // Create a handler that keeps the original field behavior but formats our value
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

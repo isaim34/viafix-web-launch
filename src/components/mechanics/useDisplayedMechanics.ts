@@ -56,7 +56,7 @@ export function useDisplayedMechanics(
             avatar: vendorAvatar,
             specialties: typeof profile.specialties === 'string' 
               ? profile.specialties.split(',').map((s: string) => s.trim())
-              : profile.specialties || ['General Repairs'],
+              : Array.isArray(profile.specialties) ? profile.specialties : ['General Repairs'],
             rating: 5.0,
             reviewCount: 0,
             location: profile.location || 'Worcester, MA',
