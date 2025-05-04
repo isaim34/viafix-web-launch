@@ -17,7 +17,15 @@ export const getChatThreads = async (userId: string): Promise<ChatThread[]> => {
       return [];
     }
     
-    return threads as ChatThread[];
+    // Transform the data to match our ChatThread type
+    return (threads || []).map(thread => ({
+      id: thread.id,
+      participants: thread.participants,
+      participantNames: thread.participant_names as Record<string, string>,
+      lastMessage: null,
+      unreadCount: thread.unread_count || 0,
+      lastMessageAt: thread.last_message_at
+    }));
   } catch (error) {
     console.error('Error retrieving chat threads:', error);
     return [];
@@ -38,7 +46,15 @@ export const getChatThread = async (threadId: string): Promise<ChatThread | null
       return null;
     }
     
-    return data as ChatThread;
+    // Transform the data to match our ChatThread type
+    return {
+      id: data.id,
+      participants: data.participants,
+      participantNames: data.participant_names as Record<string, string>,
+      lastMessage: null,
+      unreadCount: data.unread_count || 0,
+      lastMessageAt: data.last_message_at
+    };
   } catch (error) {
     console.error('Error retrieving chat thread:', error);
     return null;
@@ -66,7 +82,15 @@ export const findOrCreateChatThread = async (
   }
   
   if (existingThreads && existingThreads.length > 0) {
-    return existingThreads[0] as ChatThread;
+    // Transform the data to match our ChatThread type
+    return {
+      id: existingThreads[0].id,
+      participants: existingThreads[0].participants,
+      participantNames: existingThreads[0].participant_names as Record<string, string>,
+      lastMessage: null,
+      unreadCount: existingThreads[0].unread_count || 0,
+      lastMessageAt: existingThreads[0].last_message_at
+    };
   }
   
   // Create a new thread
@@ -91,7 +115,15 @@ export const findOrCreateChatThread = async (
     throw new Error('Failed to create chat thread');
   }
   
-  return createdThread as ChatThread;
+  // Transform the data to match our ChatThread type
+  return {
+    id: createdThread.id,
+    participants: createdThread.participants,
+    participantNames: createdThread.participant_names as Record<string, string>,
+    lastMessage: null,
+    unreadCount: createdThread.unread_count || 0,
+    lastMessageAt: createdThread.last_message_at
+  };
 };
 
 // Get messages for a thread
@@ -108,7 +140,16 @@ export const getChatMessages = async (threadId: string): Promise<ChatMessage[]> 
       return [];
     }
     
-    return data as ChatMessage[];
+    // Transform the data to match our ChatMessage type
+    return (data || []).map(msg => ({
+      id: msg.id,
+      senderId: msg.sender_id,
+      senderName: msg.sender_name,
+      receiverId: msg.receiver_id,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      isRead: msg.is_read
+    }));
   } catch (error) {
     console.error('Error retrieving chat messages:', error);
     return [];
@@ -142,11 +183,12 @@ export const sendChatMessage = async (
     }
     
     // Update thread's last message and unread count
+    // This approach avoids the direct usage of supabase.rpc
     const { error: threadError } = await supabase
       .from('chat_threads')
       .update({
         last_message_at: new Date().toISOString(),
-        unread_count: supabase.rpc('increment', { row_id: threadId, increment_amount: 1 })
+        unread_count: (thread => (thread?.unread_count || 0) + 1)
       })
       .eq('id', threadId);
     
@@ -154,7 +196,16 @@ export const sendChatMessage = async (
       console.error('Error updating chat thread:', threadError);
     }
     
-    return newMessage as ChatMessage;
+    // Transform the data to match our ChatMessage type
+    return {
+      id: newMessage.id,
+      senderId: newMessage.sender_id,
+      senderName: newMessage.sender_name,
+      receiverId: newMessage.receiver_id,
+      content: newMessage.content,
+      timestamp: newMessage.timestamp,
+      isRead: newMessage.is_read
+    };
   } catch (error) {
     console.error('Error sending chat message:', error);
     throw new Error('Failed to send message');
@@ -250,7 +301,9 @@ export const findOrCreateChatThread_legacy = (
       [userId1]: userName1,
       [userId2]: userName2
     },
-    unreadCount: 0
+    unreadCount: 0,
+    lastMessage: null,
+    lastMessageAt: new Date().toISOString()
   };
   
   // Save the new thread

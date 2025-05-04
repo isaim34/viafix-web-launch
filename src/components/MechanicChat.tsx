@@ -10,6 +10,7 @@ const MechanicChat = () => {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // For demo purposes - in a real app, this would come from auth
   const currentUserId = 'mechanic-1';
@@ -23,9 +24,16 @@ const MechanicChat = () => {
     loadThreads();
   }, []);
   
-  const loadThreads = () => {
-    const userThreads = getChatThreads(currentUserId);
-    setThreads(userThreads);
+  const loadThreads = async () => {
+    setIsLoading(true);
+    try {
+      const userThreads = await getChatThreads(currentUserId);
+      setThreads(userThreads);
+    } catch (error) {
+      console.error("Error loading threads:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleSelectThread = (threadId: string) => {
@@ -54,12 +62,19 @@ const MechanicChat = () => {
               <MessageCircle className="h-5 w-5" /> Messages
             </h2>
           </div>
-          <ChatThreadsList
-            threads={threads}
-            currentUserId={currentUserId}
-            onSelectThread={handleSelectThread}
-            selectedThreadId={selectedThreadId || undefined}
-          />
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <ChatThreadsList
+              threads={threads}
+              currentUserId={currentUserId}
+              onSelectThread={handleSelectThread}
+              selectedThreadId={selectedThreadId || undefined}
+            />
+          )}
         </div>
         
         {/* Chat view - shown on mobile only when a chat is selected */}

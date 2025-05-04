@@ -10,6 +10,13 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData: any) => Promise<void>;
   signOut: () => Promise<void>;
+  currentUserRole?: string;
+  currentUserName?: string;
+  isLoggedIn: boolean;
+  authChecked: boolean;
+  updateUserName: (name: string) => void;
+  userEmail?: string;
+  getFirstName: (fullName: string) => string;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -19,12 +26,19 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  isLoggedIn: false,
+  authChecked: false,
+  updateUserName: () => {},
+  getFirstName: () => '',
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | undefined>(undefined);
+  const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Set up auth state listener
@@ -33,6 +47,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        setAuthChecked(true);
+        
+        if (session?.user) {
+          // Get user metadata if available
+          const role = session.user.user_metadata?.role || 'customer';
+          const name = session.user.user_metadata?.full_name || session.user.email;
+          
+          setCurrentUserRole(role);
+          setCurrentUserName(name);
+        } else {
+          setCurrentUserRole(undefined);
+          setCurrentUserName(undefined);
+        }
       }
     );
 
@@ -41,6 +68,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      setAuthChecked(true);
+      
+      if (session?.user) {
+        // Get user metadata if available
+        const role = session.user.user_metadata?.role || 'customer';
+        const name = session.user.user_metadata?.full_name || session.user.email;
+        
+        setCurrentUserRole(role);
+        setCurrentUserName(name);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -67,9 +104,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) throw error;
   };
 
+  const updateUserName = (name: string) => {
+    setCurrentUserName(name);
+    localStorage.setItem('userName', name);
+  };
+
+  // Helper to get first name from email or regular name
+  const getFirstName = (fullName: string) => {
+    if (!fullName) return '';
+    
+    // Handle email addresses - extract username portion before @ symbol
+    if (fullName.includes('@')) {
+      const username = fullName.split('@')[0];
+      // Capitalize first letter for better display
+      return username.charAt(0).toUpperCase() + username.slice(1);
+    }
+    
+    // Regular name - just take first part
+    const parts = fullName.trim().split(' ');
+    return parts[0] || '';
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      signIn, 
+      signUp, 
+      signOut,
+      currentUserRole,
+      currentUserName,
+      isLoggedIn: !!user,
+      authChecked,
+      updateUserName,
+      userEmail: user?.email,
+      getFirstName
+    }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  return React.useContext(AuthContext);
 };

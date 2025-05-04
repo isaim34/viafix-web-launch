@@ -21,6 +21,7 @@ export const ChatView = ({
 }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Get the other participant (not the current user)
@@ -29,11 +30,23 @@ export const ChatView = ({
   
   useEffect(() => {
     // Load messages for this thread
-    const chatMessages = getChatMessages(thread.id);
-    setMessages(chatMessages);
+    const loadMessages = async () => {
+      setIsLoading(true);
+      try {
+        const chatMessages = await getChatMessages(thread.id);
+        setMessages(chatMessages);
+        
+        // Mark messages as read
+        await markThreadAsRead(thread.id, currentUserId);
+        
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    // Mark messages as read
-    markThreadAsRead(thread.id, currentUserId);
+    loadMessages();
     
     // Scroll to bottom
     if (messagesEndRef.current) {
@@ -41,32 +54,38 @@ export const ChatView = ({
     }
   }, [thread.id, currentUserId]);
   
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!messageText.trim()) return;
     
-    // Send message
-    const newMessage = sendChatMessage(thread.id, {
-      senderId: currentUserId,
-      senderName: thread.participantNames[currentUserId] || 'Me',
-      receiverId: otherParticipantId,
-      content: messageText,
-      timestamp: new Date().toISOString(),
-      isRead: false
-    });
-    
-    // Update local state
-    setMessages(prev => [...prev, newMessage]);
-    setMessageText('');
-    
-    // Notify parent
-    onNewMessage(thread.id);
-    
-    // Scroll to bottom
-    setTimeout(() => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
+    try {
+      // Send message
+      const newMessageData = {
+        senderId: currentUserId,
+        senderName: thread.participantNames[currentUserId] || 'Me',
+        receiverId: otherParticipantId,
+        content: messageText,
+        timestamp: new Date().toISOString(),
+        isRead: false
+      };
+      
+      const newMessage = await sendChatMessage(thread.id, newMessageData);
+      
+      // Update local state with the returned message that has an ID
+      setMessages(prev => [...prev, newMessage]);
+      setMessageText('');
+      
+      // Notify parent
+      onNewMessage(thread.id);
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -86,7 +105,11 @@ export const ChatView = ({
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
             <p>No messages yet. Start a conversation!</p>
           </div>
@@ -126,10 +149,12 @@ export const ChatView = ({
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className="min-h-[80px] resize-none"
+            disabled={isLoading}
           />
           <Button 
             onClick={handleSendMessage}
             className="ml-2 h-20"
+            disabled={isLoading}
           >
             <Send className="h-5 w-5" />
           </Button>
