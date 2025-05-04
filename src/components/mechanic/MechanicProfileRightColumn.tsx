@@ -1,24 +1,26 @@
 
 import React from 'react';
-import { MechanicDetail } from '@/types/mechanic';
+import { MechanicDetail, Service } from '@/types/mechanic';
 import { BookingCard } from './BookingCard';
 
 interface MechanicProfileRightColumnProps {
   mechanic: MechanicDetail;
   isCustomerLoggedIn: boolean;
-  id: string | undefined;
-  onBookService: () => void;
-  onContact: () => void;
-  onCustomOffer: () => void;
+  selectedService: Service | null;
+  onBookService?: () => void;
+  onContact?: () => void;
+  onCustomOffer?: () => void;
+  id?: string;
 }
 
 export const MechanicProfileRightColumn = ({
   mechanic,
   isCustomerLoggedIn,
+  selectedService,
   id,
-  onBookService,
-  onContact,
-  onCustomOffer
+  onBookService = () => {},
+  onContact = () => {},
+  onCustomOffer = () => {}
 }: MechanicProfileRightColumnProps) => {
   return (
     <div className="col-span-1">

@@ -112,13 +112,33 @@ export const useFilteredMechanics = (
         return false;
       }
       
-      const matchesSearch = !searchTerm ? true : (
-        mechanic.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mechanic.specialties?.some((specialty: string) => 
-          specialty.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        mechanic.location?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      // Check for search term matches
+      let matchesSearch = !searchTerm;
+      
+      if (searchTerm) {
+        // Check name
+        if (mechanic.name && mechanic.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+          matchesSearch = true;
+        }
+        
+        // Check specialties (handle both string and array types)
+        else if (mechanic.specialties) {
+          if (Array.isArray(mechanic.specialties)) {
+            // Handle array of specialties
+            matchesSearch = mechanic.specialties.some(specialty => 
+              specialty.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          } else if (typeof mechanic.specialties === 'string') {
+            // Handle string specialties
+            matchesSearch = mechanic.specialties.toLowerCase().includes(searchTerm.toLowerCase());
+          }
+        }
+        
+        // Check location
+        else if (mechanic.location && mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+          matchesSearch = true;
+        }
+      }
       
       // If no zipcode filter, return based on search term only
       if (!zipCode) return matchesSearch;

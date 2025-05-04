@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 import ReportMechanicDialog from '@/components/mechanic/ReportMechanicDialog';
 
 const MechanicProfile = () => {
-  const { mechanic, loading } = useMechanicData();
+  const { mechanic, loading, id } = useMechanicData();
   const { isCustomerLoggedIn } = useCustomerAuth();
   const [selectedService, setSelectedService] = React.useState<Service | null>(null);
   const [isReporting, setIsReporting] = React.useState(false);
@@ -48,6 +48,7 @@ const MechanicProfile = () => {
             mechanic={mechanic}
             selectedService={selectedService}
             isCustomerLoggedIn={isCustomerLoggedIn}
+            id={id}
           />
         </div>
         

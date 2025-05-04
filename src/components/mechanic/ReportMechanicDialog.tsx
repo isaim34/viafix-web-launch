@@ -19,14 +19,14 @@ import { useReportForm } from './report/useReportForm';
 interface ReportMechanicDialogProps {
   mechanicId: string;
   mechanicName: string;
-  isOpen?: boolean;
+  open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 const ReportMechanicDialog: React.FC<ReportMechanicDialogProps> = ({
   mechanicId,
   mechanicName,
-  isOpen,
+  open,
   onOpenChange,
 }) => {
   const {
@@ -47,7 +47,7 @@ const ReportMechanicDialog: React.FC<ReportMechanicDialogProps> = ({
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
