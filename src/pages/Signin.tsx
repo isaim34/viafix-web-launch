@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
@@ -6,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { useAuthRedirect, UserRole } from '@/hooks/useAuthRedirect';
 // Import the sign in forms directly
 import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
@@ -54,7 +55,7 @@ const Signin = () => {
 
   // Only redirect if we've confirmed auth state and the user is logged in
   if (redirectChecked && authChecked && isLoggedIn) {
-    const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole);
+    const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
     console.log(`User is logged in as ${currentUserRole}, redirecting to: ${redirectTo}`);
     return <Navigate to={redirectTo} replace />;
   }

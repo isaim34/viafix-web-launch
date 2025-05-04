@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 
-type UserRole = 'customer' | 'mechanic' | null;
+export type UserRole = 'customer' | 'mechanic' | null;
 
 export const useAuthRedirect = () => {
   const getProfileRoute = useCallback((userRole: UserRole): string => {
