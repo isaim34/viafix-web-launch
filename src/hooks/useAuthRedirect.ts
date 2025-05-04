@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import type { UserRole } from '@/contexts/auth';
+import type { UserRole } from '@/contexts/auth/types';
 
 export type { UserRole };
 

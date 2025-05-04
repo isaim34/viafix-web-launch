@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
@@ -31,7 +31,7 @@ const CustomerSigninForm = () => {
   const { toast } = useToast();
   
   // Log auth state for debugging
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("CustomerSigninForm auth state:", { authChecked, isLoggedIn });
   }, [authChecked, isLoggedIn]);
 
