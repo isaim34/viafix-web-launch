@@ -11,6 +11,7 @@ import { useMechanicData } from '@/hooks/useMechanicData';
 import { MechanicProfileLeftColumn } from '@/components/mechanic/MechanicProfileLeftColumn';
 import { MechanicProfileRightColumn } from '@/components/mechanic/MechanicProfileRightColumn';
 import { useCustomOffer } from '@/components/mechanic/MechanicCustomOffer';
+import { CustomOfferDialog } from '@/components/mechanic/CustomOfferDialog';
 
 const MechanicProfile = () => {
   const { isCustomerLoggedIn, currentUserId, currentUserName } = useCustomerAuth();
