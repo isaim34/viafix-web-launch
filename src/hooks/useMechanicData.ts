@@ -51,13 +51,13 @@ export const useMechanicData = () => {
         // Store the specialties value and properly handle its type
         const specialtiesValue = mechanicProfile.specialties;
         
-        // Fix TypeScript error by properly checking the type before using split
+        // Fix TypeScript error by properly handling the type - use type guards
         if (typeof specialtiesValue === 'string') {
           // If it's a string, split it by commas
           specialties = specialtiesValue.split(',').map(s => s.trim());
         } else if (Array.isArray(specialtiesValue)) {
-          // If it's already an array, use it directly
-          specialties = specialtiesValue as string[];
+          // If it's already an array, use it directly but ensure it's string[]
+          specialties = specialtiesValue.map(s => String(s));
         }
       }
       
