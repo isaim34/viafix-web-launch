@@ -1,3 +1,4 @@
+
 export type Message = {
   id: string;
   from: string;
@@ -32,6 +33,7 @@ export type ChatThread = {
   participants: string[];
   participantNames: Record<string, string>;
   lastMessage?: ChatMessage;
+  lastMessageAt: string;
   unreadCount: number;
 };
 
