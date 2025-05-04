@@ -48,14 +48,16 @@ export const useMechanicData = () => {
       let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
       
       if (mechanicProfile.specialties) {
-        // Fixed TypeScript error by checking if specialties is a string before attempting to split
+        // Fixed TypeScript error by properly typing the specialties value before using split
         const specialtiesValue = mechanicProfile.specialties;
+        
+        // Use type assertion to tell TypeScript that specialtiesValue can be a string
         if (typeof specialtiesValue === 'string') {
           // If it's a string, split it by commas
           specialties = specialtiesValue.split(',').map(s => s.trim());
         } else if (Array.isArray(specialtiesValue)) {
           // If it's already an array, use it directly
-          specialties = specialtiesValue;
+          specialties = specialtiesValue as string[];
         }
       }
       
