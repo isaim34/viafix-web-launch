@@ -50,3 +50,5 @@ export const MechanicsList = ({ mechanics, zipCode, locationName, setZipCode }: 
     </div>
   );
 };
+
+export default MechanicsList;

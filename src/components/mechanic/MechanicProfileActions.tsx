@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -52,7 +51,6 @@ export const MechanicProfileActions: React.FC<MechanicProfileActionsProps> = ({
         </Button>
         <Button 
           variant="outline"
-
           className="w-full text-destructive border-destructive hover:bg-destructive/10" 
           icon={<Flag className="w-4 h-4" />} 
           onClick={handleReportMechanic}
@@ -63,7 +61,7 @@ export const MechanicProfileActions: React.FC<MechanicProfileActionsProps> = ({
       <ReportMechanicDialog
         mechanicId={mechanicId}
         mechanicName={mechanicName}
-        isOpen={isReportDialogOpen}
+        open={isReportDialogOpen}
         onOpenChange={setIsReportDialogOpen}
       />
     </>

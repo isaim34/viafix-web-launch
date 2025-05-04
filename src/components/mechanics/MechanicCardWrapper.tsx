@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import MechanicCard from '@/components/MechanicCard';
+import { MechanicCard } from '@/components/MechanicCard';
 import { MechanicProfile } from '@/hooks/useMechanics';
 
 interface MechanicCardWrapperProps {

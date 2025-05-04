@@ -5,7 +5,7 @@ import { useMechanicsPage } from '@/hooks/useMechanicsPage';
 import MechanicsHeader from '@/components/mechanics/MechanicsHeader';
 import MechanicsZipCodeSearch from '@/components/mechanics/MechanicsZipCodeSearch';
 import MechanicsSearch from '@/components/mechanics/MechanicsSearch';
-import MechanicsList from '@/components/mechanics/MechanicsList';
+import { MechanicsList } from '@/components/mechanics/MechanicsList';
 import MechanicsSEO from '@/components/mechanics/MechanicsSEO';
 import { Loader2 } from 'lucide-react';
 
