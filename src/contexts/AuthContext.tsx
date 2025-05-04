@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authChecked, setAuthChecked] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | undefined>(undefined);
   const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined);
+  const [localAuthState, setLocalAuthState] = useState<{isLoggedIn: boolean}>({ isLoggedIn: false });
 
   // Clear local auth state
   const clearAuthState = () => {
@@ -47,6 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setSession(null);
     setCurrentUserRole(undefined);
     setCurrentUserName(undefined);
+    setLocalAuthState({ isLoggedIn: false });
     
     // Also clear any auth-related localStorage items for consistency
     localStorage.removeItem('userLoggedIn');
@@ -68,6 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else if (newSession?.user) {
           setSession(newSession);
           setUser(newSession.user);
+          setLocalAuthState({ isLoggedIn: true });
           
           // Get user metadata if available
           const role = newSession.user.user_metadata?.role || 'customer';
@@ -82,21 +85,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: existingSession }, error }) => {
+    // Check for existing session and local storage state
+    const checkAuthState = async () => {
+      // First check supabase session
+      const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+      
       console.log("Initial session check:", !!existingSession, error);
       
       if (error) {
         console.error("Error checking session:", error);
-        setAuthChecked(true);
-        setLoading(false);
         clearAuthState();
-        return;
-      }
-      
-      if (existingSession?.user) {
+      } else if (existingSession?.user) {
         setSession(existingSession);
         setUser(existingSession.user);
+        setLocalAuthState({ isLoggedIn: true });
         
         // Get user metadata if available
         const role = existingSession.user.user_metadata?.role || 'customer';
@@ -105,13 +107,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setCurrentUserRole(role);
         setCurrentUserName(name);
       } else {
-        // No valid session found
-        clearAuthState();
+        // No Supabase session, check localStorage as fallback
+        const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+        const userRole = localStorage.getItem('userRole');
+        const userName = localStorage.getItem('userName');
+        
+        if (isUserLoggedIn && userRole) {
+          console.log("Found login state in localStorage:", { isUserLoggedIn, userRole, userName });
+          setLocalAuthState({ isLoggedIn: true });
+          setCurrentUserRole(userRole);
+          setCurrentUserName(userName);
+        } else {
+          // No valid session anywhere
+          clearAuthState();
+        }
       }
       
       setAuthChecked(true);
       setLoading(false);
-    });
+    };
+    
+    checkAuthState();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -170,15 +186,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return parts[0] || '';
   };
 
+  // The main isLoggedIn state combines Supabase auth and localStorage
+  const isLoggedIn = !!user || localAuthState.isLoggedIn;
+
   // Console log for debugging
   useEffect(() => {
     console.log("AuthContext state:", {
-      isLoggedIn: !!user,
+      isLoggedIn,
       authChecked,
       currentUserRole,
       currentUserName
     });
-  }, [user, authChecked, currentUserRole, currentUserName]);
+  }, [isLoggedIn, authChecked, currentUserRole, currentUserName]);
 
   return (
     <AuthContext.Provider value={{ 
@@ -190,7 +209,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signOut,
       currentUserRole,
       currentUserName,
-      isLoggedIn: !!user,
+      isLoggedIn,
       authChecked,
       updateUserName,
       userEmail: user?.email,

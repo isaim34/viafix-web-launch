@@ -54,8 +54,9 @@ export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
   // If a specific role is required and user doesn't match
   if (requiredRole && currentUserRole !== requiredRole) {
     console.log(`User role (${currentUserRole}) doesn't match required role (${requiredRole}), redirecting`);
-    // Cast currentUserRole to UserRole type since we know it's one of the valid options
-    return <Navigate to={getProfileRoute(currentUserRole as UserRole)} />;
+    // Explicitly cast currentUserRole to UserRole type
+    const role = currentUserRole as UserRole;
+    return <Navigate to={getProfileRoute(role)} />;
   }
 
   console.log("AuthGuard allowing access to protected route");

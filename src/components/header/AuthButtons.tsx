@@ -19,16 +19,16 @@ interface AuthButtonsProps {
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, authChecked } = useAuth();
+  const { isLoggedIn, authChecked, currentUserRole } = useAuth();
   const [checkedAuth, setCheckedAuth] = useState(false);
   
   // Ensure we don't show logged-in components until we've checked auth state
   useEffect(() => {
     if (authChecked) {
-      console.log("Auth status confirmed:", { isLoggedIn });
+      console.log("Auth status confirmed in AuthButtons:", { isLoggedIn, currentUserRole });
       setCheckedAuth(true);
     }
-  }, [authChecked, isLoggedIn]);
+  }, [authChecked, isLoggedIn, currentUserRole]);
   
   // If we haven't checked auth yet, don't render anything to prevent flashing
   if (!checkedAuth) {

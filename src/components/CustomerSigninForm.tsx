@@ -28,15 +28,26 @@ const CustomerSigninForm = () => {
   const { authChecked, isLoggedIn } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [redirecting, setRedirecting] = useState(false);
   
   // Redirect if already logged in
   useEffect(() => {
     if (authChecked && isLoggedIn) {
       const redirectTo = location.state?.redirectTo || '/customer-profile';
       console.log(`User is already logged in, redirecting to: ${redirectTo}`);
-      navigate(redirectTo, { replace: true });
+      setRedirecting(true);
+      const timer = setTimeout(() => {
+        navigate(redirectTo, { replace: true });
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [authChecked, isLoggedIn, location.state, navigate]);
+  
+  // Don't render the form if we're already logged in or are redirecting
+  if (isLoggedIn || redirecting) {
+    return <div className="p-6 text-center">Already signed in, redirecting...</div>;
+  }
   
   const handleSubmit = async (data: CustomerFormValues) => {
     setIsLoading(true);

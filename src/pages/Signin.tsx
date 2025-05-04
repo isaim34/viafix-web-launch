@@ -20,7 +20,17 @@ const Signin = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
+  // Add additional debug logging
   useEffect(() => {
+    console.log("Signin component mounted with state:", {
+      activeTab,
+      redirectChecked,
+      isLoggedIn,
+      authChecked,
+      currentUserRole,
+      locationState: location.state
+    });
+    
     // Check for authentication in URL hash (from OAuth redirects)
     const checkHashParams = () => {
       const hash = window.location.hash;
@@ -33,26 +43,16 @@ const Signin = () => {
     
     checkHashParams();
     
+    // Delay the redirect check to ensure authentication state is properly loaded
     const timer = setTimeout(() => {
       setRedirectChecked(true);
-    }, 500); // Increased timeout to ensure auth state is properly checked
+    }, 500);
     
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Add additional debug logging
-  useEffect(() => {
-    console.log("Signin component mounted with state:", {
-      activeTab,
-      redirectChecked,
-      isLoggedIn,
-      authChecked,
-      currentUserRole,
-      locationState: location.state
-    });
-    
-    return () => console.log("Signin component unmounted");
-  }, [activeTab, redirectChecked, isLoggedIn, authChecked, currentUserRole, location.state]);
+    return () => {
+      clearTimeout(timer);
+      console.log("Signin component unmounted");
+    }
+  }, [activeTab, isLoggedIn, authChecked, currentUserRole, location.state]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -71,7 +71,7 @@ const Signin = () => {
           <div className="flex justify-center items-center h-[50vh]">
             <div className="flex flex-col items-center gap-2">
               <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
-              <p className="text-muted-foreground">Checking authentication...</p>
+              <p className="text-muted-foreground">Checking authentication status...</p>
             </div>
           </div>
         </div>
@@ -79,9 +79,9 @@ const Signin = () => {
     );
   }
 
-  // If logged in, don't even render the form - this prevents flashing
+  // If logged in, don't render the form at all
   if (isLoggedIn) {
-    return <></>;
+    return null;
   }
 
   return (
