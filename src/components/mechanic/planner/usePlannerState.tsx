@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { PlannerEntry, PlannerFilterOptions } from './types/plannerTypes';
 import { filterEntries } from './utils/filterUtils';

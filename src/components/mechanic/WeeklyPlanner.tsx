@@ -119,7 +119,7 @@ const WeeklyPlanner = () => {
           onOpenChange={setIsAddDialogOpen}
           newEntry={newEntry}
           setNewEntry={setNewEntry}
-          onAddEntry={handleAddEntry}
+          onAddEntry={() => handleAddEntry(newEntry)}
           formatDisplayDate={formatDisplayDate}
         />
       </ErrorBoundary>
@@ -132,7 +132,7 @@ const WeeklyPlanner = () => {
             onOpenChange={setIsEditDialogOpen}
             editingEntry={editingEntry}
             setEditingEntry={setEditingEntry}
-            onEditEntry={handleEditEntry}
+            onEditEntry={() => handleEditEntry(editingEntry)}
             formatDisplayDate={formatDisplayDate}
           />
         )}
