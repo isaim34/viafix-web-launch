@@ -60,14 +60,23 @@ const MechanicProfile = () => {
         }
       }
       
+      // Handle specialties based on its type
+      let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
+      
+      if (mechanicProfile.specialties) {
+        if (typeof mechanicProfile.specialties === 'string') {
+          specialties = mechanicProfile.specialties.split(',').map(s => s.trim());
+        } else if (Array.isArray(mechanicProfile.specialties)) {
+          specialties = mechanicProfile.specialties;
+        }
+      }
+      
       // Create custom mechanic data for the local/default mechanic
       return {
         id: id || 'local-mechanic',
         name: vendorName,
         avatar: vendorAvatar,
-        specialties: typeof mechanicProfile?.specialties === 'string' 
-          ? mechanicProfile.specialties.split(',').map(s => s.trim())
-          : mechanicProfile.specialties || ['General Repairs', 'Diagnostics'],
+        specialties: specialties,
         rating: 5.0,
         reviewCount: 12,
         location: mechanicProfile.location || 'Worcester, MA',
