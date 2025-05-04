@@ -1,16 +1,48 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MechanicMailbox from '@/components/MechanicMailbox';
 import { useAuth } from '@/contexts/auth';
 import { ChatThreadsList } from '@/components/chat/ChatThreadsList';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, MessageSquare, Inbox } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getChatThreads } from '@/services/chatService';
+import { ChatThread } from '@/types/mechanic';
 
 const Messages = () => {
-  const { isLoggedIn, currentUserRole } = useAuth();
+  const { isLoggedIn, currentUserRole, user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("inbox");
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const currentUserId = user?.id || 'anonymous';
+
+  // Fetch chat threads when component mounts
+  useEffect(() => {
+    const fetchThreads = async () => {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const userThreads = await getChatThreads(user.id);
+        setThreads(userThreads);
+      } catch (error) {
+        console.error("Error fetching chat threads:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchThreads();
+    }
+  }, [isLoggedIn, user?.id]);
+
+  const handleSelectThread = (threadId: string) => {
+    setSelectedThreadId(threadId);
+  };
 
   // Show login required message if not logged in
   if (!isLoggedIn) {
@@ -36,24 +68,66 @@ const Messages = () => {
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="inbox">Inbox</TabsTrigger>
-            <TabsTrigger value="chat">Chat Messages</TabsTrigger>
+            {currentUserRole === 'mechanic' ? (
+              <>
+                <TabsTrigger value="inbox" className="flex items-center gap-2">
+                  <Inbox className="h-4 w-4" />
+                  Inbox
+                </TabsTrigger>
+                <TabsTrigger value="chat" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Chat Messages
+                </TabsTrigger>
+              </>
+            ) : (
+              // For customers, simplify to just "Messages" since they don't need mechanic-specific tabs
+              <TabsTrigger value="chat" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Messages
+              </TabsTrigger>
+            )}
           </TabsList>
           
-          <TabsContent value="inbox">
-            <MechanicMailbox />
-          </TabsContent>
+          {/* Mechanic-specific inbox tab */}
+          {currentUserRole === 'mechanic' && (
+            <TabsContent value="inbox">
+              <MechanicMailbox />
+            </TabsContent>
+          )}
           
+          {/* Chat messages tab - available for both roles but with different presentation */}
           <TabsContent value="chat">
             {currentUserRole === 'mechanic' ? (
-              <ChatThreadsList />
+              <div className="bg-white rounded-lg border shadow-sm">
+                <div className="p-4 border-b">
+                  <h2 className="text-lg font-medium">Your Customer Conversations</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Manage your conversations with customers here.
+                  </p>
+                </div>
+                <ChatThreadsList 
+                  threads={threads}
+                  currentUserId={currentUserId}
+                  onSelectThread={handleSelectThread}
+                  selectedThreadId={selectedThreadId || undefined}
+                  isLoading={isLoading}
+                />
+              </div>
             ) : (
-              <div className="bg-white p-6 rounded-lg border shadow-sm">
-                <h3 className="text-lg font-medium mb-2">Your Chat Messages</h3>
-                <p className="text-gray-500">
-                  View and manage your conversations with mechanics here.
-                </p>
-                <ChatThreadsList />
+              <div className="bg-white rounded-lg border shadow-sm">
+                <div className="p-4 border-b">
+                  <h2 className="text-lg font-medium">Your Mechanic Conversations</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Contact and chat with mechanics about your vehicle repairs and maintenance here.
+                  </p>
+                </div>
+                <ChatThreadsList 
+                  threads={threads}
+                  currentUserId={currentUserId}
+                  onSelectThread={handleSelectThread}
+                  selectedThreadId={selectedThreadId || undefined}
+                  isLoading={isLoading}
+                />
               </div>
             )}
           </TabsContent>
