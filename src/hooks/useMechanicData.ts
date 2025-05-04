@@ -34,7 +34,7 @@ export const useMechanicData = () => {
       
       // Get mechanic profile from localStorage if available
       const storedProfile = localStorage.getItem('mechanicProfile');
-      let mechanicProfile: Partial<MechanicDetail> = {};
+      let mechanicProfile: Record<string, any> = {};
       
       if (storedProfile) {
         try {
@@ -47,11 +47,10 @@ export const useMechanicData = () => {
       // Handle specialties based on its type
       let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
       
-      if (mechanicProfile.specialties) {
-        // Store the specialties value and properly handle its type
+      if (mechanicProfile.specialties !== undefined) {
         const specialtiesValue = mechanicProfile.specialties;
         
-        // Fix TypeScript error by properly handling the type - use type guards
+        // Fix TypeScript error by properly handling the specialties type
         if (typeof specialtiesValue === 'string') {
           // If it's a string, split it by commas
           specialties = specialtiesValue.split(',').map(s => s.trim());
