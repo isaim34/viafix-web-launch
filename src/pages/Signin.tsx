@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
@@ -91,7 +92,7 @@ const Signin = () => {
               <Alert className="mb-4 bg-[#F2FCE2] border-green-200">
                 <AlertCircle className="h-4 w-4 text-green-800" />
                 <AlertDescription className="text-green-800">
-                  {activeTab === 'customer' ? 'Find and book mechanics in your area.' : 'Offer your services to customers.'}
+                  Find and book mechanics in your area.
                 </AlertDescription>
               </Alert>
               <div className="border p-6 rounded-lg shadow-sm bg-gray-50">

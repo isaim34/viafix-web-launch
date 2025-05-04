@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,11 +23,12 @@ const customerFormSchema = z.object({
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSigninForm = () => {
-  const { form, onSubmit } = useCustomerSignin();
+  const { form, onSubmit, redirectAction } = useCustomerSignin();
   const [isLoading, setIsLoading] = useState(false);
   const { authChecked, isLoggedIn } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Log auth state for debugging
   useEffect(() => {
@@ -44,9 +46,30 @@ const CustomerSigninForm = () => {
   }
   
   const handleSubmit = async (data: CustomerFormValues) => {
+    console.log("Attempting signin with:", data.email);
     setIsLoading(true);
     try {
-      await onSubmit(data);
+      const success = await onSubmit(data);
+      if (success) {
+        // Manually trigger a login state change event for any listeners
+        window.dispatchEvent(new Event('storage-event'));
+        
+        // Determine where to redirect
+        const redirectTo = location.state?.redirectTo || '/';
+        console.log("Sign-in successful, redirecting to:", redirectTo);
+        
+        // Add a small delay to allow auth state to update
+        setTimeout(() => {
+          navigate(redirectTo);
+        }, 100);
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
+      toast({
+        title: "Sign in failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

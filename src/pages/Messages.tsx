@@ -9,6 +9,8 @@ import { AlertCircle, MessageSquare, Inbox } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getChatThreads } from '@/services/chatService';
 import { ChatThread } from '@/types/mechanic';
+import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
 
 const Messages = () => {
   const { isLoggedIn, currentUserRole, user } = useAuth();
@@ -16,20 +18,30 @@ const Messages = () => {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const currentUserId = user?.id || 'anonymous';
+  const currentUserId = user?.id || localStorage.getItem('userId') || 'anonymous';
 
   // Fetch chat threads when component mounts
   useEffect(() => {
     const fetchThreads = async () => {
-      if (!user?.id) return;
+      if (!isLoggedIn) return;
       
       setIsLoading(true);
+      setError(null);
+      
       try {
-        const userThreads = await getChatThreads(user.id);
+        // For debugging
+        console.log("Fetching threads for user:", currentUserId);
+        
+        const userThreads = await getChatThreads(currentUserId);
+        console.log("Fetched threads:", userThreads);
+        
         setThreads(userThreads);
       } catch (error) {
         console.error("Error fetching chat threads:", error);
+        setError("Failed to load messages. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -37,11 +49,17 @@ const Messages = () => {
 
     if (isLoggedIn) {
       fetchThreads();
+    } else {
+      setIsLoading(false);
     }
-  }, [isLoggedIn, user?.id]);
+  }, [isLoggedIn, currentUserId]);
 
   const handleSelectThread = (threadId: string) => {
     setSelectedThreadId(threadId);
+  };
+
+  const handleSignInClick = () => {
+    navigate('/signin', { state: { redirectTo: '/messages' } });
   };
 
   // Show login required message if not logged in
@@ -52,8 +70,11 @@ const Messages = () => {
           <Alert className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Authentication required</AlertTitle>
-            <AlertDescription>
-              Please sign in to access your messages.
+            <AlertDescription className="flex flex-col gap-4">
+              <p>Please sign in to access your messages.</p>
+              <Button onClick={handleSignInClick} className="w-fit">
+                Sign In
+              </Button>
             </AlertDescription>
           </Alert>
         </div>
@@ -105,13 +126,21 @@ const Messages = () => {
                     Manage your conversations with customers here.
                   </p>
                 </div>
-                <ChatThreadsList 
-                  threads={threads}
-                  currentUserId={currentUserId}
-                  onSelectThread={handleSelectThread}
-                  selectedThreadId={selectedThreadId || undefined}
-                  isLoading={isLoading}
-                />
+                {error ? (
+                  <Alert variant="destructive" className="m-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                ) : (
+                  <ChatThreadsList 
+                    threads={threads}
+                    currentUserId={currentUserId}
+                    onSelectThread={handleSelectThread}
+                    selectedThreadId={selectedThreadId || undefined}
+                    isLoading={isLoading}
+                  />
+                )}
               </div>
             ) : (
               <div className="bg-white rounded-lg border shadow-sm">
@@ -121,13 +150,21 @@ const Messages = () => {
                     Contact and chat with mechanics about your vehicle repairs and maintenance here.
                   </p>
                 </div>
-                <ChatThreadsList 
-                  threads={threads}
-                  currentUserId={currentUserId}
-                  onSelectThread={handleSelectThread}
-                  selectedThreadId={selectedThreadId || undefined}
-                  isLoading={isLoading}
-                />
+                {error ? (
+                  <Alert variant="destructive" className="m-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                ) : (
+                  <ChatThreadsList 
+                    threads={threads}
+                    currentUserId={currentUserId}
+                    onSelectThread={handleSelectThread}
+                    selectedThreadId={selectedThreadId || undefined}
+                    isLoading={isLoading}
+                  />
+                )}
               </div>
             )}
           </TabsContent>

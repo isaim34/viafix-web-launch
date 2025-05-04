@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -32,6 +33,7 @@ export const useCustomerSignin = () => {
   const onSubmit = async (data: CustomerFormValues) => {
     setIsLoading(true);
     try {
+      console.log("Processing sign in for:", data.email);
       const userId = generateUserId(data.email);
       const { userName, profileData } = setupCustomerProfile(data.email, userId);
       
@@ -46,7 +48,9 @@ export const useCustomerSignin = () => {
       // Store email to userId mapping
       localStorage.setItem(`userId_to_email_${userId}`, data.email);
       
+      // Dispatch event to update auth state
       window.dispatchEvent(new Event('storage-event'));
+      console.log("Auth data stored, dispatched storage-event");
       
       // Get just the first name for the welcome message
       const firstName = userName.split(' ')[0];
@@ -55,8 +59,6 @@ export const useCustomerSignin = () => {
         title: `Welcome back, ${firstName}!`,
         description: "You have successfully signed in.",
       });
-      
-      navigate(redirectTo);
       
       if (redirectAction) {
         setTimeout(() => {
@@ -73,6 +75,8 @@ export const useCustomerSignin = () => {
           }
         }, 500);
       }
+
+      return true;
     } catch (error) {
       console.error('Sign in error:', error);
       toast({
@@ -80,11 +84,10 @@ export const useCustomerSignin = () => {
         description: "Please check your credentials and try again.",
         variant: "destructive"
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
-    
-    return true;
   };
 
   return {
