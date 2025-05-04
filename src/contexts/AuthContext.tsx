@@ -40,44 +40,77 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUserRole, setCurrentUserRole] = useState<string | undefined>(undefined);
   const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined);
 
+  // Clear local auth state
+  const clearAuthState = () => {
+    console.log("Clearing auth state");
+    setUser(null);
+    setSession(null);
+    setCurrentUserRole(undefined);
+    setCurrentUserName(undefined);
+    
+    // Also clear any auth-related localStorage items for consistency
+    localStorage.removeItem('userLoggedIn');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+  };
+
   useEffect(() => {
+    console.log("AuthProvider: Setting up auth state listeners");
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        setAuthChecked(true);
+      (event, newSession) => {
+        console.log("Auth state changed:", event, !!newSession);
         
-        if (session?.user) {
+        // Handle signout event specifically
+        if (event === 'SIGNED_OUT') {
+          clearAuthState();
+        } else if (newSession?.user) {
+          setSession(newSession);
+          setUser(newSession.user);
+          
           // Get user metadata if available
-          const role = session.user.user_metadata?.role || 'customer';
-          const name = session.user.user_metadata?.full_name || session.user.email;
+          const role = newSession.user.user_metadata?.role || 'customer';
+          const name = newSession.user.user_metadata?.full_name || newSession.user.email;
           
           setCurrentUserRole(role);
           setCurrentUserName(name);
-        } else {
-          setCurrentUserRole(undefined);
-          setCurrentUserName(undefined);
         }
+        
+        setLoading(false);
+        setAuthChecked(true);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      setAuthChecked(true);
+    supabase.auth.getSession().then(({ data: { session: existingSession }, error }) => {
+      console.log("Initial session check:", !!existingSession, error);
       
-      if (session?.user) {
+      if (error) {
+        console.error("Error checking session:", error);
+        setAuthChecked(true);
+        setLoading(false);
+        clearAuthState();
+        return;
+      }
+      
+      if (existingSession?.user) {
+        setSession(existingSession);
+        setUser(existingSession.user);
+        
         // Get user metadata if available
-        const role = session.user.user_metadata?.role || 'customer';
-        const name = session.user.user_metadata?.full_name || session.user.email;
+        const role = existingSession.user.user_metadata?.role || 'customer';
+        const name = existingSession.user.user_metadata?.full_name || existingSession.user.email;
         
         setCurrentUserRole(role);
         setCurrentUserName(name);
+      } else {
+        // No valid session found
+        clearAuthState();
       }
+      
+      setAuthChecked(true);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -100,13 +133,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear auth state on successful sign out
+      clearAuthState();
+      
+      // Dispatch event to notify components about auth state change
+      window.dispatchEvent(new Event('storage-event'));
+    } catch (error) {
+      console.error("Sign out error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateUserName = (name: string) => {
     setCurrentUserName(name);
-    localStorage.setItem('userName', name);
   };
 
   // Helper to get first name from email or regular name
@@ -124,6 +169,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const parts = fullName.trim().split(' ');
     return parts[0] || '';
   };
+
+  // Console log for debugging
+  useEffect(() => {
+    console.log("AuthContext state:", {
+      isLoggedIn: !!user,
+      authChecked,
+      currentUserRole,
+      currentUserName
+    });
+  }, [user, authChecked, currentUserRole, currentUserName]);
 
   return (
     <AuthContext.Provider value={{ 

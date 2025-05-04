@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { LogIn } from 'lucide-react';
 import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
 import { useCustomerSignin } from '@/hooks/useCustomerSignin';
+import { useAuth } from '@/contexts/AuthContext';
 
 const customerFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -24,6 +25,18 @@ type CustomerFormValues = z.infer<typeof customerFormSchema>;
 const CustomerSigninForm = () => {
   const { form, onSubmit } = useCustomerSignin();
   const [isLoading, setIsLoading] = useState(false);
+  const { authChecked, isLoggedIn } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (authChecked && isLoggedIn) {
+      const redirectTo = location.state?.redirectTo || '/customer-profile';
+      console.log(`User is already logged in, redirecting to: ${redirectTo}`);
+      navigate(redirectTo, { replace: true });
+    }
+  }, [authChecked, isLoggedIn, location.state, navigate]);
   
   const handleSubmit = async (data: CustomerFormValues) => {
     setIsLoading(true);

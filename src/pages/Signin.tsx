@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthRedirect, UserRole } from '@/hooks/useAuthRedirect';
 // Import the sign in forms directly
 import CustomerSigninForm from '@/components/CustomerSigninForm';
@@ -17,6 +17,7 @@ const Signin = () => {
   const [redirectChecked, setRedirectChecked] = useState(false);
   const { isLoggedIn, currentUserRole, authChecked } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
   useEffect(() => {
@@ -53,11 +54,34 @@ const Signin = () => {
     return () => console.log("Signin component unmounted");
   }, [activeTab, redirectChecked, isLoggedIn, authChecked, currentUserRole, location.state]);
 
-  // Only redirect if we've confirmed auth state and the user is logged in
-  if (redirectChecked && authChecked && isLoggedIn) {
-    const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
-    console.log(`User is logged in as ${currentUserRole}, redirecting to: ${redirectTo}`);
-    return <Navigate to={redirectTo} replace />;
+  // Redirect if already logged in
+  useEffect(() => {
+    if (redirectChecked && authChecked && isLoggedIn) {
+      const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
+      console.log(`User is logged in as ${currentUserRole}, redirecting to: ${redirectTo}`);
+      navigate(redirectTo, { replace: true });
+    }
+  }, [redirectChecked, authChecked, isLoggedIn, currentUserRole, location.state, getProfileRoute, navigate]);
+
+  // Show loading state while checking authentication
+  if (!authChecked || !redirectChecked) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="flex justify-center items-center h-[50vh]">
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+              <p className="text-muted-foreground">Checking authentication...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // If logged in, don't even render the form - this prevents flashing
+  if (isLoggedIn) {
+    return <></>;
   }
 
   return (

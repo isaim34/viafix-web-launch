@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,21 @@ interface AuthButtonsProps {
 export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, authChecked } = useAuth();
+  const [checkedAuth, setCheckedAuth] = useState(false);
+  
+  // Ensure we don't show logged-in components until we've checked auth state
+  useEffect(() => {
+    if (authChecked) {
+      console.log("Auth status confirmed:", { isLoggedIn });
+      setCheckedAuth(true);
+    }
+  }, [authChecked, isLoggedIn]);
+  
+  // If we haven't checked auth yet, don't render anything to prevent flashing
+  if (!checkedAuth) {
+    return null;
+  }
 
   if (isLoggedIn) {
     return (
@@ -42,6 +56,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     );
   }
 
+  // Don't show auth buttons on mechanic dashboard if not logged in
   if (location.pathname.includes('/mechanic-dashboard') && !isLoggedIn) {
     return null;
   }
