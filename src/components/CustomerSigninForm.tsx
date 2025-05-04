@@ -9,65 +9,26 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
-import { customerFormSchema, CustomerFormValues } from '@/schemas/signupSchema';
+import { z } from 'zod';
 import { LogIn } from 'lucide-react';
 import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
+import { useCustomerSignin } from '@/hooks/useCustomerSignin';
+
+const customerFormSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSigninForm = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
+  const { form, onSubmit } = useCustomerSignin();
   const [isLoading, setIsLoading] = useState(false);
   
-  const form = useForm<CustomerFormValues>({
-    resolver: zodResolver(customerFormSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      zipCode: '',
-      termsAccepted: false,
-    },
-  });
-
-  const onSubmit = async (data: CustomerFormValues) => {
+  const handleSubmit = async (data: CustomerFormValues) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      // Generate user ID from email
-      const userId = generateUserId(data.email);
-      
-      // Get stored name if available
-      const storedName = localStorage.getItem(`registered_${data.email}`);
-      const userName = storedName || getUserNameFromEmail(data.email);
-      
-      localStorage.setItem('userEmail', data.email);
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userRole', 'customer');
-      localStorage.setItem('userId', userId);
-      localStorage.setItem('userName', userName);
-      localStorage.setItem(`userId_to_email_${userId}`, data.email);
-      
-      window.dispatchEvent(new Event('storage-event'));
-      
-      const firstName = userName.split(' ')[0];
-      
-      toast({
-        title: `Welcome back, ${firstName}!`,
-        description: "You have successfully signed in.",
-      });
-      
-      // Navigate directly to profile without MFA
-      const redirectTo = location.state?.redirectTo || '/profile';
-      navigate(redirectTo);
-    } catch (error) {
-      console.error('Sign in error:', error);
-      toast({
-        title: "Sign in failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive"
-      });
+      await onSubmit(data);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +42,7 @@ const CustomerSigninForm = () => {
       </p>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <EmailField form={form} />
           <PasswordField form={form} />
 

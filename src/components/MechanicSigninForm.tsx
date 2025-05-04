@@ -12,6 +12,7 @@ import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
 import { LogIn } from 'lucide-react';
 import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
+import { useAuthSubmit } from '@/hooks/useAuthSubmit';
 
 const mechanicFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -25,6 +26,7 @@ const MechanicSigninForm = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { handleSubmit: authSubmit } = useAuthSubmit();
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -35,40 +37,10 @@ const MechanicSigninForm = () => {
   });
 
   const onSubmit = async (data: MechanicFormValues) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      // Generate user ID from email
-      const userId = generateUserId(data.email);
-      
-      // Get stored name if available
-      const storedName = localStorage.getItem(`registered_${data.email}`);
-      const userName = storedName || getUserNameFromEmail(data.email);
-      
-      localStorage.setItem('userEmail', data.email);
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userRole', 'mechanic');
-      localStorage.setItem('userId', userId);
-      localStorage.setItem('userName', userName);
-      localStorage.setItem(`userId_to_email_${userId}`, data.email);
-      
-      // Set default subscription status for testing
-      localStorage.setItem('subscription_status', 'active');
-      localStorage.setItem('subscription_plan', 'monthly');
-      localStorage.setItem('subscription_end', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
-      
-      window.dispatchEvent(new Event('storage-event'));
-      
-      const firstName = userName.split(' ')[0];
-      
-      toast({
-        title: `Welcome back, ${firstName}!`,
-        description: "You have successfully signed in.",
-      });
-      
-      // Navigate directly to mechanic dashboard without MFA
-      const redirectTo = location.state?.redirectTo || '/mechanic-dashboard';
-      navigate(redirectTo);
+      // Use the authentication handler with isNewAccount=false
+      await authSubmit(data, false);
     } catch (error) {
       console.error('Sign in error:', error);
       toast({

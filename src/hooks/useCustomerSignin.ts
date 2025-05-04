@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +17,7 @@ export type CustomerFormValues = z.infer<typeof customerFormSchema>;
 export const useCustomerSignin = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
   
   const redirectTo = location.state?.redirectTo || '/';
   const redirectAction = location.state?.action || null;
@@ -28,53 +30,68 @@ export const useCustomerSignin = () => {
     },
   });
 
-  const onSubmit = (data: CustomerFormValues) => {
-    const userId = generateUserId(data.email);
-    const { userName, profileData } = setupCustomerProfile(data.email, userId);
-    
-    // Store auth data
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('userEmail', data.email);
-    localStorage.setItem('userLoggedIn', 'true');
-    localStorage.setItem('userRole', 'customer');
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('customerProfile', JSON.stringify(profileData));
-    
-    // Store email to userId mapping
-    localStorage.setItem(`userId_to_email_${userId}`, data.email);
-    
-    window.dispatchEvent(new Event('storage-event'));
-    
-    // Get just the first name for the welcome message
-    const firstName = userName.split(' ')[0];
-    
-    toast({
-      title: `Welcome back, ${firstName}!`,
-      description: "You have successfully signed in.",
-    });
-    
-    navigate(redirectTo);
-    
-    if (redirectAction) {
-      setTimeout(() => {
-        if (redirectAction === 'book') {
-          toast({
-            title: "You can now book services",
-            description: "You've been signed in as a customer and can now book mechanic services.",
-          });
-        } else if (redirectAction === 'contact') {
-          toast({
-            title: "You can now chat with mechanics",
-            description: "You've been signed in as a customer and can now chat with mechanics.",
-          });
-        }
-      }, 500);
+  const onSubmit = async (data: CustomerFormValues) => {
+    setIsLoading(true);
+    try {
+      const userId = generateUserId(data.email);
+      const { userName, profileData } = setupCustomerProfile(data.email, userId);
+      
+      // Store auth data
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'customer');
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('customerProfile', JSON.stringify(profileData));
+      
+      // Store email to userId mapping
+      localStorage.setItem(`userId_to_email_${userId}`, data.email);
+      
+      window.dispatchEvent(new Event('storage-event'));
+      
+      // Get just the first name for the welcome message
+      const firstName = userName.split(' ')[0];
+      
+      toast({
+        title: `Welcome back, ${firstName}!`,
+        description: "You have successfully signed in.",
+      });
+      
+      navigate(redirectTo);
+      
+      if (redirectAction) {
+        setTimeout(() => {
+          if (redirectAction === 'book') {
+            toast({
+              title: "You can now book services",
+              description: "You've been signed in as a customer and can now book mechanic services.",
+            });
+          } else if (redirectAction === 'contact') {
+            toast({
+              title: "You can now chat with mechanics",
+              description: "You've been signed in as a customer and can now chat with mechanics.",
+            });
+          }
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      toast({
+        title: "Sign in failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
+    
+    return true;
   };
 
   return {
     form,
     onSubmit,
     redirectAction,
+    isLoading
   };
 };
