@@ -15,10 +15,13 @@ import { Service } from '@/types/mechanic';
 import { CalendarDays, Clock, DollarSign, FileText } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CustomOfferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mechanicId: string;
   mechanicName: string;
   selectedService: Service | null;
   onSubmit: (offerDetails: CustomOfferDetails) => void;
@@ -34,11 +37,15 @@ export interface CustomOfferDetails {
 export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
   open,
   onOpenChange,
+  mechanicId,
   mechanicName,
   selectedService,
   onSubmit
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState<CustomOfferDetails>({
     description: '',
     budget: selectedService ? selectedService.price.toString() : '',
@@ -51,7 +58,7 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.description.trim()) {
@@ -63,17 +70,53 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
       return;
     }
     
-    onSubmit(formData);
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be signed in to request a custom offer.",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Reset form after submission
-    setFormData({
-      description: '',
-      budget: selectedService ? selectedService.price.toString() : '',
-      timeframe: '',
-      preferredDate: ''
-    });
+    setIsSubmitting(true);
     
-    onOpenChange(false);
+    try {
+      // Save to Supabase
+      const { error } = await supabase.from('custom_offers').insert({
+        customer_id: user.id,
+        mechanic_id: mechanicId,
+        description: formData.description,
+        budget: formData.budget,
+        timeframe: formData.timeframe,
+        preferred_date: formData.preferredDate
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Call the original onSubmit callback
+      onSubmit(formData);
+      
+      // Reset form
+      setFormData({
+        description: '',
+        budget: selectedService ? selectedService.price.toString() : '',
+        timeframe: '',
+        preferredDate: ''
+      });
+      
+    } catch (error) {
+      console.error('Error submitting custom offer:', error);
+      toast({
+        title: "Submission failed",
+        description: "There was an error submitting your custom offer. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -158,11 +201,20 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
           </div>
           
           <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="ml-2">
-              Send Request
+            <Button 
+              type="submit" 
+              className="ml-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Send Request'}
             </Button>
           </DialogFooter>
         </form>

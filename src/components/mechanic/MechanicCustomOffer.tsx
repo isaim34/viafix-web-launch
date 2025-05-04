@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Service, MechanicDetail } from '@/types/mechanic';
 import { CustomOfferDialog, CustomOfferDetails } from '@/components/mechanic/CustomOfferDialog';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface MechanicCustomOfferProps {
-  isCustomerLoggedIn: boolean;
   mechanic: MechanicDetail;
   selectedService: Service | null;
   openChat: () => void;
@@ -13,7 +14,6 @@ interface MechanicCustomOfferProps {
 }
 
 export const MechanicCustomOffer = ({
-  isCustomerLoggedIn,
   mechanic,
   selectedService,
   openChat,
@@ -21,6 +21,9 @@ export const MechanicCustomOffer = ({
 }: MechanicCustomOfferProps) => {
   const [isCustomOfferOpen, setIsCustomOfferOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isCustomerLoggedIn = !!user;
 
   const handleCustomOffer = () => {
     if (!isCustomerLoggedIn) {
@@ -29,13 +32,20 @@ export const MechanicCustomOffer = ({
         description: "Please sign in to request a custom offer",
         variant: "destructive"
       });
+      
+      navigate('/signin', { 
+        state: { 
+          redirectTo: `/mechanics/${mechanic.id}`,
+          action: 'custom-offer'
+        } 
+      });
       return;
     }
     setIsCustomOfferOpen(true);
   };
 
   const handleSubmitCustomOffer = (offerDetails: CustomOfferDetails) => {
-    // In a real app, this would send the offer to the backend
+    // Show success toast - actual saving is handled in CustomOfferDialog
     toast({
       title: "Custom offer sent!",
       description: `Your request has been sent to ${mechanic.name} and is pending approval.`,
@@ -56,6 +66,7 @@ export const MechanicCustomOffer = ({
       <CustomOfferDialog
         open={isCustomOfferOpen}
         onOpenChange={setIsCustomOfferOpen}
+        mechanicId={mechanic.id}
         mechanicName={mechanic.name}
         selectedService={selectedService}
         onSubmit={handleSubmitCustomOffer}
@@ -65,7 +76,6 @@ export const MechanicCustomOffer = ({
 };
 
 export const useCustomOffer = ({
-  isCustomerLoggedIn,
   mechanic,
   selectedService,
   openChat,
@@ -73,6 +83,9 @@ export const useCustomOffer = ({
 }: MechanicCustomOfferProps) => {
   const [isCustomOfferOpen, setIsCustomOfferOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isCustomerLoggedIn = !!user;
 
   const handleCustomOffer = () => {
     if (!isCustomerLoggedIn) {
@@ -81,13 +94,20 @@ export const useCustomOffer = ({
         description: "Please sign in to request a custom offer",
         variant: "destructive"
       });
+      
+      navigate('/signin', { 
+        state: { 
+          redirectTo: `/mechanics/${mechanic.id}`,
+          action: 'custom-offer'
+        } 
+      });
       return;
     }
     setIsCustomOfferOpen(true);
   };
 
   const handleSubmitCustomOffer = (offerDetails: CustomOfferDetails) => {
-    // In a real app, this would send the offer to the backend
+    // Show success toast - actual saving is handled in CustomOfferDialog
     toast({
       title: "Custom offer sent!",
       description: `Your request has been sent to ${mechanic.name} and is pending approval.`,

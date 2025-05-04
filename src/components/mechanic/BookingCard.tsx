@@ -3,8 +3,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Smartphone, Shield, Clock, Lock, FileText } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
 interface BookingCardProps {
   mechanicId: string;

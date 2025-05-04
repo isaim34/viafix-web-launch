@@ -1,20 +1,205 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
+import { v4 as uuidv4 } from 'uuid';
 
-// In a real app, this would interact with a backend/database
-// For demo purposes, we'll use localStorage
-
-const CHAT_STORAGE_KEY = 'mechanic_app_chats';
-
-// Helper to get a unique ID
-const generateId = (): string => {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+// Get all chat threads for a user
+export const getChatThreads = async (userId: string): Promise<ChatThread[]> => {
+  try {
+    const { data: threads, error } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .filter('participants', 'cs', `{${userId}}`)
+      .order('last_message_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching chat threads:', error);
+      return [];
+    }
+    
+    return threads as ChatThread[];
+  } catch (error) {
+    console.error('Error retrieving chat threads:', error);
+    return [];
+  }
 };
 
-// Get all chat threads
-export const getChatThreads = (userId: string): ChatThread[] => {
+// Get a specific chat thread
+export const getChatThread = async (threadId: string): Promise<ChatThread | null> => {
   try {
-    const storedChats = localStorage.getItem(CHAT_STORAGE_KEY);
+    const { data, error } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .eq('id', threadId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching chat thread:', error);
+      return null;
+    }
+    
+    return data as ChatThread;
+  } catch (error) {
+    console.error('Error retrieving chat thread:', error);
+    return null;
+  }
+};
+
+// Find or create a thread between two users
+export const findOrCreateChatThread = async (
+  userId1: string, 
+  userName1: string,
+  userId2: string,
+  userName2: string
+): Promise<ChatThread> => {
+  // Try to find an existing thread
+  const { data: existingThreads, error: findError } = await supabase
+    .from('chat_threads')
+    .select('*')
+    .contains('participants', [userId1, userId2])
+    .filter('participants', 'cs', `{${userId1}}`)
+    .filter('participants', 'cs', `{${userId2}}`)
+    .limit(1);
+  
+  if (findError) {
+    console.error('Error finding chat thread:', findError);
+  }
+  
+  if (existingThreads && existingThreads.length > 0) {
+    return existingThreads[0] as ChatThread;
+  }
+  
+  // Create a new thread
+  const newThread = {
+    participants: [userId1, userId2],
+    participant_names: {
+      [userId1]: userName1,
+      [userId2]: userName2
+    },
+    last_message_at: new Date().toISOString(),
+    unread_count: 0
+  };
+  
+  const { data: createdThread, error: createError } = await supabase
+    .from('chat_threads')
+    .insert(newThread)
+    .select()
+    .single();
+  
+  if (createError) {
+    console.error('Error creating chat thread:', createError);
+    throw new Error('Failed to create chat thread');
+  }
+  
+  return createdThread as ChatThread;
+};
+
+// Get messages for a thread
+export const getChatMessages = async (threadId: string): Promise<ChatMessage[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('thread_id', threadId)
+      .order('timestamp', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching chat messages:', error);
+      return [];
+    }
+    
+    return data as ChatMessage[];
+  } catch (error) {
+    console.error('Error retrieving chat messages:', error);
+    return [];
+  }
+};
+
+// Send a new message
+export const sendChatMessage = async (
+  threadId: string, 
+  message: Omit<ChatMessage, 'id'>
+): Promise<ChatMessage> => {
+  try {
+    // Save the message
+    const { data: newMessage, error: messageError } = await supabase
+      .from('chat_messages')
+      .insert({
+        thread_id: threadId,
+        sender_id: message.senderId,
+        sender_name: message.senderName,
+        receiver_id: message.receiverId,
+        content: message.content,
+        timestamp: new Date().toISOString(),
+        is_read: false
+      })
+      .select()
+      .single();
+    
+    if (messageError) {
+      console.error('Error sending chat message:', messageError);
+      throw new Error('Failed to send message');
+    }
+    
+    // Update thread's last message and unread count
+    const { error: threadError } = await supabase
+      .from('chat_threads')
+      .update({
+        last_message_at: new Date().toISOString(),
+        unread_count: supabase.rpc('increment', { row_id: threadId, increment_amount: 1 })
+      })
+      .eq('id', threadId);
+    
+    if (threadError) {
+      console.error('Error updating chat thread:', threadError);
+    }
+    
+    return newMessage as ChatMessage;
+  } catch (error) {
+    console.error('Error sending chat message:', error);
+    throw new Error('Failed to send message');
+  }
+};
+
+// Mark messages as read
+export const markThreadAsRead = async (threadId: string, userId: string): Promise<void> => {
+  try {
+    // Update thread unread count
+    const { error: threadError } = await supabase
+      .from('chat_threads')
+      .update({ unread_count: 0 })
+      .eq('id', threadId);
+    
+    if (threadError) {
+      console.error('Error updating thread read status:', threadError);
+    }
+    
+    // Mark messages as read
+    const { error: messagesError } = await supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('thread_id', threadId)
+      .eq('receiver_id', userId);
+    
+    if (messagesError) {
+      console.error('Error updating message read status:', messagesError);
+    }
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+  }
+};
+
+// Initialize with some sample data if none exists (for demo purposes)
+export const initializeSampleChats = async (): Promise<void> => {
+  // This function is now a no-op since we're using Supabase
+  // All data will be stored in the database
+};
+
+// Legacy functions to maintain compatibility with existing codebase
+// These should be migrated away from in future updates
+export const getChatThreads_legacy = (userId: string): ChatThread[] => {
+  try {
+    const storedChats = localStorage.getItem('mechanic_app_chats');
     if (!storedChats) return [];
     
     const threads = JSON.parse(storedChats) as ChatThread[];
@@ -25,10 +210,9 @@ export const getChatThreads = (userId: string): ChatThread[] => {
   }
 };
 
-// Get a specific chat thread
-export const getChatThread = (threadId: string): ChatThread | null => {
+export const getChatThread_legacy = (threadId: string): ChatThread | null => {
   try {
-    const storedChats = localStorage.getItem(CHAT_STORAGE_KEY);
+    const storedChats = localStorage.getItem('mechanic_app_chats');
     if (!storedChats) return null;
     
     const threads = JSON.parse(storedChats) as ChatThread[];
@@ -39,14 +223,13 @@ export const getChatThread = (threadId: string): ChatThread | null => {
   }
 };
 
-// Find or create a thread between two users
-export const findOrCreateChatThread = (
+export const findOrCreateChatThread_legacy = (
   userId1: string, 
   userName1: string,
   userId2: string,
   userName2: string
 ): ChatThread => {
-  const allThreads = getChatThreads('all');
+  const allThreads = getChatThreads_legacy('all');
   
   // Try to find an existing thread
   const existingThread = allThreads.find(thread => {
@@ -61,7 +244,7 @@ export const findOrCreateChatThread = (
   
   // Create a new thread
   const newThread: ChatThread = {
-    id: generateId(),
+    id: uuidv4(),
     participants: [userId1, userId2],
     participantNames: {
       [userId1]: userName1,
@@ -72,15 +255,14 @@ export const findOrCreateChatThread = (
   
   // Save the new thread
   const updatedThreads = [...allThreads, newThread];
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(updatedThreads));
+  localStorage.setItem('mechanic_app_chats', JSON.stringify(updatedThreads));
   
   return newThread;
 };
 
-// Get messages for a thread
-export const getChatMessages = (threadId: string): ChatMessage[] => {
+export const getChatMessages_legacy = (threadId: string): ChatMessage[] => {
   try {
-    const key = `${CHAT_STORAGE_KEY}_messages_${threadId}`;
+    const key = `mechanic_app_chats_messages_${threadId}`;
     const storedMessages = localStorage.getItem(key);
     if (!storedMessages) return [];
     
@@ -91,25 +273,24 @@ export const getChatMessages = (threadId: string): ChatMessage[] => {
   }
 };
 
-// Send a new message
-export const sendChatMessage = (
+export const sendChatMessage_legacy = (
   threadId: string, 
   message: Omit<ChatMessage, 'id'>
 ): ChatMessage => {
   const newMessage: ChatMessage = {
     ...message,
-    id: generateId()
+    id: uuidv4()
   };
   
   try {
     // Save the message
-    const key = `${CHAT_STORAGE_KEY}_messages_${threadId}`;
-    const existingMessages = getChatMessages(threadId);
+    const key = `mechanic_app_chats_messages_${threadId}`;
+    const existingMessages = getChatMessages_legacy(threadId);
     const updatedMessages = [...existingMessages, newMessage];
     localStorage.setItem(key, JSON.stringify(updatedMessages));
     
     // Update the thread's last message and unread count
-    const allThreads = getChatThreads('all');
+    const allThreads = getChatThreads_legacy('all');
     const updatedThreads = allThreads.map(thread => {
       if (thread.id === threadId) {
         return {
@@ -123,7 +304,7 @@ export const sendChatMessage = (
       return thread;
     });
     
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(updatedThreads));
+    localStorage.setItem('mechanic_app_chats', JSON.stringify(updatedThreads));
     
     return newMessage;
   } catch (error) {
@@ -132,11 +313,10 @@ export const sendChatMessage = (
   }
 };
 
-// Mark messages as read
-export const markThreadAsRead = (threadId: string, userId: string): void => {
+export const markThreadAsRead_legacy = (threadId: string, userId: string): void => {
   try {
     // Update thread unread count
-    const allThreads = getChatThreads('all');
+    const allThreads = getChatThreads_legacy('all');
     const updatedThreads = allThreads.map(thread => {
       if (thread.id === threadId) {
         return {
@@ -147,11 +327,11 @@ export const markThreadAsRead = (threadId: string, userId: string): void => {
       return thread;
     });
     
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(updatedThreads));
+    localStorage.setItem('mechanic_app_chats', JSON.stringify(updatedThreads));
     
     // Mark messages as read
-    const key = `${CHAT_STORAGE_KEY}_messages_${threadId}`;
-    const existingMessages = getChatMessages(threadId);
+    const key = `mechanic_app_chats_messages_${threadId}`;
+    const existingMessages = getChatMessages_legacy(threadId);
     const updatedMessages = existingMessages.map(msg => {
       if (msg.receiverId === userId && !msg.isRead) {
         return {
@@ -165,14 +345,5 @@ export const markThreadAsRead = (threadId: string, userId: string): void => {
     localStorage.setItem(key, JSON.stringify(updatedMessages));
   } catch (error) {
     console.error('Error marking messages as read:', error);
-  }
-};
-
-// Initialize with some sample data if none exists
-export const initializeSampleChats = (): void => {
-  const existingChats = localStorage.getItem(CHAT_STORAGE_KEY);
-  if (!existingChats) {
-    // Sample empty array to start
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify([]));
   }
 };

@@ -15,6 +15,7 @@ interface ChatBoxProps {
   currentUserName: string;
   messages: ChatMessage[];
   onSendMessage: (content: string) => void;
+  isLoading?: boolean;
 }
 
 export const ChatBox = ({
@@ -26,6 +27,7 @@ export const ChatBox = ({
   currentUserName,
   messages,
   onSendMessage,
+  isLoading = false,
 }: ChatBoxProps) => {
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -69,7 +71,11 @@ export const ChatBox = ({
       </div>
       
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {messages.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
             <p>Start a conversation with {recipientName}</p>
           </div>
@@ -105,10 +111,12 @@ export const ChatBox = ({
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className="min-h-[60px] resize-none"
+            disabled={isLoading}
           />
           <Button 
             onClick={handleSendMessage}
             className="ml-2 h-[60px]"
+            disabled={isLoading}
           >
             <Send className="h-5 w-5" />
           </Button>

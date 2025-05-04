@@ -50,6 +50,77 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          content: string
+          id: string
+          is_read: boolean
+          receiver_id: string
+          sender_id: string
+          sender_name: string
+          thread_id: string
+          timestamp: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          is_read?: boolean
+          receiver_id: string
+          sender_id: string
+          sender_name: string
+          thread_id: string
+          timestamp?: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          is_read?: boolean
+          receiver_id?: string
+          sender_id?: string
+          sender_name?: string
+          thread_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          participant_names: Json
+          participants: string[]
+          unread_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_names?: Json
+          participants: string[]
+          unread_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_names?: Json
+          participants?: string[]
+          unread_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       complaints: {
         Row: {
           component: string
@@ -90,6 +161,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_offers: {
+        Row: {
+          budget: string | null
+          created_at: string
+          customer_id: string
+          description: string
+          id: string
+          mechanic_id: string
+          preferred_date: string | null
+          status: string
+          timeframe: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          customer_id: string
+          description: string
+          id?: string
+          mechanic_id: string
+          preferred_date?: string | null
+          status?: string
+          timeframe?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          customer_id?: string
+          description?: string
+          id?: string
+          mechanic_id?: string
+          preferred_date?: string | null
+          status?: string
+          timeframe?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       customer_profiles: {
         Row: {
@@ -524,6 +634,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_bookings: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          mechanic_id: string
+          notes: string | null
+          preferred_date: string | null
+          service_id: string | null
+          service_name: string
+          service_price: number | null
+          status: string
+          updated_at: string
+          vehicle_info: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          mechanic_id: string
+          notes?: string | null
+          preferred_date?: string | null
+          service_id?: string | null
+          service_name: string
+          service_price?: number | null
+          status?: string
+          updated_at?: string
+          vehicle_info?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          mechanic_id?: string
+          notes?: string | null
+          preferred_date?: string | null
+          service_id?: string | null
+          service_name?: string
+          service_price?: number | null
+          status?: string
+          updated_at?: string
+          vehicle_info?: string | null
+        }
+        Relationships: []
       }
       subscribers: {
         Row: {
