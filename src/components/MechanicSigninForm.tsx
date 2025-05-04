@@ -39,8 +39,14 @@ const MechanicSigninForm = () => {
   const onSubmit = async (data: MechanicFormValues) => {
     setIsLoading(true);
     try {
+      // Make sure the email and password are treated as required strings
+      const authData = {
+        email: data.email as string,
+        password: data.password as string
+      };
+      
       // Use the authentication handler with isNewAccount=false
-      await authSubmit(data, false);
+      await authSubmit(authData, false);
     } catch (error) {
       console.error('Sign in error:', error);
       toast({
