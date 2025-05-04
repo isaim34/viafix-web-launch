@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import './App.css';
 
@@ -46,6 +46,8 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
             <Route path="/customer-profile" element={<CustomerProfile />} />
+            {/* Add redirect from /profile to /customer-profile for backward compatibility */}
+            <Route path="/profile" element={<Navigate to="/customer-profile" replace />} />
             <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />
             <Route path="/account-settings" element={<AccountSettings />} />
             <Route path="/debug" element={<Debug />} />

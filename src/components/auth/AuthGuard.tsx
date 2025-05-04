@@ -2,19 +2,21 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
 export const AuthGuard = ({ children }: AuthGuardProps) => {
-  const { isLoggedIn, authChecked } = useAuth();
+  const { isLoggedIn, authChecked, currentUserRole } = useAuth();
+  const { getProfileRoute } = useAuthRedirect();
   const location = useLocation();
   const [isChecking, setIsChecking] = useState(true);
   
   // Debug logging
   useEffect(() => {
-    console.log("AuthGuard mounted with:", { isLoggedIn, authChecked });
+    console.log("AuthGuard mounted with:", { isLoggedIn, authChecked, currentUserRole });
     
     // Small delay to prevent flickering during auth check
     const timer = setTimeout(() => {
@@ -26,7 +28,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
       clearTimeout(timer);
       console.log("AuthGuard unmounted");
     };
-  }, [isLoggedIn, authChecked]);
+  }, [isLoggedIn, authChecked, currentUserRole]);
 
   // Show simple loading during the brief check period
   if (isChecking || !authChecked) {

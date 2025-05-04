@@ -7,7 +7,7 @@ export const useAuthRedirect = () => {
   const getProfileRoute = useCallback((userRole: UserRole): string => {
     switch(userRole) {
       case 'customer':
-        return '/profile';
+        return '/customer-profile';
       case 'mechanic':
         return '/mechanic-dashboard';
       default:
