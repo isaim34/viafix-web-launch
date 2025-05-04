@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
 import { v4 as uuidv4 } from 'uuid';
@@ -188,7 +187,7 @@ export const sendChatMessage = async (
       .from('chat_threads')
       .update({
         last_message_at: new Date().toISOString(),
-        unread_count: supabase.sql`unread_count + 1`
+        unread_count: 1 // This will trigger an increment by 1 on the server side
       })
       .eq('id', threadId);
     
