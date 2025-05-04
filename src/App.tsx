@@ -50,10 +50,16 @@ function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />
             
-            {/* Protected Routes */}
-            <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+            {/* Mechanic-specific routes */}
+            <Route path="/mechanic-dashboard" element={
+              <AuthGuard requiredRole="mechanic">
+                <MechanicDashboard />
+              </AuthGuard>
+            } />
+            
+            {/* Customer-specific routes */}
             <Route path="/customer-profile" element={
-              <AuthGuard>
+              <AuthGuard requiredRole="customer">
                 <CustomerProfile />
               </AuthGuard>
             } />

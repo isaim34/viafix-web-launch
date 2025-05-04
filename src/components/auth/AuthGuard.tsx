@@ -7,9 +7,10 @@ import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
+  requiredRole?: 'mechanic' | 'customer' | undefined;
 }
 
-export const AuthGuard = ({ children }: AuthGuardProps) => {
+export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
   const { isLoggedIn, authChecked, currentUserRole } = useAuth();
   const { getProfileRoute } = useAuthRedirect();
   const location = useLocation();
@@ -17,7 +18,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
   
   // Debug logging
   useEffect(() => {
-    console.log("AuthGuard mounted with:", { isLoggedIn, authChecked, currentUserRole });
+    console.log("AuthGuard mounted with:", { isLoggedIn, authChecked, currentUserRole, requiredRole });
     
     // Small delay to prevent flickering during auth check
     const timer = setTimeout(() => {
@@ -29,7 +30,7 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
       clearTimeout(timer);
       console.log("AuthGuard unmounted");
     };
-  }, [isLoggedIn, authChecked, currentUserRole]);
+  }, [isLoggedIn, authChecked, currentUserRole, requiredRole]);
 
   // Show simple loading during the brief check period
   if (isChecking || !authChecked) {
@@ -48,6 +49,12 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     console.log('User is not logged in, redirecting to signin');
     // Pass the current path as state so we can redirect back after login
     return <Navigate to="/signin" state={{ redirectTo: location.pathname }} />;
+  }
+
+  // If a specific role is required and user doesn't match
+  if (requiredRole && currentUserRole !== requiredRole) {
+    console.log(`User role (${currentUserRole}) doesn't match required role (${requiredRole}), redirecting`);
+    return <Navigate to={getProfileRoute(currentUserRole)} />;
   }
 
   console.log("AuthGuard allowing access to protected route");

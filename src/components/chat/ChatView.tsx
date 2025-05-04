@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
 import { getChatMessages, sendChatMessage, markThreadAsRead } from '@/services/chatService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatViewProps {
   thread: ChatThread;
@@ -27,29 +29,77 @@ export const ChatView = ({
   const otherParticipantId = thread.participants.find(p => p !== currentUserId) || '';
   const otherParticipantName = thread.participantNames[otherParticipantId] || 'Unknown User';
   
+  const loadMessages = async () => {
+    setIsLoading(true);
+    try {
+      console.log(`Loading messages for thread ${thread.id}`);
+      const chatMessages = await getChatMessages(thread.id);
+      console.log('Messages loaded:', chatMessages);
+      setMessages(chatMessages);
+      
+      // Mark messages as read
+      await markThreadAsRead(thread.id, currentUserId);
+      
+    } catch (error) {
+      console.error("Error loading messages:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   useEffect(() => {
     // Load messages for this thread
-    const loadMessages = async () => {
-      setIsLoading(true);
-      try {
-        const chatMessages = await getChatMessages(thread.id);
-        setMessages(chatMessages);
-        
-        // Mark messages as read
-        await markThreadAsRead(thread.id, currentUserId);
-        
-      } catch (error) {
-        console.error("Error loading messages:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     loadMessages();
     
-    // Scroll to bottom
-    scrollToBottom();
+    // Set up real-time subscription for new messages
+    const channel = supabase
+      .channel(`chat_messages_${thread.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chat_messages',
+          filter: `thread_id=eq.${thread.id}`
+        },
+        (payload) => {
+          console.log('New chat message received in ChatView:', payload);
+          const newMessage = payload.new as any;
+          
+          // Format the message to match our ChatMessage type
+          const formattedMessage: ChatMessage = {
+            id: newMessage.id,
+            senderId: newMessage.sender_id,
+            senderName: newMessage.sender_name,
+            receiverId: newMessage.receiver_id,
+            content: newMessage.content,
+            timestamp: newMessage.timestamp,
+            isRead: newMessage.is_read
+          };
+          
+          // Only add the message if it's not already in our list
+          if (!messages.some(msg => msg.id === formattedMessage.id)) {
+            setMessages(prev => [...prev, formattedMessage]);
+            
+            // If the message is not from the current user, mark it as read
+            if (formattedMessage.senderId !== currentUserId) {
+              markThreadAsRead(thread.id, currentUserId);
+            }
+          }
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [thread.id, currentUserId]);
+  
+  useEffect(() => {
+    // Scroll to bottom whenever messages change
+    scrollToBottom();
+  }, [messages]);
   
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -61,6 +111,8 @@ export const ChatView = ({
     if (!messageText.trim()) return;
     
     try {
+      console.log(`Sending message in thread ${thread.id}: ${messageText}`);
+      
       // Send message
       const newMessageData = {
         senderId: currentUserId,
@@ -72,6 +124,7 @@ export const ChatView = ({
       };
       
       const newMessage = await sendChatMessage(thread.id, newMessageData);
+      console.log('Message sent successfully:', newMessage);
       
       // Update local state with the returned message that has an ID
       setMessages(prev => [...prev, newMessage]);
@@ -79,9 +132,6 @@ export const ChatView = ({
       
       // Notify parent
       onNewMessage(thread.id);
-      
-      // Scroll to bottom
-      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Error sending message:", error);
     }

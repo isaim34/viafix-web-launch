@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { ChatThreadsList } from './chat/ChatThreadsList';
 import { ChatView } from './chat/ChatView';
-import { getChatThreads, initializeSampleChats } from '@/services/chatService';
+import { getChatThreads } from '@/services/chatService';
 import { ChatThread } from '@/types/mechanic';
+import { useAuth } from '@/hooks/useAuth';
 
 const MechanicChat = () => {
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -11,29 +13,30 @@ const MechanicChat = () => {
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // For demo purposes - in a real app, this would come from auth
-  const currentUserId = 'mechanic-1';
-  const currentUserName = 'Alex Johnson';
+  const { user, currentUserRole, currentUserName } = useAuth();
+  const currentUserId = user?.id || 'anonymous';
+  const userName = currentUserName || 'User';
   
-  useEffect(() => {
-    // Initialize chat sample data if needed
-    initializeSampleChats();
-    
-    // Load threads for the current user
-    loadThreads();
-  }, []);
-  
-  const loadThreads = async () => {
+  const loadThreads = useCallback(async () => {
     setIsLoading(true);
     try {
+      console.log('Loading chat threads for user:', currentUserId);
       const userThreads = await getChatThreads(currentUserId);
+      console.log('Loaded threads:', userThreads);
       setThreads(userThreads);
     } catch (error) {
       console.error("Error loading threads:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentUserId]);
+  
+  useEffect(() => {
+    // Only load threads if we have a valid user ID
+    if (user?.id) {
+      loadThreads();
+    }
+  }, [user, loadThreads]);
   
   const handleSelectThread = (threadId: string) => {
     setSelectedThreadId(threadId);
@@ -59,21 +62,21 @@ const MechanicChat = () => {
           <div className="p-4 border-b">
             <h2 className="text-xl font-semibold flex items-center gap-2">
               <MessageCircle className="h-5 w-5" /> Messages
+              {currentUserRole && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  ({currentUserRole === 'mechanic' ? 'Mechanic' : 'Customer'} View)
+                </span>
+              )}
             </h2>
           </div>
           
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <ChatThreadsList
-              threads={threads}
-              currentUserId={currentUserId}
-              onSelectThread={handleSelectThread}
-              selectedThreadId={selectedThreadId || undefined}
-            />
-          )}
+          <ChatThreadsList
+            threads={threads}
+            currentUserId={currentUserId}
+            onSelectThread={handleSelectThread}
+            selectedThreadId={selectedThreadId || undefined}
+            isLoading={isLoading}
+          />
         </div>
         
         {/* Chat view - shown on mobile only when a chat is selected */}

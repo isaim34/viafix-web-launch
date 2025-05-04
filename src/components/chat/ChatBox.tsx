@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/types/mechanic';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatBoxProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface ChatBoxProps {
   messages: ChatMessage[];
   onSendMessage: (content: string) => void;
   isLoading?: boolean;
+  threadId?: string;
 }
 
 export const ChatBox = ({
@@ -28,16 +30,65 @@ export const ChatBox = ({
   messages,
   onSendMessage,
   isLoading = false,
+  threadId,
 }: ChatBoxProps) => {
   const [messageText, setMessageText] = useState('');
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Initialize localMessages with the incoming messages prop
+  useEffect(() => {
+    setLocalMessages(messages);
+  }, [messages]);
+
+  // Set up realtime subscription if threadId is available
+  useEffect(() => {
+    if (isOpen && threadId) {
+      const channel = supabase
+        .channel(`chat_box_${threadId}`)
+        .on(
+          'postgres_changes',
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'chat_messages',
+            filter: `thread_id=eq.${threadId}`
+          },
+          (payload) => {
+            console.log('ChatBox: New message received:', payload);
+            const newMessage = payload.new as any;
+            
+            // Format the message
+            const formattedMessage: ChatMessage = {
+              id: newMessage.id,
+              senderId: newMessage.sender_id,
+              senderName: newMessage.sender_name,
+              receiverId: newMessage.receiver_id,
+              content: newMessage.content,
+              timestamp: newMessage.timestamp,
+              isRead: newMessage.is_read
+            };
+            
+            // Only add if not already in our list and not from current user
+            if (!localMessages.some(msg => msg.id === formattedMessage.id)) {
+              setLocalMessages(prev => [...prev, formattedMessage]);
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isOpen, threadId, localMessages]);
 
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen]);
+  }, [localMessages, isOpen]);
 
   const handleSendMessage = () => {
     if (messageText.trim()) {
@@ -75,12 +126,12 @@ export const ChatBox = ({
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        ) : messages.length === 0 ? (
+        ) : localMessages.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
             <p>Start a conversation with {recipientName}</p>
           </div>
         ) : (
-          messages.map((msg) => (
+          localMessages.map((msg) => (
             <div 
               key={msg.id}
               className={`flex ${msg.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}

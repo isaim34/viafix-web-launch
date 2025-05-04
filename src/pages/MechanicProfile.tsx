@@ -17,10 +17,10 @@ import { useToast } from '@/hooks/use-toast';
 
 const MechanicProfile = () => {
   const { mechanic, loading, id } = useMechanicData();
-  const { user } = useAuth();
+  const { user, currentUserRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isCustomerLoggedIn = !!user;
+  const isCustomerLoggedIn = !!user && currentUserRole === 'customer';
   
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isReporting, setIsReporting] = useState(false);
@@ -34,6 +34,7 @@ const MechanicProfile = () => {
     openChat,
     closeChat,
     handleSendMessage,
+    threadId
   } = useMechanicChat(mechanic.id, mechanic.name);
 
   // Initialize the custom offer hook
@@ -154,6 +155,7 @@ const MechanicProfile = () => {
           messages={chatMessages}
           onSendMessage={handleSendMessage}
           isLoading={isChatLoading}
+          threadId={threadId || undefined}
         />
       </div>
     </Layout>

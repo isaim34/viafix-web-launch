@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/types/mechanic';
 import { findOrCreateChatThread, sendChatMessage, getChatMessages } from '@/services/chatService';
@@ -17,6 +17,18 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   const currentUserId = user?.id || 'anonymous';
   const currentUserName = user?.user_metadata?.full_name || user?.email || 'Customer';
   
+  // Function to refresh messages
+  const refreshMessages = useCallback(async () => {
+    if (threadId) {
+      try {
+        const messages = await getChatMessages(threadId);
+        setChatMessages(messages);
+      } catch (error) {
+        console.error('Error refreshing chat messages:', error);
+      }
+    }
+  }, [threadId]);
+  
   useEffect(() => {
     // Set up real-time updates for chat messages
     if (threadId) {
@@ -31,19 +43,35 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
             filter: `thread_id=eq.${threadId}`
           },
           (payload) => {
-            const newMessage = payload.new as ChatMessage;
-            if (newMessage.senderId !== currentUserId) {
-              setChatMessages(prev => [...prev, newMessage]);
+            console.log('New chat message received:', payload);
+            const newMessage = payload.new as any;
+            
+            // Only add the message if it's not from the current user or not already in the list
+            if (newMessage.sender_id !== currentUserId || 
+                !chatMessages.some(msg => msg.id === newMessage.id)) {
+              const formattedMessage: ChatMessage = {
+                id: newMessage.id,
+                senderId: newMessage.sender_id,
+                senderName: newMessage.sender_name,
+                receiverId: newMessage.receiver_id,
+                content: newMessage.content,
+                timestamp: newMessage.timestamp,
+                isRead: newMessage.is_read
+              };
+              setChatMessages(prev => [...prev, formattedMessage]);
             }
           }
         )
         .subscribe();
         
+      console.log(`Subscribed to chat messages for thread ${threadId}`);
+        
       return () => {
+        console.log(`Unsubscribing from chat messages for thread ${threadId}`);
         supabase.removeChannel(channel);
       };
     }
-  }, [threadId, currentUserId]);
+  }, [threadId, currentUserId, chatMessages]);
   
   const openChat = async () => {
     if (!user) {
@@ -58,6 +86,8 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
     setIsLoading(true);
     
     try {
+      console.log(`Opening chat between ${currentUserName} (${currentUserId}) and ${mechanicName} (${mechanicId})`);
+      
       // Find or create a chat thread between customer and mechanic
       const thread = await findOrCreateChatThread(
         currentUserId,
@@ -66,10 +96,12 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
         mechanicName
       );
       
+      console.log('Chat thread found/created:', thread);
       setThreadId(thread.id);
       
       // Get messages for this thread
       const messages = await getChatMessages(thread.id);
+      console.log('Chat messages loaded:', messages);
       setChatMessages(messages);
       setIsChatOpen(true);
     } catch (error) {
@@ -95,6 +127,8 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
     }
     
     try {
+      console.log(`Sending message in thread ${threadId}: ${content}`);
+      
       // Send message
       const newMessage = await sendChatMessage(threadId, {
         senderId: currentUserId,
@@ -104,6 +138,8 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
         timestamp: new Date().toISOString(),
         isRead: false
       });
+      
+      console.log('Message sent successfully:', newMessage);
       
       // Update local state
       setChatMessages(prev => [...prev, newMessage]);
@@ -130,5 +166,6 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
     openChat,
     closeChat: () => setIsChatOpen(false),
     handleSendMessage,
+    refreshMessages,
   };
 }
