@@ -10,7 +10,7 @@ import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
 import { ErrorAlert } from './ErrorAlert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 export default function AdvertisingTab() {
   const [error, setError] = useState<string | null>(null);
