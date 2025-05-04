@@ -4,7 +4,7 @@ import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthRedirect, UserRole } from '@/hooks/useAuthRedirect';
@@ -14,7 +14,6 @@ import MechanicSigninForm from '@/components/MechanicSigninForm';
 
 const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
-  const [redirectChecked, setRedirectChecked] = useState(false);
   const { isLoggedIn, currentUserRole, authChecked } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,66 +21,35 @@ const Signin = () => {
 
   // Add additional debug logging
   useEffect(() => {
-    console.log("Signin component mounted with state:", {
-      activeTab,
-      redirectChecked,
+    console.log("Signin component authentication state:", {
       isLoggedIn,
       authChecked,
       currentUserRole,
       locationState: location.state
     });
-    
-    // Check for authentication in URL hash (from OAuth redirects)
-    const checkHashParams = () => {
-      const hash = window.location.hash;
-      if (hash && (hash.includes('access_token') || hash.includes('error'))) {
-        console.log('OAuth redirect detected with hash params');
-        // Let GoogleAuthButton component handle this
-        return;
-      }
-    };
-    
-    checkHashParams();
-    
-    // Delay the redirect check to ensure authentication state is properly loaded
-    const timer = setTimeout(() => {
-      setRedirectChecked(true);
-    }, 500);
-    
-    return () => {
-      clearTimeout(timer);
-      console.log("Signin component unmounted");
-    }
-  }, [activeTab, isLoggedIn, authChecked, currentUserRole, location.state]);
+  }, [isLoggedIn, authChecked, currentUserRole, location.state]);
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (redirectChecked && authChecked && isLoggedIn) {
-      const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
-      console.log(`User is logged in as ${currentUserRole}, redirecting to: ${redirectTo}`);
-      navigate(redirectTo, { replace: true });
-    }
-  }, [redirectChecked, authChecked, isLoggedIn, currentUserRole, location.state, getProfileRoute, navigate]);
+  // Redirect if already logged in - moved to top level of component
+  if (authChecked && isLoggedIn) {
+    console.log(`User is logged in as ${currentUserRole}, redirecting to profile`);
+    const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
+    return <Navigate to={redirectTo} replace />;
+  }
 
   // Show loading state while checking authentication
-  if (!authChecked || !redirectChecked) {
+  if (!authChecked) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12">
           <div className="flex justify-center items-center h-[50vh]">
             <div className="flex flex-col items-center gap-2">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-muted-foreground">Checking authentication status...</p>
             </div>
           </div>
         </div>
       </Layout>
     );
-  }
-
-  // If logged in, don't render the form at all
-  if (isLoggedIn) {
-    return null;
   }
 
   return (

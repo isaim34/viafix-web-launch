@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setCurrentUserName(undefined);
     setLocalAuthState({ isLoggedIn: false });
     
-    // Also clear any auth-related localStorage items for consistency
+    // Clear any auth-related localStorage items for consistency
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
@@ -59,77 +59,119 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log("AuthProvider: Setting up auth state listeners");
     
-    // Set up auth state listener
+    // Setup auth state listener (prioritized)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        console.log("Auth state changed:", event, !!newSession);
+      async (event, newSession) => {
+        console.log("Auth state changed:", event, !!newSession?.user);
         
-        // Handle signout event specifically
         if (event === 'SIGNED_OUT') {
           clearAuthState();
+          setAuthChecked(true);
+          setLoading(false);
         } else if (newSession?.user) {
           setSession(newSession);
           setUser(newSession.user);
           setLocalAuthState({ isLoggedIn: true });
           
-          // Get user metadata if available
           const role = newSession.user.user_metadata?.role || 'customer';
           const name = newSession.user.user_metadata?.full_name || newSession.user.email;
           
           setCurrentUserRole(role);
           setCurrentUserName(name);
+          
+          // Update localStorage for consistency
+          localStorage.setItem('userLoggedIn', 'true');
+          localStorage.setItem('userRole', role);
+          if (name) localStorage.setItem('userName', name);
+          
+          setAuthChecked(true);
+          setLoading(false);
         }
-        
-        setLoading(false);
-        setAuthChecked(true);
       }
     );
 
-    // Check for existing session and local storage state
+    // Initial auth state check
     const checkAuthState = async () => {
-      // First check supabase session
-      const { data: { session: existingSession }, error } = await supabase.auth.getSession();
-      
-      console.log("Initial session check:", !!existingSession, error);
-      
-      if (error) {
-        console.error("Error checking session:", error);
-        clearAuthState();
-      } else if (existingSession?.user) {
-        setSession(existingSession);
-        setUser(existingSession.user);
-        setLocalAuthState({ isLoggedIn: true });
+      try {
+        // First check supabase session
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
         
-        // Get user metadata if available
-        const role = existingSession.user.user_metadata?.role || 'customer';
-        const name = existingSession.user.user_metadata?.full_name || existingSession.user.email;
+        console.log("Initial session check:", !!existingSession?.user, error);
         
-        setCurrentUserRole(role);
-        setCurrentUserName(name);
-      } else {
-        // No Supabase session, check localStorage as fallback
-        const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
-        const userRole = localStorage.getItem('userRole');
-        const userName = localStorage.getItem('userName');
-        
-        if (isUserLoggedIn && userRole) {
-          console.log("Found login state in localStorage:", { isUserLoggedIn, userRole, userName });
+        if (existingSession?.user) {
+          // Supabase session exists - use it as source of truth
+          setSession(existingSession);
+          setUser(existingSession.user);
           setLocalAuthState({ isLoggedIn: true });
-          setCurrentUserRole(userRole);
-          setCurrentUserName(userName);
+          
+          const role = existingSession.user.user_metadata?.role || 'customer';
+          const name = existingSession.user.user_metadata?.full_name || existingSession.user.email;
+          
+          setCurrentUserRole(role);
+          setCurrentUserName(name);
+          
+          // Update localStorage for consistency
+          localStorage.setItem('userLoggedIn', 'true');
+          localStorage.setItem('userRole', role);
+          if (name) localStorage.setItem('userName', name);
         } else {
-          // No valid session anywhere
-          clearAuthState();
+          // Check localStorage as fallback
+          const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+          const userRole = localStorage.getItem('userRole');
+          const userName = localStorage.getItem('userName');
+          
+          if (isUserLoggedIn && userRole) {
+            console.log("Found login state in localStorage:", { isUserLoggedIn, userRole, userName });
+            setLocalAuthState({ isLoggedIn: true });
+            setCurrentUserRole(userRole);
+            setCurrentUserName(userName);
+          } else {
+            // No valid auth anywhere - ensure clean state
+            clearAuthState();
+          }
         }
+      } catch (err) {
+        console.error("Error during auth check:", err);
+        clearAuthState();
+      } finally {
+        setAuthChecked(true);
+        setLoading(false);
       }
-      
-      setAuthChecked(true);
-      setLoading(false);
     };
     
+    // Run initial auth check
     checkAuthState();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Add a window event listener to detect storage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+      const userRole = localStorage.getItem('userRole');
+      const userName = localStorage.getItem('userName');
+      
+      console.log("Storage changed event:", { isUserLoggedIn, userRole, userName });
+      
+      if (!isUserLoggedIn) {
+        clearAuthState();
+      } else if (isUserLoggedIn && userRole) {
+        setLocalAuthState({ isLoggedIn: true });
+        setCurrentUserRole(userRole); 
+        setCurrentUserName(userName);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('storage-event', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage-event', handleStorageChange);
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -157,7 +199,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear auth state on successful sign out
       clearAuthState();
       
-      // Dispatch event to notify components about auth state change
+      // Trigger event for other components
       window.dispatchEvent(new Event('storage-event'));
     } catch (error) {
       console.error("Sign out error:", error);
@@ -191,13 +233,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Console log for debugging
   useEffect(() => {
-    console.log("AuthContext state:", {
+    console.log("AuthContext updated state:", {
       isLoggedIn,
       authChecked,
       currentUserRole,
-      currentUserName
+      currentUserName,
+      user: !!user,
+      session: !!session,
+      localAuthState
     });
-  }, [isLoggedIn, authChecked, currentUserRole, currentUserName]);
+  }, [isLoggedIn, authChecked, currentUserRole, currentUserName, user, session, localAuthState]);
 
   return (
     <AuthContext.Provider value={{ 

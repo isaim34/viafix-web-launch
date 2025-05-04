@@ -10,7 +10,7 @@ import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
 import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
 import { useCustomerSignin } from '@/hooks/useCustomerSignin';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,25 +28,20 @@ const CustomerSigninForm = () => {
   const { authChecked, isLoggedIn } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [redirecting, setRedirecting] = useState(false);
   
-  // Redirect if already logged in
+  // Log auth state for debugging
   useEffect(() => {
-    if (authChecked && isLoggedIn) {
-      const redirectTo = location.state?.redirectTo || '/customer-profile';
-      console.log(`User is already logged in, redirecting to: ${redirectTo}`);
-      setRedirecting(true);
-      const timer = setTimeout(() => {
-        navigate(redirectTo, { replace: true });
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [authChecked, isLoggedIn, location.state, navigate]);
-  
-  // Don't render the form if we're already logged in or are redirecting
-  if (isLoggedIn || redirecting) {
-    return <div className="p-6 text-center">Already signed in, redirecting...</div>;
+    console.log("CustomerSigninForm auth state:", { authChecked, isLoggedIn });
+  }, [authChecked, isLoggedIn]);
+
+  // Don't render the form if we're already logged in
+  if (isLoggedIn) {
+    return (
+      <div className="p-6 text-center">
+        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+        <p>Already signed in, redirecting...</p>
+      </div>
+    );
   }
   
   const handleSubmit = async (data: CustomerFormValues) => {

@@ -31,10 +31,11 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   }, [authChecked, isLoggedIn, currentUserRole]);
   
   // If we haven't checked auth yet, don't render anything to prevent flashing
-  if (!checkedAuth) {
+  if (!authChecked) {
     return null;
   }
 
+  // Authentication is checked and user is logged in
   if (isLoggedIn) {
     return (
       <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
@@ -56,11 +57,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
     );
   }
 
-  // Don't show auth buttons on mechanic dashboard if not logged in
-  if (location.pathname.includes('/mechanic-dashboard') && !isLoggedIn) {
-    return null;
-  }
-
+  // Authentication is checked and user is not logged in
   return (
     <div className={isMobile ? "space-y-3" : "space-x-4"}>
       <Button 
