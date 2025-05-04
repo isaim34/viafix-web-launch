@@ -64,6 +64,7 @@ const MechanicProfile = () => {
       let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
       
       if (mechanicProfile.specialties) {
+        // Check if specialties is a string before attempting to split it
         if (typeof mechanicProfile.specialties === 'string') {
           specialties = mechanicProfile.specialties.split(',').map(s => s.trim());
         } else if (Array.isArray(mechanicProfile.specialties)) {
