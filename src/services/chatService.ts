@@ -183,12 +183,12 @@ export const sendChatMessage = async (
     }
     
     // Update thread's last message and unread count
-    // This approach avoids the direct usage of supabase.rpc
+    // Fixed: Using a proper update method that returns void
     const { error: threadError } = await supabase
       .from('chat_threads')
       .update({
         last_message_at: new Date().toISOString(),
-        unread_count: (thread => (thread?.unread_count || 0) + 1)
+        unread_count: supabase.sql`unread_count + 1`
       })
       .eq('id', threadId);
     

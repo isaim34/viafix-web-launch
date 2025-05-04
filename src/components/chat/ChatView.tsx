@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,10 +48,14 @@ export const ChatView = ({
     loadMessages();
     
     // Scroll to bottom
+    scrollToBottom();
+  }, [thread.id, currentUserId]);
+  
+  const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [thread.id, currentUserId]);
+  };
   
   const handleSendMessage = async () => {
     if (!messageText.trim()) return;
@@ -78,11 +81,7 @@ export const ChatView = ({
       onNewMessage(thread.id);
       
       // Scroll to bottom
-      setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Error sending message:", error);
     }

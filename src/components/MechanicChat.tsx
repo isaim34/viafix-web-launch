@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { ChatThreadsList } from './chat/ChatThreadsList';
