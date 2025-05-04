@@ -3,8 +3,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useZipcode } from '@/hooks/useZipcode';
 import { useLocalMechanicProfile } from '@/hooks/useLocalMechanicProfile';
-import { useFilteredMechanics } from '@/hooks/useFilteredMechanics';
 import { useMechanicProfileSync } from '@/hooks/useMechanicProfileSync';
+import { useMechanics } from '@/hooks/useMechanics';
+import { useDisplayedMechanics } from '@/components/mechanics/useDisplayedMechanics';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useMechanicsPage = () => {
   const location = useLocation();
@@ -16,18 +18,24 @@ export const useMechanicsPage = () => {
   const [locationName, setLocationName] = useState('');
   const { fetchLocationData, locationData, error, reset } = useZipcode();
   
+  // Get auth context
+  const auth = useAuth();
+  const { currentUserRole } = auth;
+  
   // Get the local mechanic profile
   const { localMechanicProfile } = useLocalMechanicProfile();
   
   // Sync mechanic profile data across the app
   useMechanicProfileSync();
   
+  // Fetch mechanics from the database
+  const { mechanics, loading: loadingMechanics } = useMechanics();
+  
   // Get filtered mechanics
-  const filteredMechanics = useFilteredMechanics(
-    searchTerm,
+  const filteredMechanics = useDisplayedMechanics(
+    mechanics,
     zipCode,
-    locationName,
-    localMechanicProfile
+    currentUserRole
   );
   
   // Create a wrapped setZipCode function that handles side effects
@@ -73,6 +81,7 @@ export const useMechanicsPage = () => {
     setSearchTerm,
     filteredMechanics,
     locationName,
-    error
+    error,
+    loading: loadingMechanics
   };
 };

@@ -1,71 +1,42 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Layout } from '@/components/Layout';
-import { ChatBox } from '@/components/chat/ChatBox';
-import { Service } from '@/types/mechanic';
-import { useCustomerAuth } from '@/hooks/useCustomerAuth';
-import { useMechanicChat } from '@/hooks/useMechanicChat';
-import { useMechanicProfileActions } from '@/components/mechanic/MechanicProfileActions';
-import ReportMechanicDialog from '@/components/mechanic/ReportMechanicDialog';
 import { useMechanicData } from '@/hooks/useMechanicData';
 import { MechanicProfileLeftColumn } from '@/components/mechanic/MechanicProfileLeftColumn';
 import { MechanicProfileRightColumn } from '@/components/mechanic/MechanicProfileRightColumn';
-import { useCustomOffer } from '@/components/mechanic/MechanicCustomOffer';
-import { CustomOfferDialog } from '@/components/mechanic/CustomOfferDialog';
+import { useCustomerAuth } from '@/hooks/useCustomerAuth';
+import { Service } from '@/types/mechanic';
+import { Loader2 } from 'lucide-react';
+import ReportMechanicDialog from '@/components/mechanic/ReportMechanicDialog';
 
 const MechanicProfile = () => {
-  const { isCustomerLoggedIn, currentUserId, currentUserName } = useCustomerAuth();
-  const { mechanic, id } = useMechanicData();
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  
-  const { 
-    isChatOpen, 
-    chatMessages, 
-    openChat, 
-    closeChat, 
-    handleSendMessage 
-  } = useMechanicChat(
-    mechanic.id, 
-    mechanic.name, 
-    currentUserId, 
-    currentUserName
-  );
-
-  const { 
-    handleBookService, 
-    handleContact, 
-    handleReportMechanic,
-    isReportDialogOpen,
-    setIsReportDialogOpen
-  } = useMechanicProfileActions({
-    mechanicId: mechanic.id,
-    mechanicName: mechanic.name,
-    isCustomerLoggedIn,
-    onContact: openChat
-  });
-
-  const {
-    isCustomOfferOpen,
-    setIsCustomOfferOpen,
-    handleCustomOffer,
-    handleSubmitCustomOffer
-  } = useCustomOffer({
-    isCustomerLoggedIn,
-    mechanic,
-    selectedService,
-    openChat,
-    handleSendMessage
-  });
+  const { mechanic, loading } = useMechanicData();
+  const { isCustomerLoggedIn } = useCustomerAuth();
+  const [selectedService, setSelectedService] = React.useState<Service | null>(null);
+  const [isReporting, setIsReporting] = React.useState(false);
 
   const handleSelectService = (service: Service | null) => {
     setSelectedService(service);
   };
 
+  const handleReportMechanic = () => {
+    setIsReporting(true);
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Left Column - Profile */}
+      <div className="container py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <MechanicProfileLeftColumn
             mechanic={mechanic}
             isCustomerLoggedIn={isCustomerLoggedIn}
@@ -73,48 +44,20 @@ const MechanicProfile = () => {
             onReportMechanic={handleReportMechanic}
           />
           
-          {/* Right Column - Booking */}
-          <MechanicProfileRightColumn
+          <MechanicProfileRightColumn 
             mechanic={mechanic}
+            selectedService={selectedService}
             isCustomerLoggedIn={isCustomerLoggedIn}
-            id={id}
-            onBookService={handleBookService}
-            onContact={handleContact}
-            onCustomOffer={handleCustomOffer}
           />
         </div>
-      </div>
-      
-      {/* Chat component - only shown if customer is logged in */}
-      {isCustomerLoggedIn && (
-        <ChatBox 
-          isOpen={isChatOpen}
-          onClose={closeChat}
-          recipientId={`mechanic-${mechanic.id}`}
-          recipientName={mechanic.name}
-          currentUserId={currentUserId}
-          currentUserName={currentUserName}
-          messages={chatMessages}
-          onSendMessage={handleSendMessage}
+        
+        <ReportMechanicDialog
+          open={isReporting}
+          onOpenChange={setIsReporting}
+          mechanicName={mechanic.name}
+          mechanicId={mechanic.id}
         />
-      )}
-      
-      {/* Report Dialog */}
-      <ReportMechanicDialog
-        mechanicId={mechanic.id}
-        mechanicName={mechanic.name}
-        isOpen={isReportDialogOpen}
-        onOpenChange={setIsReportDialogOpen}
-      />
-      
-      {/* Custom Offer Dialog */}
-      <CustomOfferDialog
-        open={isCustomOfferOpen}
-        onOpenChange={setIsCustomOfferOpen}
-        mechanicName={mechanic.name}
-        selectedService={selectedService}
-        onSubmit={handleSubmitCustomOffer}
-      />
+      </div>
     </Layout>
   );
 };

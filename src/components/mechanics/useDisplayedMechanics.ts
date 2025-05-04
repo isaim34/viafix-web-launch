@@ -1,23 +1,10 @@
 
 import { useMemo } from 'react';
-import { mechanicsData } from '@/data/mechanicsPageData';
-
-interface Mechanic {
-  id: string;
-  name: string;
-  avatar: string;
-  specialties: string[];
-  rating: number;
-  reviewCount: number;
-  location: string;
-  hourlyRate: number;
-  galleryImages?: string[];
-  zipCode?: string;
-}
+import { MechanicProfile } from '@/hooks/useMechanics';
 
 // Returns filtered mechanics to display (already respecting currentUserRole, etc)
 export function useDisplayedMechanics(
-  mechanics: Mechanic[],
+  mechanics: MechanicProfile[],
   zipCode: string,
   currentUserRole: string | null
 ) {
@@ -28,11 +15,9 @@ export function useDisplayedMechanics(
       currentUserRole
     });
     
-    // If we have mechanics, use them; otherwise, use default data
-    let displayMechanics = mechanics.length > 0
-      ? mechanics
-      : (zipCode ? mechanicsData.filter(m => m.zipCode?.startsWith(zipCode.substring(0, 3))) : mechanicsData);
-
+    // Start with the mechanics from the database
+    let displayMechanics = [...mechanics];
+    
     // Check if the local mechanic (vendor) exists in the mechanics list
     const hasLocalMechanic = displayMechanics.some(m => m.id === 'local-mechanic');
     console.log('Has local mechanic in initial list:', hasLocalMechanic);
@@ -73,9 +58,8 @@ export function useDisplayedMechanics(
       }
     }
 
-    // For customer searches, we need to ensure a dummy vendor profile is always available
-    // if the current user is a customer and there's no vendor profile yet
-    if (currentUserRole === 'customer' && !hasLocalMechanic) {
+    // Add dummy vendor profile for customer views if needed
+    if (currentUserRole === 'customer' && !hasLocalMechanic && displayMechanics.length === 0) {
       // Add a default vendor profile for customers to see
       try {
         // Get vendor information from localStorage
@@ -140,17 +124,6 @@ export function useDisplayedMechanics(
       console.log('Zip code search:', zipCode);
       console.log('Mechanics before zip filtering:', displayMechanics.map(m => `${m.name} (${m.zipCode || 'NO_ZIP'})`));
       console.log('Mechanics after zip filtering:', filteredMechanics.map(m => `${m.name} (${m.zipCode || 'NO_ZIP'})`));
-      
-      // If we don't have any results and are searching for Worcester, hardcode it
-      if (filteredMechanics.length === 0 && zipCode === '01605') {
-        console.log('No results for Worcester, adding default mechanics');
-        // Add some default mechanics for Worcester
-        const worcesterDefaults = displayMechanics.filter(m => m.id === 'local-mechanic' || m.id === 'default-vendor');
-        if (worcesterDefaults.length > 0) {
-          console.log('Adding Worcester default mechanics:', worcesterDefaults.map(m => m.name));
-          filteredMechanics = worcesterDefaults;
-        }
-      }
     }
     
     // Final log of what's being displayed

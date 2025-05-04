@@ -7,6 +7,7 @@ import MechanicsZipCodeSearch from '@/components/mechanics/MechanicsZipCodeSearc
 import MechanicsSearch from '@/components/mechanics/MechanicsSearch';
 import MechanicsList from '@/components/mechanics/MechanicsList';
 import MechanicsSEO from '@/components/mechanics/MechanicsSEO';
+import { Loader2 } from 'lucide-react';
 
 const Mechanics = () => {
   const { 
@@ -15,7 +16,8 @@ const Mechanics = () => {
     searchTerm,
     setSearchTerm,
     filteredMechanics,
-    locationName
+    locationName,
+    loading
   } = useMechanicsPage();
 
   return (
@@ -26,12 +28,19 @@ const Mechanics = () => {
         <MechanicsHeader />
         <MechanicsZipCodeSearch zipCode={zipCode} setZipCode={setZipCode} />
         <MechanicsSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <MechanicsList 
-          mechanics={filteredMechanics} 
-          zipCode={zipCode} 
-          locationName={locationName}
-          setZipCode={setZipCode}
-        />
+        
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <MechanicsList 
+            mechanics={filteredMechanics} 
+            zipCode={zipCode} 
+            locationName={locationName}
+            setZipCode={setZipCode}
+          />
+        )}
       </div>
     </Layout>
   );

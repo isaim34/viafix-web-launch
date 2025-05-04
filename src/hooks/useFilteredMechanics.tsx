@@ -1,31 +1,25 @@
 
 import { useMemo } from 'react';
-import { mechanicsData } from '@/data/mechanicsPageData';
 import { BasicProfileFormValues } from '@/schemas/profileSchema';
-
-interface Mechanic {
-  id: string;
-  name: string;
-  avatar: string;
-  specialties: string[];
-  rating: number;
-  reviewCount: number;
-  location: string;
-  hourlyRate: number;
-  zipCode?: string;
-  galleryImages?: string[];
-}
+import { MechanicProfile } from '@/hooks/useMechanics';
 
 export const useFilteredMechanics = (
   searchTerm: string,
   zipCode: string,
   locationName: string,
+  mechanics: MechanicProfile[],
   localMechanicProfile: BasicProfileFormValues | null
 ) => {
   return useMemo(() => {
-    console.log('useFilteredMechanics running with:', { searchTerm, zipCode, locationName });
-    // Start with all mechanics from the data
-    const allMechanics = [...mechanicsData];
+    console.log('useFilteredMechanics running with:', { 
+      searchTerm, 
+      zipCode, 
+      locationName,
+      mechanicsCount: mechanics.length
+    });
+    
+    // Start with all mechanics from the database
+    const allMechanics = [...mechanics];
     const userRole = localStorage.getItem('userRole');
     
     // Get vendor information ensuring consistency
@@ -87,12 +81,8 @@ export const useFilteredMechanics = (
     }
     
     // Add default vendor mechanic ONLY for viewing by customers, not when customers themselves are logged in
-    if (userRole === 'customer') {
-      // For customers who are logged in, don't add the vendor mechanic
-      // They should only see others' profiles, not appear as a vendor themselves
-      console.log('Customer is logged in, not adding them as a vendor mechanic');
-    } else {
-      // For non-logged in users or mechanics, add the vendor mechanic
+    if (allMechanics.length === 0 && userRole !== 'customer') {
+      // For non-logged in users or mechanics with no data, add the vendor mechanic
       const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
       
       if (!hasLocalMechanic) {
@@ -123,11 +113,11 @@ export const useFilteredMechanics = (
       }
       
       const matchesSearch = !searchTerm ? true : (
-        mechanic.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mechanic.specialties.some(specialty => 
+        mechanic.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        mechanic.specialties?.some((specialty: string) => 
           specialty.toLowerCase().includes(searchTerm.toLowerCase())
         ) ||
-        mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())
+        mechanic.location?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       
       // If no zipcode filter, return based on search term only
@@ -149,7 +139,7 @@ export const useFilteredMechanics = (
       }
       
       // Also check for city/location matches when we have a location name
-      if (locationName) {
+      if (locationName && mechanic.location) {
         const cityName = locationName.split(',')[0].toLowerCase().trim();
         const mechanicCity = mechanic.location.toLowerCase();
         const isInSameCity = mechanicCity.includes(cityName);
@@ -161,20 +151,7 @@ export const useFilteredMechanics = (
       return matchesSearch && mechanic.zipCode === zipCode;
     });
     
-    // Get nearby mechanics if we have few results
-    if (zipCode && filteredMechanics.length < 3) {
-      // Add some mechanics from the dataset if filtered results are too few
-      const nearbyMechanics = mechanicsData
-        .filter(m => !filteredMechanics.some(fm => fm.id === m.id)) // Exclude already included mechanics
-        .slice(0, 5); // Take up to 5 mechanics
-      
-      if (nearbyMechanics.length > 0) {
-        console.log('Adding nearby mechanics to results');
-        filteredMechanics = [...filteredMechanics, ...nearbyMechanics];
-      }
-    }
-    
     console.log('Final filtered mechanics:', filteredMechanics.map(m => m.name));
     return filteredMechanics;
-  }, [searchTerm, zipCode, locationName, localMechanicProfile]);
+  }, [searchTerm, zipCode, locationName, mechanics, localMechanicProfile]);
 };

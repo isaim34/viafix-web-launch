@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      certifications: {
+        Row: {
+          created_at: string
+          credential_id: string | null
+          expiration_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string
+          name: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_id?: string | null
+          expiration_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization: string
+          name: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string | null
+          expiration_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string
+          name?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certifications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           component: string
@@ -68,6 +109,50 @@ export type Database = {
             foreignKeyName: "customer_profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      education: {
+        Row: {
+          created_at: string
+          degree: string | null
+          description: string | null
+          end_date: string | null
+          field_of_study: string | null
+          id: string
+          institution: string
+          profile_id: string
+          start_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          degree?: string | null
+          description?: string | null
+          end_date?: string | null
+          field_of_study?: string | null
+          id?: string
+          institution: string
+          profile_id: string
+          start_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          degree?: string | null
+          description?: string | null
+          end_date?: string | null
+          field_of_study?: string | null
+          id?: string
+          institution?: string
+          profile_id?: string
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "education_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -204,6 +289,35 @@ export type Database = {
           },
         ]
       }
+      mechanic_gallery: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          mechanic_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          mechanic_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          mechanic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mechanic_gallery_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mechanic_profiles: {
         Row: {
           about: string | null
@@ -212,6 +326,8 @@ export type Database = {
           id: string
           is_featured: boolean | null
           rating: number | null
+          response_time: string | null
+          review_count: number | null
           specialties: string | null
           years_experience: number
         }
@@ -222,6 +338,8 @@ export type Database = {
           id: string
           is_featured?: boolean | null
           rating?: number | null
+          response_time?: string | null
+          review_count?: number | null
           specialties?: string | null
           years_experience?: number
         }
@@ -232,6 +350,8 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           rating?: number | null
+          response_time?: string | null
+          review_count?: number | null
           specialties?: string | null
           years_experience?: number
         }
@@ -240,6 +360,86 @@ export type Database = {
             foreignKeyName: "mechanic_profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mechanic_reviews: {
+        Row: {
+          author: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          mechanic_id: string
+          rating: number
+          text: string | null
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          mechanic_id: string
+          rating: number
+          text?: string | null
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          mechanic_id?: string
+          rating?: number
+          text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mechanic_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mechanic_reviews_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mechanic_services: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          mechanic_id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          mechanic_id: string
+          name: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          mechanic_id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mechanic_services_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
