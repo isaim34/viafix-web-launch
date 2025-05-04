@@ -2,22 +2,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, userData: any) => Promise<void>;
-  signOut: () => Promise<void>;
-  currentUserRole?: string;
-  currentUserName?: string;
-  isLoggedIn: boolean;
-  authChecked: boolean;
-  updateUserName: (name: string) => void;
-  userEmail?: string;
-  getFirstName: (fullName: string) => string;
-}
+import { AuthContextType } from './types';
+import { getFirstName, clearLocalAuthState } from './authUtils';
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -51,9 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLocalAuthState({ isLoggedIn: false });
     
     // Clear any auth-related localStorage items for consistency
-    localStorage.removeItem('userLoggedIn');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
+    clearLocalAuthState();
   };
 
   useEffect(() => {
@@ -212,22 +196,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setCurrentUserName(name);
   };
 
-  // Helper to get first name from email or regular name
-  const getFirstName = (fullName: string) => {
-    if (!fullName) return '';
-    
-    // Handle email addresses - extract username portion before @ symbol
-    if (fullName.includes('@')) {
-      const username = fullName.split('@')[0];
-      // Capitalize first letter for better display
-      return username.charAt(0).toUpperCase() + username.slice(1);
-    }
-    
-    // Regular name - just take first part
-    const parts = fullName.trim().split(' ');
-    return parts[0] || '';
-  };
-
   // The main isLoggedIn state combines Supabase auth and localStorage
   const isLoggedIn = !!user || localAuthState.isLoggedIn;
 
@@ -263,8 +231,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return React.useContext(AuthContext);
 };

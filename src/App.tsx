@@ -24,7 +24,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/auth';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 function App() {

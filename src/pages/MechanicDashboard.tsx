@@ -27,7 +27,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/ErrorBoundary';
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 
 // Lazy load the AdvertisingTab component
 const AdvertisingTab = lazy(() => import('@/components/advertising/AdvertisingTab'));

@@ -1,13 +1,13 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, UserRole } from '@/contexts/auth';
 import { useState, useEffect } from 'react';
-import { useAuthRedirect, UserRole } from '@/hooks/useAuthRedirect';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requiredRole?: UserRole | undefined; // Use the UserRole type directly
+  requiredRole?: UserRole | undefined;
 }
 
 export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {

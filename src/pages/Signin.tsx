@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthRedirect, UserRole } from '@/hooks/useAuthRedirect';
 // Import the sign in forms directly

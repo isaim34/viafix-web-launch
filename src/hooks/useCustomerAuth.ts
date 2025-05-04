@@ -1,5 +1,5 @@
 
-import { useAuth } from './useAuth';
+import { useAuth } from '@/contexts/auth';
 import { useState, useCallback, useEffect } from 'react';
 
 export function useCustomerAuth() {

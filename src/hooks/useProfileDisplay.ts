@@ -1,5 +1,4 @@
-
-import { useAuth } from './useAuth';
+import { useAuth } from '@/contexts/auth';
 
 export const useProfileDisplay = () => {
   const auth = useAuth();
