@@ -2,7 +2,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
-import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { useAuthRedirect, UserRole } from '@/hooks/useAuthRedirect';
 import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
@@ -54,7 +54,8 @@ export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
   // If a specific role is required and user doesn't match
   if (requiredRole && currentUserRole !== requiredRole) {
     console.log(`User role (${currentUserRole}) doesn't match required role (${requiredRole}), redirecting`);
-    return <Navigate to={getProfileRoute(currentUserRole)} />;
+    // Cast currentUserRole to UserRole type since we know it's one of the valid options
+    return <Navigate to={getProfileRoute(currentUserRole as UserRole)} />;
   }
 
   console.log("AuthGuard allowing access to protected route");

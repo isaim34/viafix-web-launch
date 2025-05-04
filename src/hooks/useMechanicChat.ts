@@ -167,5 +167,6 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
     closeChat: () => setIsChatOpen(false),
     handleSendMessage,
     refreshMessages,
+    threadId,  // Export threadId so it can be used in components
   };
 }
