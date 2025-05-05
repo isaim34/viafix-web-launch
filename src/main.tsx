@@ -8,8 +8,12 @@ import ErrorBoundary from './ErrorBoundary';
 const rootElement = document.getElementById('root');
 if (rootElement) {
   createRoot(rootElement).render(
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
   );
+} else {
+  console.error('Failed to find the root element');
 }

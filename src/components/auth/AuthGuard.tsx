@@ -1,6 +1,5 @@
-
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth, UserRole } from '@/contexts/auth';
+import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect } from 'react';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Loader2 } from 'lucide-react';

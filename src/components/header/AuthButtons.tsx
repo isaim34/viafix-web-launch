@@ -9,7 +9,7 @@ import {
 import { UserGreeting } from './UserGreeting';
 import { UserAvatar } from './UserAvatar';
 import { UserMenuItems } from './UserMenuItems';
-import { useAuth } from '@/contexts/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
