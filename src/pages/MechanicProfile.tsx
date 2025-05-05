@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useMechanicData } from '@/hooks/useMechanicData';
@@ -19,7 +20,13 @@ const MechanicProfile = () => {
   const { user, currentUserRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Add console log to debug auth state
+  console.log("MechanicProfile auth state:", { user, currentUserRole });
+  
+  // Fix: Explicitly check for customer role
   const isCustomerLoggedIn = !!user && currentUserRole === 'customer';
+  console.log("isCustomerLoggedIn:", isCustomerLoggedIn);
   
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isReporting, setIsReporting] = useState(false);

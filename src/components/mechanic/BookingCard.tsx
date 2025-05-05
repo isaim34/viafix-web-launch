@@ -71,7 +71,7 @@ export const BookingCard = ({
       </div>
       
       <Button 
-        className={`w-full mb-3 ${!isCustomerLoggedIn ? 'opacity-90' : ''}`} 
+        className="w-full mb-3" 
         onClick={onBookService}
       >
         {isCustomerLoggedIn ? 'Book Service' : 'Sign In to Book'}
