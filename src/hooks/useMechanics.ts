@@ -34,7 +34,6 @@ export const useMechanics = () => {
       console.log('Fetching mechanic profiles...');
       
       // Query for mechanic profiles with their basic profile info
-      // Try a simpler query that just gets the mechanic profiles first
       const { data: mechanicProfiles, error: mechanicError } = await supabase
         .from('mechanic_profiles')
         .select(`
@@ -79,23 +78,21 @@ export const useMechanics = () => {
             specialtiesArray = mechanic.specialties.split(',').map(s => s.trim());
           } else if (Array.isArray(mechanic.specialties)) {
             specialtiesArray = mechanic.specialties;
-          } else {
-            specialtiesArray = ['General Repairs'];
           }
           
           // Construct the name from first and last name
           const name = profile 
             ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
-            : 'Unknown Mechanic';
+            : '';
 
           formattedMechanics.push({
             id: mechanic.id,
-            name,
-            avatar: profile?.profile_image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
-            specialties: specialtiesArray,
+            name: name || 'Unknown Mechanic',
+            avatar: profile?.profile_image || '',
+            specialties: specialtiesArray.length > 0 ? specialtiesArray : ['General Repairs'],
             rating: mechanic.rating || 0,
             reviewCount: mechanic.review_count || 0,
-            location: 'Location not specified', // Simplified since we don't have city/state
+            location: 'Location based on zip code', // Could be improved with zip code lookup
             hourlyRate: mechanic.hourly_rate || 0,
             zipCode: profile?.zip_code || '',
             about: mechanic.about || '',
@@ -103,23 +100,6 @@ export const useMechanics = () => {
             response_time: mechanic.response_time || 'Under 1 hour'
           });
         }
-      } else {
-        console.log('No mechanic profiles found, using fallback data');
-        // If no mechanics were found, add a fallback mechanic for development
-        formattedMechanics.push({
-          id: 'fallback-mechanic',
-          name: 'Demo Mechanic',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
-          specialties: ['General Repairs', 'Diagnostics', 'Brake Service'],
-          rating: 4.7,
-          reviewCount: 24,
-          location: 'Austin, TX',
-          hourlyRate: 75,
-          zipCode: '78701',
-          about: "Experienced mechanic with a focus on quality service.",
-          years_experience: 8,
-          response_time: 'Under 1 hour'
-        });
       }
 
       console.log('Formatted mechanics data:', formattedMechanics.length);
@@ -136,7 +116,7 @@ export const useMechanics = () => {
         });
       }, 0);
       
-      // Even on error, set empty array to prevent app from breaking
+      // Set empty array on error to prevent app from breaking
       setMechanics([]);
     } finally {
       setLoading(false);

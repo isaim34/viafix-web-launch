@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { useMechanicData } from '@/hooks/useMechanicData';
@@ -26,8 +25,7 @@ const MechanicProfile = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [isBookServiceOpen, setIsBookServiceOpen] = useState(false);
 
-  // Always initialize chat hooks with default values if mechanic doesn't exist yet
-  // This ensures hooks are always called in the same order
+  // Always initialize chat hooks with default values to ensure hooks are called in consistent order
   const mechanicId = mechanic?.id || 'default';
   const mechanicName = mechanic?.name || 'Mechanic';
   
@@ -42,7 +40,7 @@ const MechanicProfile = () => {
     threadId
   } = useMechanicChat(mechanicId, mechanicName);
 
-  // Initialize the custom offer hook - Always call it regardless of mechanic existence
+  // Initialize the custom offer hook
   const {
     isCustomOfferOpen,
     setIsCustomOfferOpen,
