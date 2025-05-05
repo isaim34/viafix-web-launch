@@ -32,6 +32,7 @@ export const useMechanics = () => {
 
     try {
       // Query for mechanic profiles with their basic profile info
+      // Specify the exact relationship when joining with profiles table
       const { data: mechanicProfiles, error: mechanicError } = await supabase
         .from('mechanic_profiles')
         .select(`
@@ -56,6 +57,7 @@ export const useMechanics = () => {
         `);
 
       if (mechanicError) {
+        console.error('Error details:', mechanicError);
         throw mechanicError;
       }
 
