@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getUserNameFromEmail } from '@/utils/authUtils';
+import { persistUserToLocalStorage } from '@/contexts/auth/authUtils';
 
 export interface AuthSubmitData {
   email: string;
@@ -23,23 +24,38 @@ export function useAuthSubmit() {
       setIsLoading(true);
       setAuthError(null);
 
-      // Check if mechanic has registered before (if not creating a new account)
+      // If signing in (not creating a new account), check if the email exists in registration records
       if (!isNewAccount) {
         const isRegistered = localStorage.getItem(`registered_${data.email}`) !== null;
         
+        // Check Supabase auth
         if (!isRegistered) {
-          setAuthError("No account found for this email address. Please register first.");
-          toast({
-            title: "Sign in failed",
-            description: "No account found for this email address. Please register first.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
+          try {
+            // Try to get the user's profile from Supabase to verify account exists
+            const { data: users, error } = await supabase.auth.admin.listUsers({
+              filter: {
+                email: data.email
+              }
+            });
+            
+            if (error || !users || users.length === 0) {
+              setAuthError("No account found for this email address. Please register first.");
+              toast({
+                title: "Sign in failed",
+                description: "No account found for this email address. Please register first.",
+                variant: "destructive"
+              });
+              setIsLoading(false);
+              return false;
+            }
+          } catch (checkError) {
+            console.log("Unable to verify account with Supabase, using local fallback");
+          }
         }
       }
 
-      // TEMPORARY: Skip actual auth and simulate successful login
+      // TEMPORARY: Using the existing simulation approach while also ensuring data persistence 
+      // This would be replaced with actual Supabase auth in production
       const simulatedAuthData = {
         user: {
           id: 'temp-' + Math.random().toString(36).substring(2, 9),
@@ -47,18 +63,27 @@ export function useAuthSubmit() {
         }
       };
       
-      localStorage.setItem('userEmail', data.email);
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userRole', 'mechanic');
-      
+      // Get stored name or generate from email
       const storedName = localStorage.getItem(`registered_${data.email}`);
       const formattedUsername = getUserNameFromEmail(data.email);
       const userName = storedName || formattedUsername;
       
-      localStorage.setItem('userName', userName);
+      // User role is 'mechanic' for this hook as it's used in MechanicSigninForm
+      const userRole = 'mechanic';
       const userId = simulatedAuthData.user?.id;
-      localStorage.setItem('userId', userId);
+      
+      // Store all essential user data
+      persistUserToLocalStorage({
+        id: userId,
+        email: data.email,
+        role: userRole,
+        name: userName
+      });
+      
+      // Store email to userId mapping for lookup
       localStorage.setItem(`userId_to_email_${userId}`, data.email);
+      
+      // Store mechanic-specific data
       localStorage.setItem('vendorName', userName);
       
       // Set default subscription status for testing
@@ -66,6 +91,24 @@ export function useAuthSubmit() {
       localStorage.setItem('subscription_plan', 'monthly');
       localStorage.setItem('subscription_end', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
       
+      // If this is a new account, store registration record
+      if (isNewAccount) {
+        localStorage.setItem(`registered_${data.email}`, userName);
+      }
+      
+      // Ensure mechanic profile exists
+      const mechanicProfileData = localStorage.getItem('mechanicProfile');
+      if (!mechanicProfileData) {
+        // Create a simple profile if none exists
+        const profile = {
+          firstName: userName.split(' ')[0] || '',
+          lastName: userName.split(' ').slice(1).join(' ') || '',
+          profileImage: ''
+        };
+        localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+      }
+      
+      // Notify components about authentication change
       window.dispatchEvent(new Event('storage-event'));
       
       const firstName = userName.split(' ')[0];
@@ -75,11 +118,14 @@ export function useAuthSubmit() {
         description: "You have successfully signed in.",
       });
       
+      // Navigate to mechanic dashboard
       navigate('/mechanic-dashboard', { replace: true });
+      return true;
       
     } catch (error) {
       console.error('Sign in error:', error);
       setAuthError("Failed to sign in. Please try again.");
+      return false;
     } finally {
       setIsLoading(false);
     }

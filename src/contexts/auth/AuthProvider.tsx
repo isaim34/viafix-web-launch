@@ -3,7 +3,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { AuthContextType } from './types';
-import { getFirstName, clearLocalAuthState } from './authUtils';
+import { getFirstName, clearLocalAuthState, persistUserToLocalStorage } from './authUtils';
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -57,16 +57,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(newSession.user);
           setLocalAuthState({ isLoggedIn: true });
           
-          const role = newSession.user.user_metadata?.role || 'customer';
-          const name = newSession.user.user_metadata?.full_name || newSession.user.email;
+          const role = newSession.user.user_metadata?.role || 
+                      newSession.user.user_metadata?.user_type || 'customer';
+          const name = newSession.user.user_metadata?.full_name || 
+                      newSession.user.user_metadata?.name ||
+                      newSession.user.email;
           
           setCurrentUserRole(role);
           setCurrentUserName(name);
           
           // Update localStorage for consistency
-          localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userRole', role);
-          if (name) localStorage.setItem('userName', name);
+          persistUserToLocalStorage({
+            id: newSession.user.id,
+            email: newSession.user.email,
+            role: role,
+            name: name
+          });
           
           setAuthChecked(true);
           setLoading(false);
@@ -88,27 +94,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(existingSession.user);
           setLocalAuthState({ isLoggedIn: true });
           
-          const role = existingSession.user.user_metadata?.role || 'customer';
-          const name = existingSession.user.user_metadata?.full_name || existingSession.user.email;
+          const role = existingSession.user.user_metadata?.role || 
+                      existingSession.user.user_metadata?.user_type || 'customer';
+          const name = existingSession.user.user_metadata?.full_name || 
+                      existingSession.user.user_metadata?.name ||
+                      existingSession.user.email;
           
           setCurrentUserRole(role);
           setCurrentUserName(name);
           
           // Update localStorage for consistency
-          localStorage.setItem('userLoggedIn', 'true');
-          localStorage.setItem('userRole', role);
-          if (name) localStorage.setItem('userName', name);
+          persistUserToLocalStorage({
+            id: existingSession.user.id,
+            email: existingSession.user.email,
+            role: role,
+            name: name
+          });
         } else {
           // Check localStorage as fallback
           const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
           const userRole = localStorage.getItem('userRole');
           const userName = localStorage.getItem('userName');
+          const userId = localStorage.getItem('userId');
+          const userEmail = localStorage.getItem('userEmail');
           
-          if (isUserLoggedIn && userRole) {
-            console.log("Found login state in localStorage:", { isUserLoggedIn, userRole, userName });
+          if (isUserLoggedIn && userRole && userId) {
+            console.log("Found login state in localStorage:", { isUserLoggedIn, userRole, userName, userId });
             setLocalAuthState({ isLoggedIn: true });
             setCurrentUserRole(userRole);
             setCurrentUserName(userName);
+            
+            // Attempt to refresh session from localStorage data
+            try {
+              const { data, error } = await supabase.auth.getUser();
+              if (data?.user && !error) {
+                setUser(data.user);
+                // Get a fresh session
+                const sessionResult = await supabase.auth.getSession();
+                if (sessionResult.data.session) {
+                  setSession(sessionResult.data.session);
+                }
+              }
+            } catch (refreshError) {
+              console.error("Error refreshing user session:", refreshError);
+            }
           } else {
             // No valid auth anywhere - ensure clean state
             clearAuthState();
@@ -137,12 +166,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
       const userRole = localStorage.getItem('userRole');
       const userName = localStorage.getItem('userName');
+      const userId = localStorage.getItem('userId');
       
-      console.log("Storage changed event:", { isUserLoggedIn, userRole, userName });
+      console.log("Storage changed event:", { isUserLoggedIn, userRole, userName, userId });
       
-      if (!isUserLoggedIn) {
+      if (!isUserLoggedIn || !userId) {
         clearAuthState();
-      } else if (isUserLoggedIn && userRole) {
+      } else if (isUserLoggedIn && userRole && userId) {
         setLocalAuthState({ isLoggedIn: true });
         setCurrentUserRole(userRole); 
         setCurrentUserName(userName);
@@ -159,19 +189,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    try {
+      console.log("Attempting to sign in with email:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error("Sign in error:", error.message);
+        throw error;
+      }
+      
+      console.log("Sign in successful:", data);
+      return data;
+    } catch (error) {
+      console.error("Error during sign in:", error);
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string, userData: any) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData,
-      },
-    });
-    if (error) throw error;
+    try {
+      console.log("Attempting to sign up with email:", email, "and metadata:", userData);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+        },
+      });
+      
+      if (error) {
+        console.error("Sign up error:", error.message);
+        throw error;
+      }
+      
+      console.log("Sign up successful:", data);
+      
+      // Pre-populate localStorage with registration data for smoother sign-in experience
+      if (data?.user) {
+        localStorage.setItem(`registered_${email}`, userData.full_name || '');
+        
+        // If email confirmation is disabled, we can persist right away
+        if (data.session) {
+          persistUserToLocalStorage({
+            id: data.user.id,
+            email: data.user.email,
+            role: userData.role || userData.user_type,
+            name: userData.full_name
+          });
+        }
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Error during sign up:", error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -194,6 +266,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateUserName = (name: string) => {
     setCurrentUserName(name);
+    localStorage.setItem('userName', name);
   };
 
   // The main isLoggedIn state combines Supabase auth and localStorage
