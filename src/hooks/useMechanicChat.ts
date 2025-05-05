@@ -21,6 +21,7 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   const refreshMessages = useCallback(async () => {
     if (threadId) {
       try {
+        console.log(`Refreshing messages for thread ${threadId}`);
         const messages = await getChatMessages(threadId);
         setChatMessages(messages);
       } catch (error) {
@@ -32,6 +33,8 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   useEffect(() => {
     // Set up real-time updates for chat messages
     if (threadId) {
+      console.log(`Setting up realtime subscription for thread ${threadId}`);
+      
       const channel = supabase
         .channel(`chat_messages_${threadId}`)
         .on(
@@ -91,6 +94,10 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
     try {
       console.log(`Opening chat between ${currentUserName} (${currentUserId}) and ${mechanicName} (${mechanicId})`);
       
+      if (!user || !user.id) {
+        throw new Error("User not authenticated");
+      }
+      
       // Find or create a chat thread between customer and mechanic
       const thread = await findOrCreateChatThread(
         currentUserId,
@@ -120,10 +127,21 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   };
   
   const handleSendMessage = async (content: string) => {
+    console.log(`Attempting to send message: ${content}`);
+    
     if (!threadId) {
       toast({
         title: "Error",
         description: "Cannot send message. Chat session not initialized.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!user || !user.id) {
+      toast({
+        title: "Authentication required",
+        description: "You must be signed in to send messages.",
         variant: "destructive",
       });
       return;

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -60,6 +61,7 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Custom offer form submitted");
     
     if (!formData.description.trim()) {
       toast({
@@ -82,6 +84,7 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
     setIsSubmitting(true);
     
     try {
+      console.log("Saving custom offer to Supabase");
       // Save to Supabase
       const { error } = await supabase.from('custom_offers').insert({
         customer_id: user.id,
@@ -93,8 +96,14 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
       });
       
       if (error) {
+        console.error("Error saving custom offer:", error);
         throw error;
       }
+      
+      console.log("Custom offer saved successfully");
+      
+      // Close the dialog
+      onOpenChange(false);
       
       // Call the original onSubmit callback
       onSubmit(formData);

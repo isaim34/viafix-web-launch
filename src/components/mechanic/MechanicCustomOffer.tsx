@@ -26,6 +26,9 @@ export const MechanicCustomOffer = ({
   const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
 
   const handleCustomOffer = () => {
+    console.log("Request custom offer button clicked");
+    console.log("Auth state:", { isLoggedIn, currentUserRole, isCustomerLoggedIn });
+    
     if (!isCustomerLoggedIn) {
       toast({
         title: "Sign in required",
@@ -41,6 +44,7 @@ export const MechanicCustomOffer = ({
       });
       return;
     }
+    console.log("Opening custom offer dialog");
     setIsCustomOfferOpen(true);
   };
 
@@ -88,6 +92,9 @@ export const useCustomOffer = ({
   const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
 
   const handleCustomOffer = () => {
+    console.log("Request custom offer hook called");
+    console.log("Auth state:", { isLoggedIn, currentUserRole, isCustomerLoggedIn });
+    
     if (!isCustomerLoggedIn) {
       toast({
         title: "Sign in required",
@@ -103,6 +110,7 @@ export const useCustomOffer = ({
       });
       return;
     }
+    console.log("Setting custom offer dialog to open");
     setIsCustomOfferOpen(true);
   };
 

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,82 +12,74 @@ export const getChatThreads = async (userId: string): Promise<ChatThread[]> => {
   console.log(`Fetching chat threads for user: ${userId}`);
   
   try {
-    // First try to use legacy method for backward compatibility
-    const legacyThreads = getChatThreads_legacy(userId);
-    if (legacyThreads && legacyThreads.length > 0) {
-      console.log(`Found ${legacyThreads.length} legacy chat threads`);
-      return legacyThreads;
+    // Fetch threads from Supabase where the user is a participant
+    const { data: threads, error } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .contains('participants', [userId]);
+      
+    if (error) {
+      console.error("Error fetching chat threads from Supabase:", error);
+      // Try legacy method as fallback
+      return getChatThreads_legacy(userId);
     }
     
-    // If no legacy threads found, or if legacy method fails, continue with Supabase
-    // For demo purposes, return some sample data if we're not connected to Supabase
-    // This allows the UI to work without a database connection
-    const sampleThreads: ChatThread[] = [
-      {
-        id: "sample-thread-1",
-        participants: [userId, "mechanic-123"],
-        participantNames: {
-          [userId]: "You",
-          "mechanic-123": "John's Auto Repair"
-        },
-        lastMessage: {
-          id: "msg-1",
-          senderId: "mechanic-123",
-          senderName: "John's Auto Repair",
-          receiverId: userId,
-          content: "Hello, how can I help you with your vehicle?",
-          timestamp: new Date().toISOString(),
-          isRead: false
-        },
-        unreadCount: 1,
-        lastMessageAt: new Date().toISOString()
-      }
-    ];
+    if (!threads || threads.length === 0) {
+      console.log("No threads found in database, trying legacy storage");
+      return getChatThreads_legacy(userId);
+    }
     
-    console.log("Returning sample chat threads for demo purposes");
-    return sampleThreads;
+    console.log(`Found ${threads.length} threads in Supabase`);
+    
+    // Format and return the threads
+    return threads.map(thread => ({
+      id: thread.id,
+      participants: thread.participants,
+      participantNames: thread.participant_names,
+      lastMessage: null, // We'll fetch this separately
+      unreadCount: thread.unread_count || 0,
+      lastMessageAt: thread.last_message_at || thread.created_at
+    }));
   } catch (error) {
     console.error('Error retrieving chat threads:', error);
-    return [];
+    // Fallback to legacy method
+    return getChatThreads_legacy(userId);
   }
 };
 
 // Get a specific chat thread
 export const getChatThread = async (threadId: string): Promise<ChatThread | null> => {
   try {
-    // Try legacy method first for backward compatibility
-    const legacyThread = getChatThread_legacy(threadId);
-    if (legacyThread) {
-      return legacyThread;
+    // Get thread from Supabase
+    const { data: thread, error } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .eq('id', threadId)
+      .single();
+      
+    if (error) {
+      console.error("Error fetching chat thread from Supabase:", error);
+      // Try legacy method
+      return getChatThread_legacy(threadId);
     }
     
-    // For demo purposes, return a sample thread
-    if (threadId === "sample-thread-1") {
-      return {
-        id: "sample-thread-1",
-        participants: ["current-user", "mechanic-123"],
-        participantNames: {
-          "current-user": "You",
-          "mechanic-123": "John's Auto Repair"
-        },
-        lastMessage: {
-          id: "msg-1",
-          senderId: "mechanic-123",
-          senderName: "John's Auto Repair",
-          receiverId: "current-user",
-          content: "Hello, how can I help you with your vehicle?",
-          timestamp: new Date().toISOString(),
-          isRead: false
-        },
-        unreadCount: 1,
-        lastMessageAt: new Date().toISOString()
-      };
+    if (!thread) {
+      console.log("No thread found in database, trying legacy storage");
+      return getChatThread_legacy(threadId);
     }
     
-    return null;
+    return {
+      id: thread.id,
+      participants: thread.participants,
+      participantNames: thread.participant_names,
+      lastMessage: null, // We'll fetch this separately
+      unreadCount: thread.unread_count || 0,
+      lastMessageAt: thread.last_message_at || thread.created_at
+    };
   } catch (error) {
     console.error('Error retrieving chat thread:', error);
-    return null;
+    // Fallback to legacy method
+    return getChatThread_legacy(threadId);
   }
 };
 
@@ -99,58 +90,125 @@ export const findOrCreateChatThread = async (
   userId2: string,
   userName2: string
 ): Promise<ChatThread> => {
-  // Try legacy method for backward compatibility
+  console.log(`Finding or creating chat thread between ${userName1}(${userId1}) and ${userName2}(${userId2})`);
+  
   try {
-    return findOrCreateChatThread_legacy(userId1, userName1, userId2, userName2);
-  } catch (error) {
-    console.error('Error finding/creating chat thread:', error);
+    // Try to find an existing thread with both participants
+    const { data: existingThreads, error: searchError } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .contains('participants', [userId1, userId2]);
+      
+    if (searchError) {
+      console.error("Error searching for existing thread:", searchError);
+      throw searchError;
+    }
     
-    // Create a new sample thread for demo purposes
-    const newThread: ChatThread = {
-      id: uuidv4(),
-      participants: [userId1, userId2],
-      participantNames: {
-        [userId1]: userName1,
-        [userId2]: userName2
-      },
-      unreadCount: 0,
+    // Check if we found an exact match (exactly these two participants)
+    const exactMatch = existingThreads?.find(thread => 
+      thread.participants.length === 2 && 
+      thread.participants.includes(userId1) && 
+      thread.participants.includes(userId2)
+    );
+    
+    if (exactMatch) {
+      console.log("Found existing thread:", exactMatch.id);
+      return {
+        id: exactMatch.id,
+        participants: exactMatch.participants,
+        participantNames: exactMatch.participant_names,
+        lastMessage: null,
+        unreadCount: exactMatch.unread_count || 0,
+        lastMessageAt: exactMatch.last_message_at || exactMatch.created_at
+      };
+    }
+    
+    // If no thread exists, create a new one
+    console.log("No existing thread found, creating new thread");
+    
+    // Prepare the participant names object
+    const participantNames: Record<string, string> = {};
+    participantNames[userId1] = userName1;
+    participantNames[userId2] = userName2;
+    
+    // Create new thread
+    const { data: newThread, error: createError } = await supabase
+      .from('chat_threads')
+      .insert({
+        participants: [userId1, userId2],
+        participant_names: participantNames,
+        last_message_at: new Date().toISOString(),
+        unread_count: 0
+      })
+      .select()
+      .single();
+      
+    if (createError) {
+      console.error("Error creating new thread:", createError);
+      throw createError;
+    }
+    
+    if (!newThread) {
+      throw new Error("Failed to create new thread");
+    }
+    
+    console.log("Created new thread:", newThread.id);
+    
+    // Return the newly created thread
+    return {
+      id: newThread.id,
+      participants: newThread.participants,
+      participantNames: newThread.participant_names,
       lastMessage: null,
+      unreadCount: 0,
       lastMessageAt: new Date().toISOString()
     };
-    
-    console.log("Created sample chat thread:", newThread);
-    return newThread;
+  } catch (error) {
+    console.error('Error in findOrCreateChatThread:', error);
+    // Fallback to legacy method
+    return findOrCreateChatThread_legacy(userId1, userName1, userId2, userName2);
   }
 };
 
 // Get messages for a thread
 export const getChatMessages = async (threadId: string): Promise<ChatMessage[]> => {
   try {
-    // Try legacy method first for backward compatibility
-    const legacyMessages = getChatMessages_legacy(threadId);
-    if (legacyMessages && legacyMessages.length > 0) {
-      return legacyMessages;
+    console.log(`Fetching messages for thread: ${threadId}`);
+    
+    // Get messages from Supabase
+    const { data: messages, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('thread_id', threadId)
+      .order('timestamp', { ascending: true });
+      
+    if (error) {
+      console.error("Error fetching messages from Supabase:", error);
+      // Fallback to legacy
+      return getChatMessages_legacy(threadId);
     }
     
-    // For demo purposes, return sample messages
-    if (threadId === "sample-thread-1") {
-      return [
-        {
-          id: "msg-1",
-          senderId: "mechanic-123",
-          senderName: "John's Auto Repair",
-          receiverId: "current-user",
-          content: "Hello, how can I help you with your vehicle?",
-          timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          isRead: false
-        }
-      ];
+    if (!messages || messages.length === 0) {
+      console.log("No messages found in database, trying legacy storage");
+      return getChatMessages_legacy(threadId);
     }
     
-    return [];
+    console.log(`Found ${messages.length} messages in Supabase`);
+    
+    // Format and return the messages
+    return messages.map(msg => ({
+      id: msg.id,
+      senderId: msg.sender_id,
+      senderName: msg.sender_name,
+      receiverId: msg.receiver_id,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      isRead: msg.is_read
+    }));
   } catch (error) {
     console.error('Error retrieving chat messages:', error);
-    return [];
+    // Fallback to legacy method
+    return getChatMessages_legacy(threadId);
   }
 };
 
@@ -160,29 +218,82 @@ export const sendChatMessage = async (
   message: Omit<ChatMessage, 'id'>
 ): Promise<ChatMessage> => {
   try {
-    // Try legacy method for backward compatibility
-    return sendChatMessage_legacy(threadId, message);
+    console.log(`Sending message to thread ${threadId}:`, message);
+    
+    // Create message in Supabase
+    const { data: newMessage, error } = await supabase
+      .from('chat_messages')
+      .insert({
+        thread_id: threadId,
+        sender_id: message.senderId,
+        sender_name: message.senderName,
+        receiver_id: message.receiverId,
+        content: message.content,
+        timestamp: message.timestamp,
+        is_read: message.isRead
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Error sending message to Supabase:", error);
+      throw error;
+    }
+    
+    if (!newMessage) {
+      throw new Error("Failed to create message");
+    }
+    
+    console.log("Message sent successfully with ID:", newMessage.id);
+    
+    // Update the thread's lastMessage and lastMessageAt
+    await supabase
+      .from('chat_threads')
+      .update({
+        last_message_at: new Date().toISOString(),
+        unread_count: supabase.rpc('increment_unread_count', { thread_id: threadId })
+      })
+      .eq('id', threadId);
+      
+    // Return the created message
+    return {
+      id: newMessage.id,
+      senderId: newMessage.sender_id,
+      senderName: newMessage.sender_name,
+      receiverId: newMessage.receiver_id,
+      content: newMessage.content,
+      timestamp: newMessage.timestamp,
+      isRead: newMessage.is_read
+    };
   } catch (error) {
     console.error('Error sending chat message:', error);
-    
-    // For demo purposes, create a sample message
-    const newMessage: ChatMessage = {
-      ...message,
-      id: uuidv4()
-    };
-    
-    console.log("Created sample chat message:", newMessage);
-    return newMessage;
+    // Fallback to legacy method
+    return sendChatMessage_legacy(threadId, message);
   }
 };
 
 // Mark messages as read
 export const markThreadAsRead = async (threadId: string, userId: string): Promise<void> => {
   try {
-    // Try legacy method for backward compatibility
-    markThreadAsRead_legacy(threadId, userId);
+    console.log(`Marking messages as read for thread ${threadId} and user ${userId}`);
+    
+    // Update all unread messages for this user in this thread
+    await supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('thread_id', threadId)
+      .eq('receiver_id', userId)
+      .eq('is_read', false);
+      
+    // Reset unread count for the thread
+    await supabase
+      .from('chat_threads')
+      .update({ unread_count: 0 })
+      .eq('id', threadId);
   } catch (error) {
     console.error('Error marking messages as read:', error);
+    // Fallback to legacy method
+    markThreadAsRead_legacy(threadId, userId);
   }
 };
 
