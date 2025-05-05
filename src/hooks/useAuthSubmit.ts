@@ -32,13 +32,18 @@ export function useAuthSubmit() {
         if (!isRegistered) {
           try {
             // Try to get the user's profile from Supabase to verify account exists
-            const { data: users, error } = await supabase.auth.admin.listUsers({
-              filter: {
-                email: data.email
-              }
+            // Using the correct API for listing users - note that this might require admin privileges
+            // For regular applications, you would typically use signInWithPassword to check
+            // But for this code, we'll use a safer approach that doesn't depend on admin APIs
+            
+            // First try to sign in with the credentials to check if the account exists
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+              email: data.email,
+              password: data.password,
             });
             
-            if (error || !users || users.length === 0) {
+            if (signInError) {
+              // If sign in fails, the account may not exist
               setAuthError("No account found for this email address. Please register first.");
               toast({
                 title: "Sign in failed",
@@ -48,6 +53,11 @@ export function useAuthSubmit() {
               setIsLoading(false);
               return false;
             }
+            
+            // If we reached here, the account exists, continue with the flow
+            // Sign out immediately as we're just checking existence
+            await supabase.auth.signOut();
+            
           } catch (checkError) {
             console.log("Unable to verify account with Supabase, using local fallback");
           }
