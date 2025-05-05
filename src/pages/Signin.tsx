@@ -8,6 +8,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import type { UserRole } from '@/contexts/auth/types';
 // Import the sign in forms directly
 import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
