@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/types/mechanic';
-import { findOrCreateChatThread, sendChatMessage, getChatMessages } from '@/services/chatService';
+import { findOrCreateChatThread, sendChatMessage, getChatMessages } from '@/services/chat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 

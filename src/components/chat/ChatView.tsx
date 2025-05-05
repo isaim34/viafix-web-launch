@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
-import { getChatMessages, sendChatMessage, markMessagesAsRead } from '@/services/chatService';
+import { getChatMessages, sendChatMessage, markMessagesAsRead } from '@/services/chat';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';

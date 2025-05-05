@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/auth';
 import { ChatThreadsList } from '@/components/chat/ChatThreadsList';
 import { AlertCircle, MessageSquare, Inbox } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getChatThreads } from '@/services/chatService';
+import { getChatThreads } from '@/services/chat';
 import { ChatThread } from '@/types/mechanic';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
