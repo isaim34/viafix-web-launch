@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { ChatThreadsList } from './chat/ChatThreadsList';
 import { ChatView } from './chat/ChatView';
-import { getChatThreads } from '@/services/chatService';
+import { getChatThreads } from '@/services/chat'; // Updated import path
 import { ChatThread } from '@/types/mechanic';
 import { useAuth } from '@/hooks/useAuth';
 
