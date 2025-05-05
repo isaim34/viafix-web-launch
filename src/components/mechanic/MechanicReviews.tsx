@@ -28,21 +28,27 @@ export const MechanicReviews = ({ reviews, rating, reviewCount, delay = 0.3 }: M
         </div>
       </div>
       
-      <div className="space-y-6">
-        {reviews.map((review, index) => (
-          <div key={index} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-medium">{review.author}</h3>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
-                ))}
+      {reviews.length > 0 ? (
+        <div className="space-y-6">
+          {reviews.map((review, index) => (
+            <div key={index} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-medium">{review.author}</h3>
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
+                  ))}
+                </div>
               </div>
+              <p className="text-gray-600">{review.text}</p>
             </div>
-            <p className="text-gray-600">{review.text}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          <p>No reviews yet</p>
+        </div>
+      )}
     </motion.div>
   );
 };

@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Review {
   id: string;
@@ -12,28 +14,67 @@ interface Review {
   serviceTitle: string;
 }
 
-// This would come from your backend in a real application
-const sampleReviews: Review[] = [
-  {
-    id: '1',
-    customerName: 'Emily Johnson',
-    rating: 5,
-    comment: 'Excellent service! Very professional and thorough.',
-    date: '2025-04-15',
-    serviceTitle: 'Full Car Inspection'
-  },
-  {
-    id: '2',
-    customerName: 'Michael Brown',
-    rating: 4,
-    comment: 'Good work, would recommend.',
-    date: '2025-04-10',
-    serviceTitle: 'Oil Change'
-  }
-];
-
 const ReviewsTab = () => {
-  if (sampleReviews.length === 0) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('mechanic_reviews')
+          .select(`
+            id,
+            author,
+            rating,
+            text,
+            created_at,
+            service_bookings(service_name)
+          `)
+          .eq('mechanic_id', user.id);
+          
+        if (error) {
+          console.error('Error fetching reviews:', error);
+          return;
+        }
+        
+        // Transform the data to match the Review interface
+        const formattedReviews = data.map(review => ({
+          id: review.id,
+          customerName: review.author,
+          rating: review.rating,
+          comment: review.text || '',
+          date: new Date(review.created_at).toISOString(),
+          serviceTitle: review.service_bookings?.service_name || 'Service'
+        }));
+        
+        setReviews(formattedReviews);
+      } catch (error) {
+        console.error('Error in fetchReviews:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchReviews();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <div className="flex flex-col items-center justify-center text-center space-y-2">
+          <p className="text-muted-foreground">Loading reviews...</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (reviews.length === 0) {
     return (
       <Card className="p-6">
         <div className="flex flex-col items-center justify-center text-center space-y-2">
@@ -47,7 +88,7 @@ const ReviewsTab = () => {
 
   return (
     <div className="space-y-4">
-      {sampleReviews.map((review) => (
+      {reviews.map((review) => (
         <Card key={review.id} className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">

@@ -1,3 +1,4 @@
+
 import { MechanicDetail } from '@/types/mechanic';
 
 // Sample mechanic detailed data
@@ -21,11 +22,7 @@ export const mechanicsDetailedData: Record<string, MechanicDetail> = {
       { name: "Engine Tune-Up", price: 120 },
       { name: "Battery Replacement", price: 90 }
     ],
-    reviews: [
-      { author: "Michael T.", rating: 5, text: "Alex was prompt, professional and very knowledgeable. Fixed my BMW's electrical issue quickly. Highly recommend!" },
-      { author: "Sarah L.", rating: 4, text: "Great service. Came out same day and fixed my AC issue. Fair pricing and no unnecessary upsells." },
-      { author: "David K.", rating: 5, text: "The convenience of having my car fixed in my own driveway was amazing. Alex is extremely skilled and efficient." }
-    ],
+    reviews: [], // Removed mock reviews
     galleryImages: [
       'https://images.unsplash.com/photo-1632931612869-c1a971a02054?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80', // Engine repair
       'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80', // Brake service
@@ -51,11 +48,7 @@ export const mechanicsDetailedData: Record<string, MechanicDetail> = {
       { name: "Alternator Replacement", price: 180 },
       { name: "Starter Replacement", price: 160 }
     ],
-    reviews: [
-      { author: "Jennifer M.", rating: 5, text: "Sarah diagnosed and fixed an electrical issue that two shops couldn't figure out. Saved me hundreds!" },
-      { author: "Robert P.", rating: 4, text: "Very knowledgeable about AC systems. Fixed my car's AC just in time for summer." },
-      { author: "Thomas G.", rating: 5, text: "Professional, punctual, and extremely skilled. Will definitely use her services again." }
-    ],
+    reviews: [], // Removed mock reviews
     galleryImages: [
       'https://images.unsplash.com/photo-1622568538924-7360163d657a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80', // Electrical repair
       'https://images.unsplash.com/photo-1600661653561-629509216228?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80', // AC repair

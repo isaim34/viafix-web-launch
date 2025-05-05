@@ -64,6 +64,16 @@ export const useMechanicData = () => {
             }
           }
           
+          // Fetch real reviews for the local mechanic or default vendor
+          const { data: reviews, error: reviewsError } = await supabase
+            .from('mechanic_reviews')
+            .select('id, author, rating, text, created_at')
+            .eq('mechanic_id', id === 'local-mechanic' ? localStorage.getItem('userId') : 'default-vendor');
+            
+          if (reviewsError) {
+            console.error('Error fetching reviews:', reviewsError);
+          }
+          
           // Create custom mechanic data for the local/default mechanic
           setMechanic({
             id: id || 'local-mechanic',
@@ -71,7 +81,7 @@ export const useMechanicData = () => {
             avatar: vendorAvatar,
             specialties: specialties,
             rating: 5.0,
-            reviewCount: 12,
+            reviewCount: reviews?.length || 0,
             location: mechanicProfile.location || 'Worcester, MA',
             hourlyRate: mechanicProfile.hourlyRate || 75,
             yearsExperience: mechanicProfile.yearsExperience || 5,
@@ -83,9 +93,11 @@ export const useMechanicData = () => {
               { name: "Brake Inspection", price: 45 },
               { name: "General Tune-Up", price: 120 }
             ],
-            reviews: [
-              { author: "Customer", rating: 5, text: "Very professional and knowledgeable. Highly recommended!" }
-            ],
+            reviews: reviews?.map(r => ({
+              author: r.author,
+              rating: r.rating,
+              text: r.text
+            })) || [],
             galleryImages: [
               'https://images.unsplash.com/photo-1632931612869-c1a971a02054?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
               'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
@@ -216,7 +228,12 @@ export const useMechanicData = () => {
         
         // Fallback to mock data if available
         if (id && mechanicsDetailedData[id]) {
-          setMechanic(mechanicsDetailedData[id]);
+          // Remove mock reviews from fallback data
+          const fallbackData = {
+            ...mechanicsDetailedData[id],
+            reviews: [] // Set reviews to empty array instead of using mock data
+          };
+          setMechanic(fallbackData);
         } else {
           // If no fallback data, set mechanic to null
           setMechanic(null);
