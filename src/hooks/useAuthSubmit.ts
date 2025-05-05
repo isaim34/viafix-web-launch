@@ -24,117 +24,123 @@ export function useAuthSubmit() {
       setIsLoading(true);
       setAuthError(null);
 
-      // If signing in (not creating a new account), check if the email exists in registration records
+      // If signing in (not creating a new account)
       if (!isNewAccount) {
-        const isRegistered = localStorage.getItem(`registered_${data.email}`) !== null;
+        // Attempt to sign in with Supabase
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
         
-        // Check Supabase auth
-        if (!isRegistered) {
-          try {
-            // Try to get the user's profile from Supabase to verify account exists
-            // Using the correct API for listing users - note that this might require admin privileges
-            // For regular applications, you would typically use signInWithPassword to check
-            // But for this code, we'll use a safer approach that doesn't depend on admin APIs
-            
-            // First try to sign in with the credentials to check if the account exists
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-              email: data.email,
-              password: data.password,
-            });
-            
-            if (signInError) {
-              // If sign in fails, the account may not exist
-              setAuthError("No account found for this email address. Please register first.");
-              toast({
-                title: "Sign in failed",
-                description: "No account found for this email address. Please register first.",
-                variant: "destructive"
-              });
-              setIsLoading(false);
-              return false;
+        if (error) {
+          setAuthError(error.message);
+          toast({
+            title: "Sign in failed",
+            description: error.message,
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return false;
+        }
+        
+        // Authentication successful
+        if (authData.user) {
+          // Get user name from metadata or generate from email
+          const userName = authData.user.user_metadata?.name || 
+                         authData.user.user_metadata?.full_name || 
+                         getUserNameFromEmail(data.email);
+          
+          // Store the user role (assume mechanic for this hook)
+          const userRole = 'mechanic';
+          
+          // Persist user info to local storage for app state
+          persistUserToLocalStorage({
+            id: authData.user.id,
+            email: authData.user.email,
+            role: userRole,
+            name: userName
+          });
+          
+          // Additional mechanic-specific data
+          localStorage.setItem('vendorName', userName);
+          
+          // Trigger storage event to notify components of auth change
+          window.dispatchEvent(new Event('storage-event'));
+          
+          const firstName = userName.split(' ')[0];
+          
+          toast({
+            title: `Welcome back, ${firstName}!`,
+            description: "You have successfully signed in.",
+          });
+          
+          // Navigate to mechanic dashboard
+          navigate('/mechanic-dashboard', { replace: true });
+          return true;
+        }
+      } else {
+        // Creating a new account
+        const { data: authData, error } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: getUserNameFromEmail(data.email),
+              user_type: 'mechanic'
             }
-            
-            // If we reached here, the account exists, continue with the flow
-            // Sign out immediately as we're just checking existence
-            await supabase.auth.signOut();
-            
-          } catch (checkError) {
-            console.log("Unable to verify account with Supabase, using local fallback");
           }
+        });
+        
+        if (error) {
+          setAuthError(error.message);
+          toast({
+            title: "Sign up failed",
+            description: error.message,
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return false;
+        }
+        
+        if (authData.user) {
+          const userName = getUserNameFromEmail(data.email);
+          
+          toast({
+            title: "Account created successfully",
+            description: "Check your email for a confirmation link to complete signup.",
+          });
+          
+          // Still add to local storage for immediate login in development environment
+          persistUserToLocalStorage({
+            id: authData.user.id,
+            email: authData.user.email,
+            role: 'mechanic',
+            name: userName
+          });
+          
+          localStorage.setItem('vendorName', userName);
+          
+          // Create a simple profile if none exists
+          const profile = {
+            firstName: userName.split(' ')[0] || '',
+            lastName: userName.split(' ').slice(1).join(' ') || '',
+            profileImage: ''
+          };
+          localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+          
+          // Trigger auth change notification
+          window.dispatchEvent(new Event('storage-event'));
+          
+          // Navigate to mechanic dashboard
+          navigate('/mechanic-dashboard', { replace: true });
+          return true;
         }
       }
-
-      // TEMPORARY: Using the existing simulation approach while also ensuring data persistence 
-      // This would be replaced with actual Supabase auth in production
-      const simulatedAuthData = {
-        user: {
-          id: 'temp-' + Math.random().toString(36).substring(2, 9),
-          email: data.email
-        }
-      };
       
-      // Get stored name or generate from email
-      const storedName = localStorage.getItem(`registered_${data.email}`);
-      const formattedUsername = getUserNameFromEmail(data.email);
-      const userName = storedName || formattedUsername;
-      
-      // User role is 'mechanic' for this hook as it's used in MechanicSigninForm
-      const userRole = 'mechanic';
-      const userId = simulatedAuthData.user?.id;
-      
-      // Store all essential user data
-      persistUserToLocalStorage({
-        id: userId,
-        email: data.email,
-        role: userRole,
-        name: userName
-      });
-      
-      // Store email to userId mapping for lookup
-      localStorage.setItem(`userId_to_email_${userId}`, data.email);
-      
-      // Store mechanic-specific data
-      localStorage.setItem('vendorName', userName);
-      
-      // Set default subscription status for testing
-      localStorage.setItem('subscription_status', 'active');
-      localStorage.setItem('subscription_plan', 'monthly');
-      localStorage.setItem('subscription_end', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
-      
-      // If this is a new account, store registration record
-      if (isNewAccount) {
-        localStorage.setItem(`registered_${data.email}`, userName);
-      }
-      
-      // Ensure mechanic profile exists
-      const mechanicProfileData = localStorage.getItem('mechanicProfile');
-      if (!mechanicProfileData) {
-        // Create a simple profile if none exists
-        const profile = {
-          firstName: userName.split(' ')[0] || '',
-          lastName: userName.split(' ').slice(1).join(' ') || '',
-          profileImage: ''
-        };
-        localStorage.setItem('mechanicProfile', JSON.stringify(profile));
-      }
-      
-      // Notify components about authentication change
-      window.dispatchEvent(new Event('storage-event'));
-      
-      const firstName = userName.split(' ')[0];
-      
-      toast({
-        title: `Welcome${isNewAccount ? '' : ' back'}, ${firstName}!`,
-        description: "You have successfully signed in.",
-      });
-      
-      // Navigate to mechanic dashboard
-      navigate('/mechanic-dashboard', { replace: true });
-      return true;
-      
+      return false;
     } catch (error) {
-      console.error('Sign in error:', error);
-      setAuthError("Failed to sign in. Please try again.");
+      console.error('Authentication error:', error);
+      setAuthError("An unexpected error occurred. Please try again.");
       return false;
     } finally {
       setIsLoading(false);

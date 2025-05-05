@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from '@/hooks/use-toast';
-import { generateUserId, setupCustomerProfile } from '@/utils/authUtils';
 import { persistUserToLocalStorage } from '@/contexts/auth/authUtils';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -37,129 +36,92 @@ export const useCustomerSignin = () => {
     try {
       console.log("Processing sign in for:", data.email);
       
-      // Check if this user has registered before
-      // First check local storage
-      const isRegisteredLocally = localStorage.getItem(`registered_${data.email}`) !== null;
+      // Attempt to sign in with Supabase
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
       
-      let isRegistered = isRegisteredLocally;
-      
-      // If not registered locally, try to check with Supabase
-      if (!isRegistered) {
-        try {
-          // Attempt to sign in with Supabase to verify account exists
-          const { data: authData, error } = await supabase.auth.signInWithPassword({
-            email: data.email,
-            password: data.password
-          });
-          
-          if (authData?.user) {
-            // Account exists in Supabase
-            isRegistered = true;
-            
-            // Continue with the Supabase session if available
-            if (authData.session) {
-              // Let the AuthProvider handle the session via its listener
-              console.log("Supabase authentication successful");
-              
-              // Ensure we have local records
-              localStorage.setItem(`registered_${data.email}`, 
-                authData.user.user_metadata?.full_name || 
-                authData.user.user_metadata?.name || 
-                data.email.split('@')[0]);
-                
-              toast({
-                title: `Welcome back!`,
-                description: "You have successfully signed in.",
-              });
-              
-              if (redirectAction) {
-                setTimeout(() => {
-                  if (redirectAction === 'book') {
-                    toast({
-                      title: "You can now book services",
-                      description: "You've been signed in as a customer and can now book mechanic services.",
-                    });
-                  } else if (redirectAction === 'contact') {
-                    toast({
-                      title: "You can now chat with mechanics",
-                      description: "You've been signed in as a customer and can now chat with mechanics.",
-                    });
-                  }
-                }, 500);
-              }
-              
-              setIsLoading(false);
-              return true;
-            }
-          }
-        } catch (supabaseError) {
-          console.log("Unable to verify with Supabase, continuing with local auth");
-        }
-      }
-      
-      if (!isRegistered) {
-        console.error("Sign in failed: User not registered");
+      if (error) {
+        console.error("Supabase sign in error:", error.message);
         toast({
           title: "Sign in failed",
-          description: "No account found for this email address. Please register first.",
+          description: error.message,
           variant: "destructive"
         });
         setIsLoading(false);
         return false;
       }
       
-      // Continue with local auth flow
-      const userId = generateUserId(data.email);
-      const { userName, profileData } = setupCustomerProfile(data.email, userId);
-      
-      // Store all essential user data
-      persistUserToLocalStorage({
-        id: userId,
-        email: data.email,
-        role: 'customer',
-        name: userName
-      });
-      
-      // Store customer profile data
-      localStorage.setItem('customerProfile', JSON.stringify(profileData));
-      
-      // Store email to userId mapping
-      localStorage.setItem(`userId_to_email_${userId}`, data.email);
-      
-      // Ensure we have a registration record
-      if (!isRegisteredLocally) {
-        localStorage.setItem(`registered_${data.email}`, userName);
+      if (authData.user) {
+        // User authenticated successfully
+        console.log("Supabase authentication successful");
+        
+        // Extract name from metadata or email
+        const userName = authData.user.user_metadata?.full_name || 
+                      authData.user.user_metadata?.name || 
+                      data.email.split('@')[0];
+        
+        // Store user info in local storage
+        persistUserToLocalStorage({
+          id: authData.user.id,
+          email: authData.user.email,
+          role: 'customer',
+          name: userName
+        });
+        
+        // Create and store customer profile
+        const profileData = {
+          firstName: userName.split(' ')[0] || '',
+          lastName: userName.split(' ').slice(1).join(' ') || '',
+          profileImage: ''
+        };
+        
+        localStorage.setItem('customerProfile', JSON.stringify(profileData));
+        
+        // Notify application of auth change
+        window.dispatchEvent(new Event('storage-event'));
+        console.log("Auth data stored, dispatched storage-event");
+        
+        // Get just the first name for the welcome message
+        const firstName = userName.split(' ')[0];
+        
+        toast({
+          title: `Welcome back, ${firstName}!`,
+          description: "You have successfully signed in.",
+        });
+        
+        // Handle redirect actions
+        if (redirectAction) {
+          setTimeout(() => {
+            if (redirectAction === 'book') {
+              toast({
+                title: "You can now book services",
+                description: "You've been signed in as a customer and can now book mechanic services.",
+              });
+            } else if (redirectAction === 'contact') {
+              toast({
+                title: "You can now chat with mechanics",
+                description: "You've been signed in as a customer and can now chat with mechanics.",
+              });
+            }
+          }, 500);
+        }
+        
+        // Navigate to the redirect destination
+        navigate(redirectTo, { replace: true });
+        return true;
       }
       
-      // Dispatch event to update auth state
-      window.dispatchEvent(new Event('storage-event'));
-      console.log("Auth data stored, dispatched storage-event");
-      
-      // Get just the first name for the welcome message
-      const firstName = userName.split(' ')[0];
-      
+      // If we reach here, authentication failed
+      console.error("Sign in failed: No user returned");
       toast({
-        title: `Welcome back, ${firstName}!`,
-        description: "You have successfully signed in.",
+        title: "Sign in failed",
+        description: "Authentication failed. Please check your credentials.",
+        variant: "destructive"
       });
+      return false;
       
-      if (redirectAction) {
-        setTimeout(() => {
-          if (redirectAction === 'book') {
-            toast({
-              title: "You can now book services",
-              description: "You've been signed in as a customer and can now book mechanic services.",
-            });
-          } else if (redirectAction === 'contact') {
-            toast({
-              title: "You can now chat with mechanics",
-              description: "You've been signed in as a customer and can now chat with mechanics.",
-            });
-          }
-        }, 500);
-      }
-
-      return true;
     } catch (error) {
       console.error('Sign in error:', error);
       toast({
