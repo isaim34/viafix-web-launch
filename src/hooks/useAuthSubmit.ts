@@ -23,6 +23,22 @@ export function useAuthSubmit() {
       setIsLoading(true);
       setAuthError(null);
 
+      // Check if mechanic has registered before (if not creating a new account)
+      if (!isNewAccount) {
+        const isRegistered = localStorage.getItem(`registered_${data.email}`) !== null;
+        
+        if (!isRegistered) {
+          setAuthError("No account found for this email address. Please register first.");
+          toast({
+            title: "Sign in failed",
+            description: "No account found for this email address. Please register first.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // TEMPORARY: Skip actual auth and simulate successful login
       const simulatedAuthData = {
         user: {

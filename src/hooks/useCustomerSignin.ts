@@ -34,6 +34,21 @@ export const useCustomerSignin = () => {
     setIsLoading(true);
     try {
       console.log("Processing sign in for:", data.email);
+      
+      // Check if this user has registered before
+      const isRegistered = localStorage.getItem(`registered_${data.email}`) !== null;
+      
+      if (!isRegistered) {
+        console.error("Sign in failed: User not registered");
+        toast({
+          title: "Sign in failed",
+          description: "No account found for this email address. Please register first.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return false;
+      }
+      
       const userId = generateUserId(data.email);
       const { userName, profileData } = setupCustomerProfile(data.email, userId);
       
