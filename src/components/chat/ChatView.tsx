@@ -4,7 +4,7 @@ import { ArrowLeft, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
-import { getChatMessages, sendChatMessage, markThreadAsRead } from '@/services/chatService';
+import { getChatMessages, sendChatMessage, markMessagesAsRead } from '@/services/chatService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ChatViewProps {
@@ -38,7 +38,7 @@ export const ChatView = ({
       setMessages(chatMessages);
       
       // Mark messages as read
-      await markThreadAsRead(thread.id, currentUserId);
+      await markMessagesAsRead(thread.id, currentUserId);
       
     } catch (error) {
       console.error("Error loading messages:", error);
@@ -83,7 +83,7 @@ export const ChatView = ({
             
             // If the message is not from the current user, mark it as read
             if (formattedMessage.senderId !== currentUserId) {
-              markThreadAsRead(thread.id, currentUserId);
+              markMessagesAsRead(thread.id, currentUserId);
             }
           }
         }
