@@ -32,7 +32,7 @@ export const useMechanics = () => {
 
     try {
       // Query for mechanic profiles with their basic profile info
-      // Specify the exact relationship when joining with profiles table
+      // Using profile!mechanic_profiles_id_fkey to specify the exact relationship
       const { data: mechanicProfiles, error: mechanicError } = await supabase
         .from('mechanic_profiles')
         .select(`
@@ -46,7 +46,7 @@ export const useMechanics = () => {
           response_time,
           is_featured,
           featured_until,
-          profiles:id(
+          profile:profiles!mechanic_profiles_id_fkey(
             id,
             first_name,
             last_name,
@@ -62,9 +62,9 @@ export const useMechanics = () => {
       }
 
       // Format the mechanics data
-      const formattedMechanics = mechanicProfiles.map(mechanic => {
+      const formattedMechanics = mechanicProfiles ? mechanicProfiles.map(mechanic => {
         // Extract profile data
-        const profile = mechanic.profiles as any;
+        const profile = mechanic.profile as any;
         
         // Construct the name from first and last name
         const name = profile 
@@ -97,7 +97,7 @@ export const useMechanics = () => {
           isFeatured: mechanic.is_featured || false,
           featuredUntil: mechanic.featured_until || null
         };
-      });
+      }) : [];
 
       setMechanics(formattedMechanics);
     } catch (err: any) {
