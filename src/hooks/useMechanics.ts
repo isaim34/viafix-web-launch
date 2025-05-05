@@ -99,8 +99,8 @@ export const useMechanics = () => {
             hourlyRate: mechanic.hourly_rate || 0,
             zipCode: profile?.zip_code || '',
             about: mechanic.about || '',
-            yearsExperience: mechanic.years_experience || 0,
-            responseTime: mechanic.response_time || 'Under 1 hour'
+            years_experience: mechanic.years_experience || 0,
+            response_time: mechanic.response_time || 'Under 1 hour'
           });
         }
       } else {
@@ -117,8 +117,8 @@ export const useMechanics = () => {
           hourlyRate: 75,
           zipCode: '78701',
           about: "Experienced mechanic with a focus on quality service.",
-          yearsExperience: 8,
-          responseTime: 'Under 1 hour'
+          years_experience: 8,
+          response_time: 'Under 1 hour'
         });
       }
 
