@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -43,8 +42,9 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
   onSubmit
 }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoggedIn, currentUserRole } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
   
   const [formData, setFormData] = useState<CustomOfferDetails>({
     description: '',
@@ -70,7 +70,7 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
       return;
     }
     
-    if (!user) {
+    if (!isCustomerLoggedIn || !user) {
       toast({
         title: "Authentication required",
         description: "You must be signed in to request a custom offer.",

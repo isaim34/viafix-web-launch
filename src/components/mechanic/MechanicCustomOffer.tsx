@@ -21,9 +21,9 @@ export const MechanicCustomOffer = ({
 }: MechanicCustomOfferProps) => {
   const [isCustomOfferOpen, setIsCustomOfferOpen] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { isLoggedIn, currentUserRole } = useAuth();
   const navigate = useNavigate();
-  const isCustomerLoggedIn = !!user;
+  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
 
   const handleCustomOffer = () => {
     if (!isCustomerLoggedIn) {
@@ -83,9 +83,9 @@ export const useCustomOffer = ({
 }: MechanicCustomOfferProps) => {
   const [isCustomOfferOpen, setIsCustomOfferOpen] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { isLoggedIn, currentUserRole } = useAuth();
   const navigate = useNavigate();
-  const isCustomerLoggedIn = !!user;
+  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
 
   const handleCustomOffer = () => {
     if (!isCustomerLoggedIn) {

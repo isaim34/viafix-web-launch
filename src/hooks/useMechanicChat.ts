@@ -12,7 +12,7 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   const [threadId, setThreadId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoggedIn, currentUserRole } = useAuth();
   
   const currentUserId = user?.id || 'anonymous';
   const currentUserName = user?.user_metadata?.full_name || user?.email || 'Customer';
@@ -74,7 +74,10 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   }, [threadId, currentUserId, chatMessages]);
   
   const openChat = async () => {
-    if (!user) {
+    // Check if user is logged in and is a customer
+    const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
+    
+    if (!isCustomerLoggedIn) {
       toast({
         title: "Sign in required",
         description: "Please sign in to start a chat with this mechanic.",
