@@ -26,6 +26,7 @@ const ReviewsTab = () => {
       try {
         setLoading(true);
         
+        // Get reviews without trying to join with service_bookings
         const { data, error } = await supabase
           .from('mechanic_reviews')
           .select(`
@@ -33,8 +34,7 @@ const ReviewsTab = () => {
             author,
             rating,
             text,
-            created_at,
-            service_bookings(service_name)
+            created_at
           `)
           .eq('mechanic_id', user.id);
           
@@ -42,6 +42,9 @@ const ReviewsTab = () => {
           console.error('Error fetching reviews:', error);
           return;
         }
+
+        // Get service bookings separately if you need them
+        // or simply use a default service title
         
         // Transform the data to match the Review interface
         const formattedReviews = data.map(review => ({
@@ -50,7 +53,7 @@ const ReviewsTab = () => {
           rating: review.rating,
           comment: review.text || '',
           date: new Date(review.created_at).toISOString(),
-          serviceTitle: review.service_bookings?.service_name || 'Service'
+          serviceTitle: 'Service' // Default service title since we're not getting it from the join
         }));
         
         setReviews(formattedReviews);
