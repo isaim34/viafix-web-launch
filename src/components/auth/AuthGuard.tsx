@@ -1,8 +1,10 @@
+
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect } from 'react';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Loader2 } from 'lucide-react';
+import type { UserRole } from '@/contexts/auth/types';
 
 interface AuthGuardProps {
   children: React.ReactNode;
