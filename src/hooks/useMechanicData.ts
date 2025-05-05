@@ -29,72 +29,72 @@ export const useMechanicData = () => {
     const fetchMechanicData = async () => {
       setLoading(true);
       
-      // Handle special cases: default-vendor or local-mechanic
-      if ((id === 'default-vendor' || id === 'local-mechanic')) {
-        const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
-        const vendorAvatar = localStorage.getItem('vendorAvatar') || 
-                       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
-        
-        // Get mechanic profile from localStorage if available
-        const storedProfile = localStorage.getItem('mechanicProfile');
-        let mechanicProfile: Record<string, any> = {};
-        
-        if (storedProfile) {
-          try {
-            mechanicProfile = JSON.parse(storedProfile);
-          } catch (error) {
-            console.error('Error parsing mechanic profile:', error);
-          }
-        }
-        
-        // Handle specialties based on its type
-        let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
-        
-        if (mechanicProfile.specialties !== undefined) {
-          const specialtiesValue = mechanicProfile.specialties;
-          
-          // Fix TypeScript error by properly handling the specialties type
-          if (typeof specialtiesValue === 'string') {
-            // If it's a string, split it by commas
-            specialties = specialtiesValue.split(',').map(s => s.trim());
-          } else if (Array.isArray(specialtiesValue)) {
-            // If it's already an array, use it directly but ensure it's string[]
-            specialties = specialtiesValue.map(s => String(s));
-          }
-        }
-        
-        // Create custom mechanic data for the local/default mechanic
-        setMechanic({
-          id: id || 'local-mechanic',
-          name: vendorName,
-          avatar: vendorAvatar,
-          specialties: specialties,
-          rating: 5.0,
-          reviewCount: 12,
-          location: mechanicProfile.location || 'Worcester, MA',
-          hourlyRate: mechanicProfile.hourlyRate || 75,
-          yearsExperience: mechanicProfile.yearsExperience || 5,
-          about: mechanicProfile.about || "Certified mechanic specializing in general vehicle maintenance and repairs. I provide honest, reliable service at competitive rates.",
-          responseTime: "Under 1 hour",
-          services: [
-            { name: "Diagnostic Scan", price: 75 },
-            { name: "Oil Change", price: 65 },
-            { name: "Brake Inspection", price: 45 },
-            { name: "General Tune-Up", price: 120 }
-          ],
-          reviews: [
-            { author: "Customer", rating: 5, text: "Very professional and knowledgeable. Highly recommended!" }
-          ],
-          galleryImages: [
-            'https://images.unsplash.com/photo-1632931612869-c1a971a02054?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-            'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
-          ]
-        });
-        setLoading(false);
-        return;
-      }
-      
       try {
+        // Handle special cases: default-vendor or local-mechanic
+        if ((id === 'default-vendor' || id === 'local-mechanic')) {
+          const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+          const vendorAvatar = localStorage.getItem('vendorAvatar') || 
+                       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
+          
+          // Get mechanic profile from localStorage if available
+          const storedProfile = localStorage.getItem('mechanicProfile');
+          let mechanicProfile: Record<string, any> = {};
+          
+          if (storedProfile) {
+            try {
+              mechanicProfile = JSON.parse(storedProfile);
+            } catch (error) {
+              console.error('Error parsing mechanic profile:', error);
+            }
+          }
+          
+          // Handle specialties based on its type
+          let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
+          
+          if (mechanicProfile.specialties !== undefined) {
+            const specialtiesValue = mechanicProfile.specialties;
+            
+            // Fix TypeScript error by properly handling the specialties type
+            if (typeof specialtiesValue === 'string') {
+              // If it's a string, split it by commas
+              specialties = specialtiesValue.split(',').map(s => s.trim());
+            } else if (Array.isArray(specialtiesValue)) {
+              // If it's already an array, use it directly but ensure it's string[]
+              specialties = specialtiesValue.map(s => String(s));
+            }
+          }
+          
+          // Create custom mechanic data for the local/default mechanic
+          setMechanic({
+            id: id || 'local-mechanic',
+            name: vendorName,
+            avatar: vendorAvatar,
+            specialties: specialties,
+            rating: 5.0,
+            reviewCount: 12,
+            location: mechanicProfile.location || 'Worcester, MA',
+            hourlyRate: mechanicProfile.hourlyRate || 75,
+            yearsExperience: mechanicProfile.yearsExperience || 5,
+            about: mechanicProfile.about || "Certified mechanic specializing in general vehicle maintenance and repairs. I provide honest, reliable service at competitive rates.",
+            responseTime: "Under 1 hour",
+            services: [
+              { name: "Diagnostic Scan", price: 75 },
+              { name: "Oil Change", price: 65 },
+              { name: "Brake Inspection", price: 45 },
+              { name: "General Tune-Up", price: 120 }
+            ],
+            reviews: [
+              { author: "Customer", rating: 5, text: "Very professional and knowledgeable. Highly recommended!" }
+            ],
+            galleryImages: [
+              'https://images.unsplash.com/photo-1632931612869-c1a971a02054?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+              'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+            ]
+          });
+          setLoading(false);
+          return;
+        }
+        
         // For other mechanics, fetch from the database
         const { data: mechanicProfile, error: mechanicError } = await supabase
           .from('mechanic_profiles')
@@ -122,6 +122,7 @@ export const useMechanicData = () => {
           .single();
           
         if (mechanicError) {
+          console.error("Error fetching mechanic profile:", mechanicError);
           throw mechanicError;
         }
         
@@ -131,9 +132,9 @@ export const useMechanicData = () => {
             setMechanic(mechanicsDetailedData[id]);
             console.log('Using fallback data for mechanic:', id);
           } else {
-            // No data available, set default
-            setMechanic(mechanicsDetailedData['1']);
-            console.log('Using default fallback data for mechanic');
+            // No data available, set null
+            setMechanic(null);
+            console.log('No mechanic found with ID:', id);
           }
           setLoading(false);
           return;
@@ -217,7 +218,8 @@ export const useMechanicData = () => {
         if (id && mechanicsDetailedData[id]) {
           setMechanic(mechanicsDetailedData[id]);
         } else {
-          setMechanic(mechanicsDetailedData['1']);
+          // If no fallback data, set mechanic to null
+          setMechanic(null);
         }
       } finally {
         setLoading(false);
@@ -229,14 +231,13 @@ export const useMechanicData = () => {
 
   // Log the selected mechanic for debugging
   useEffect(() => {
-    if (mechanic) {
-      console.log('Selected mechanic profile:', {
-        id: id,
-        mechanicId: mechanic.id,
-        mechanicName: mechanic.name
-      });
-    }
+    console.log('Selected mechanic profile:', {
+      id: id,
+      mechanicId: mechanic?.id,
+      mechanicName: mechanic?.name,
+      isNull: mechanic === null
+    });
   }, [id, mechanic]);
   
-  return { mechanic: mechanic as MechanicDetail, id, loading };
+  return { mechanic, id, loading };
 };

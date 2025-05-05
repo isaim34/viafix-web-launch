@@ -26,7 +26,38 @@ const MechanicProfile = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [isBookServiceOpen, setIsBookServiceOpen] = useState(false);
 
-  // Initialize the chat hook
+  // If loading, show a loading indicator
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+  
+  // Check if mechanic data is available
+  if (!mechanic) {
+    return (
+      <Layout>
+        <div className="container py-10">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Mechanic Not Found</h2>
+            <p className="mb-6">Sorry, we couldn't find the mechanic you're looking for.</p>
+            <button 
+              onClick={() => navigate('/mechanics')}
+              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+            >
+              Browse All Mechanics
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Initialize the chat hook - Only initialize if mechanic exists
   const {
     isChatOpen,
     chatMessages,
@@ -37,7 +68,7 @@ const MechanicProfile = () => {
     threadId
   } = useMechanicChat(mechanic.id, mechanic.name);
 
-  // Initialize the custom offer hook
+  // Initialize the custom offer hook - Only initialize if mechanic exists
   const {
     isCustomOfferOpen,
     setIsCustomOfferOpen,
@@ -97,16 +128,6 @@ const MechanicProfile = () => {
     
     openChat();
   };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
