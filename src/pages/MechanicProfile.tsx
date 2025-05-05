@@ -26,6 +26,50 @@ const MechanicProfile = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [isBookServiceOpen, setIsBookServiceOpen] = useState(false);
 
+  // Always initialize chat hooks with default values if mechanic doesn't exist yet
+  // This ensures hooks are always called in the same order
+  const mechanicId = mechanic?.id || 'default';
+  const mechanicName = mechanic?.name || 'Mechanic';
+  
+  // Initialize the chat hook with default values that will be updated when mechanic loads
+  const {
+    isChatOpen,
+    chatMessages,
+    isLoading: isChatLoading,
+    openChat,
+    closeChat,
+    handleSendMessage,
+    threadId
+  } = useMechanicChat(mechanicId, mechanicName);
+
+  // Initialize the custom offer hook - Always call it regardless of mechanic existence
+  const {
+    isCustomOfferOpen,
+    setIsCustomOfferOpen,
+    handleCustomOffer,
+    handleSubmitCustomOffer
+  } = useCustomOffer({
+    mechanic: mechanic || {
+      id: 'default',
+      name: 'Mechanic',
+      avatar: '',
+      specialties: [],
+      rating: 0,
+      reviewCount: 0,
+      location: '',
+      hourlyRate: 0,
+      yearsExperience: 0,
+      about: '',
+      responseTime: '',
+      services: [],
+      reviews: [],
+      galleryImages: []
+    },
+    selectedService,
+    openChat,
+    handleSendMessage
+  });
+
   // If loading, show a loading indicator
   if (loading) {
     return (
@@ -56,30 +100,6 @@ const MechanicProfile = () => {
       </Layout>
     );
   }
-
-  // Initialize the chat hook - Only initialize if mechanic exists
-  const {
-    isChatOpen,
-    chatMessages,
-    isLoading: isChatLoading,
-    openChat,
-    closeChat,
-    handleSendMessage,
-    threadId
-  } = useMechanicChat(mechanic.id, mechanic.name);
-
-  // Initialize the custom offer hook - Only initialize if mechanic exists
-  const {
-    isCustomOfferOpen,
-    setIsCustomOfferOpen,
-    handleCustomOffer,
-    handleSubmitCustomOffer
-  } = useCustomOffer({
-    mechanic,
-    selectedService,
-    openChat,
-    handleSendMessage
-  });
 
   const handleSelectService = (service: Service | null) => {
     setSelectedService(service);
