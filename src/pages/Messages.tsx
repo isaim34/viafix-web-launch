@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MechanicMailbox from '@/components/MechanicMailbox';
-import { useAuth } from '@/contexts/auth';
+import { useAuth } from '@/hooks/useAuth';
 import { ChatThreadsList } from '@/components/chat/ChatThreadsList';
 import { AlertCircle, MessageSquare, Inbox } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

@@ -1,5 +1,5 @@
 
-import { useAuth } from '@/contexts/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UserGreetingProps {
   isMobile?: boolean;

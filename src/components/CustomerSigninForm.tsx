@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +12,7 @@ import { z } from 'zod';
 import { LogIn, Loader2 } from 'lucide-react';
 import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
 import { useCustomerSignin } from '@/hooks/useCustomerSignin';
-import { useAuth } from '@/contexts/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 const customerFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

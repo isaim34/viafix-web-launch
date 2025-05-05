@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -14,7 +15,7 @@ import {
   AlertCircle,
   CreditCard,
 } from 'lucide-react';
-import { useAuth } from '@/contexts/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 export const UserMenuItems = () => {
   const navigate = useNavigate();
