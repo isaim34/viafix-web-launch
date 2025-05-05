@@ -17,15 +17,15 @@ import { useToast } from '@/hooks/use-toast';
 
 const MechanicProfile = () => {
   const { mechanic, loading, id } = useMechanicData();
-  const { user, currentUserRole } = useAuth();
+  const { user, currentUserRole, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   // Add console log to debug auth state
-  console.log("MechanicProfile auth state:", { user, currentUserRole });
+  console.log("MechanicProfile auth state:", { user, currentUserRole, isLoggedIn });
   
-  // Fix: Explicitly check for customer role
-  const isCustomerLoggedIn = !!user && currentUserRole === 'customer';
+  // Fix: Use a more comprehensive authentication check that considers both Supabase auth and localStorage
+  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
   console.log("isCustomerLoggedIn:", isCustomerLoggedIn);
   
   const [selectedService, setSelectedService] = useState<Service | null>(null);

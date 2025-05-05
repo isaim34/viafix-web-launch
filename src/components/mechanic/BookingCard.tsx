@@ -31,6 +31,8 @@ export const BookingCard = ({
 }: BookingCardProps) => {
   const firstName = mechanicName.split(' ')[0];
   
+  console.log("BookingCard: isCustomerLoggedIn =", isCustomerLoggedIn);
+  
   // Helper function to render the authentication status indicator
   const renderAuthStatusIndicator = () => {
     if (isCustomerLoggedIn) {
