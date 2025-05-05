@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,17 +26,19 @@ const VehicleMaintenanceForm = ({ onSave, onCancel, initialData }: VehicleMainte
     vehicleInfo
   );
   
+  const defaultValues = initialData || {
+    date: new Date().toISOString().split('T')[0],
+    vehicle: '',
+    vin: '',
+    serviceType: '',
+    description: '',
+    mechanic: '',
+    mechanicSignature: false,
+  };
+  
   const form = useForm<MaintenanceRecord>({
     resolver: zodResolver(maintenanceRecordSchema),
-    defaultValues: initialData || {
-      date: new Date().toISOString().split('T')[0],
-      vehicle: '',
-      vin: '',
-      serviceType: '',
-      description: '',
-      mechanic: '',
-      mechanicSignature: false,
-    },
+    defaultValues,
   });
 
   const handleVehicleInfoChange = (info: VehicleInfo | null) => {
@@ -63,7 +66,12 @@ const VehicleMaintenanceForm = ({ onSave, onCancel, initialData }: VehicleMainte
       ].filter(Boolean);
       
       if (additionalDetails.length > 0) {
-        form.setValue('description', `Vehicle specifications:\n${additionalDetails.join('\n')}\n\n${form.getValues('description')}`);
+        const currentDescription = form.getValues('description') || '';
+        const newDescription = currentDescription.includes('Vehicle specifications') 
+          ? currentDescription 
+          : `Vehicle specifications:\n${additionalDetails.join('\n')}\n\n${currentDescription}`;
+        
+        form.setValue('description', newDescription);
       }
     }
   };
