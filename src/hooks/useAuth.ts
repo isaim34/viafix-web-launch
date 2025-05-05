@@ -1,6 +1,11 @@
 
+import { useContext } from 'react';
+import { AuthContext } from '@/contexts/auth';
+
 /**
- * Re-export for backward compatibility
- * @deprecated Import from '@/contexts/auth' instead
+ * Hook to access authentication context
+ * @returns AuthContext values
  */
-export { useAuth } from '@/contexts/auth';
+export function useAuth() {
+  return useContext(AuthContext);
+}

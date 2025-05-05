@@ -13,9 +13,11 @@ import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import MechanicSpecificFields from './mechanic/MechanicSpecificFields';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
+import { useAuth } from '@/hooks/useAuth';
 
 const MechanicSignupForm = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -31,46 +33,40 @@ const MechanicSignupForm = () => {
     },
   });
 
-  const onSubmit = (data: MechanicFormValues) => {
-    console.log('Mechanic signup data:', data);
-    
-    // Store some user data in localStorage for this demo 
-    const fullName = `${data.firstName} ${data.lastName}`;
-    const userId = 'mechanic-' + Math.random().toString(36).substring(2, 9);
-    
-    localStorage.setItem(`registered_${data.email}`, fullName);
-    localStorage.setItem('userEmail', data.email);
-    localStorage.setItem('userLoggedIn', 'true');
-    localStorage.setItem('userRole', 'mechanic');
-    localStorage.setItem('userName', fullName);
-    localStorage.setItem('userId', userId);
-    localStorage.setItem(`userId_to_email_${userId}`, data.email);
-    
-    // Store mechanic specific data
-    const mechanicProfile = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      zipCode: data.zipCode,
-      specialties: data.specialties,
-      hourlyRate: data.hourlyRate
-    };
-    
-    localStorage.setItem(`mechanic_profile_${data.email}`, JSON.stringify(mechanicProfile));
-    
-    // Set default subscription status for testing
-    localStorage.setItem('subscription_status', 'active');
-    localStorage.setItem('subscription_plan', 'monthly');
-    localStorage.setItem('subscription_end', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());
-    
-    window.dispatchEvent(new Event('storage-event'));
-    
-    toast({
-      title: "Account created!",
-      description: `Welcome to ViaFix, ${data.firstName}. Your mechanic account has been created successfully.`,
-    });
-    
-    // Navigate directly to mechanic dashboard without any MFA step
-    navigate('/mechanic-dashboard');
+  const onSubmit = async (data: MechanicFormValues) => {
+    try {
+      console.log('Mechanic signup data:', data);
+      
+      // Prepare user metadata
+      const userData = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        full_name: `${data.firstName} ${data.lastName}`,
+        zip_code: data.zipCode,
+        specialties: data.specialties,
+        hourly_rate: data.hourlyRate,
+        user_type: 'mechanic',
+        role: 'mechanic'
+      };
+      
+      // Sign up with Supabase
+      await signUp(data.email, data.password, userData);
+      
+      toast({
+        title: "Account created!",
+        description: `Welcome to ViaFix, ${data.firstName}. Your mechanic account has been created successfully.`,
+      });
+      
+      // Navigate to mechanic dashboard
+      navigate('/mechanic-dashboard');
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast({
+        title: "Signup failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred during signup.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

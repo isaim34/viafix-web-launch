@@ -12,10 +12,11 @@ import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
-import { generateUserId, setupCustomerProfile } from '@/utils/authUtils';
+import { useAuth } from '@/hooks/useAuth';
 
 const CustomerSignupForm = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   
   const form = useForm<BaseUserFormValues>({
     resolver: zodResolver(baseUserSchema),
@@ -29,42 +30,38 @@ const CustomerSignupForm = () => {
     },
   });
 
-  const onSubmit = (data: BaseUserFormValues) => {
-    console.log('Customer signup data:', data);
-    
-    // Generate a consistent user ID based on email
-    const userId = generateUserId(data.email);
-    
-    // Set up the customer profile data
-    const fullName = `${data.firstName} ${data.lastName}`;
-    localStorage.setItem(`registered_${data.email}`, fullName);
-    
-    // Set up authentication data
-    localStorage.setItem('userEmail', data.email);
-    localStorage.setItem('userLoggedIn', 'true');
-    localStorage.setItem('userRole', 'customer');
-    localStorage.setItem('userName', fullName);
-    localStorage.setItem('userId', userId);
-    
-    // Store profile information
-    const customerProfile = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      zipCode: data.zipCode
-    };
-    
-    localStorage.setItem(`customer_profile_${data.email}`, JSON.stringify(customerProfile));
-    localStorage.setItem(`userId_to_email_${userId}`, data.email);
-    
-    window.dispatchEvent(new Event('storage-event'));
-    
-    toast({
-      title: "Account created!",
-      description: `Welcome to ViaFix, ${data.firstName}. Your customer account has been created successfully.`,
-    });
-    
-    // Navigate directly to customer profile/dashboard without any MFA step
-    navigate('/profile');
+  const onSubmit = async (data: BaseUserFormValues) => {
+    try {
+      console.log('Customer signup data:', data);
+      
+      // Prepare user metadata
+      const userData = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        full_name: `${data.firstName} ${data.lastName}`,
+        zip_code: data.zipCode,
+        user_type: 'customer',
+        role: 'customer'
+      };
+      
+      // Sign up with Supabase
+      await signUp(data.email, data.password, userData);
+      
+      toast({
+        title: "Account created!",
+        description: `Welcome to ViaFix, ${data.firstName}. Your customer account has been created successfully.`,
+      });
+      
+      // Navigate to customer profile
+      navigate('/customer-profile');
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast({
+        title: "Signup failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred during signup.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
