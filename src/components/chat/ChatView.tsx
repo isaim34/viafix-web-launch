@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface ChatViewProps {
   thread: ChatThread;
@@ -23,12 +23,25 @@ export const ChatView = ({
 }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
   
   // Get the other participant (not the current user)
   const otherParticipantId = thread.participants.find(p => p !== currentUserId) || '';
   const otherParticipantName = thread.participantNames[otherParticipantId] || 'Unknown User';
+  
+  // Logging thread details for debugging
+  useEffect(() => {
+    console.log('ChatView initialized with:', {
+      threadId: thread.id,
+      currentUserId,
+      participants: thread.participants,
+      participantNames: thread.participantNames,
+      otherParticipantId,
+      otherParticipantName
+    });
+  }, [thread, currentUserId, otherParticipantId, otherParticipantName]);
   
   const loadMessages = async () => {
     setIsLoading(true);
@@ -41,11 +54,14 @@ export const ChatView = ({
       setMessages(chatMessages);
       
       // Mark messages as read
-      await markMessagesAsRead(thread.id, currentUserId);
+      if (chatMessages.length > 0) {
+        await markMessagesAsRead(thread.id, currentUserId);
+      }
       
     } catch (error) {
       console.error("Error loading messages:", error);
       setError("Failed to load messages. Please try again.");
+      toast.error("Failed to load messages. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +111,9 @@ export const ChatView = ({
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Supabase channel status for thread ${thread.id}:`, status);
+      });
     
     // Store channel reference for cleanup
     channelRef.current = channel;
@@ -111,7 +129,13 @@ export const ChatView = ({
   }, [thread.id, currentUserId]); // Removed messages from dependency array
   
   const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim()) {
+      toast.error("Cannot send empty message");
+      return;
+    }
+    
     try {
+      setIsSending(true);
       console.log(`Sending message in thread ${thread.id}: ${messageText}`);
       
       // Get the current user name from localStorage or thread data
@@ -135,22 +159,14 @@ export const ChatView = ({
       // Update local state with the returned message that has an ID
       setMessages(prev => [...prev, newMessage]);
       
-      // Show confirmation toast
-      toast({
-        title: "Message Sent",
-        description: `Your message to ${otherParticipantName} was sent successfully.`
-      });
-      
       // Notify parent
       onNewMessage(thread.id);
     } catch (error) {
       console.error("Error sending message:", error);
       setError("Failed to send message. Please try again.");
-      toast({
-        title: "Message Error",
-        description: "Your message could not be sent. Please try again.",
-        variant: "destructive"
-      });
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSending(false);
     }
   };
   
@@ -181,7 +197,7 @@ export const ChatView = ({
       
       <ChatInput 
         onSendMessage={handleSendMessage}
-        isLoading={isLoading}
+        isLoading={isLoading || isSending}
       />
     </div>
   );

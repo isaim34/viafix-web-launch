@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage } from '@/types/mechanic';
+import { toast } from 'sonner';
 
 /**
  * Get messages for a specific thread
@@ -15,11 +16,17 @@ export async function getChatMessages(threadId: string): Promise<ChatMessage[]> 
       .eq('thread_id', threadId)
       .order('timestamp', { ascending: true });
       
-    if (error) throw error;
+    if (error) {
+      console.error('Database error when getting chat messages:', error);
+      throw error;
+    }
     
-    if (!messages) return [];
+    if (!messages) {
+      console.log(`No messages found for thread ${threadId}`);
+      return [];
+    }
     
-    console.log(`Found ${messages.length} messages for thread ${threadId}`);
+    console.log(`Found ${messages.length} messages for thread ${threadId}:`, messages);
     
     // Convert to ChatMessage format
     return messages.map(message => ({
@@ -33,6 +40,7 @@ export async function getChatMessages(threadId: string): Promise<ChatMessage[]> 
     }));
   } catch (error) {
     console.error('Error getting chat messages:', error);
+    toast.error('Failed to load messages. Please try again.');
     return [];
   }
 }
@@ -54,6 +62,17 @@ export async function sendChatMessage(
   try {
     console.log(`Sending message to thread ${threadId}:`, message);
     
+    if (!threadId || !message.senderId || !message.receiverId || !message.content) {
+      const missingFields = [];
+      if (!threadId) missingFields.push('threadId');
+      if (!message.senderId) missingFields.push('senderId');
+      if (!message.receiverId) missingFields.push('receiverId');
+      if (!message.content) missingFields.push('content');
+      const errorMsg = `Missing required fields: ${missingFields.join(', ')}`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+    
     // First, insert the message
     const { data: newMessage, error: messageError } = await supabase
       .from('chat_messages')
@@ -71,11 +90,15 @@ export async function sendChatMessage(
       
     if (messageError) {
       console.error("Message insertion error:", messageError);
+      toast.error("Failed to send message. Please try again.");
       throw messageError;
     }
     
     if (!newMessage) {
-      throw new Error("Failed to save chat message");
+      const errorMsg = "Failed to save chat message";
+      console.error(errorMsg);
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
     }
     
     console.log("Message inserted successfully:", newMessage);
@@ -122,7 +145,8 @@ export async function sendChatMessage(
       console.log("Thread updated successfully:", updatedThreadData);
     }
     
-    console.log('Message sent successfully');
+    toast.success('Message sent successfully');
+    console.log('Message sent successfully with ID:', newMessage.id);
     
     return {
       id: newMessage.id,
@@ -135,6 +159,7 @@ export async function sendChatMessage(
     };
   } catch (error) {
     console.error('Error sending chat message:', error);
+    toast.error('Failed to send message. Please try again.');
     throw error;
   }
 }
