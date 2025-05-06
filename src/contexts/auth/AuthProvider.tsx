@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -11,7 +12,7 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  resetPassword: async () => {},
+  resetPassword: async () => false,
   isLoggedIn: false,
   authChecked: false,
   updateUserName: () => {},

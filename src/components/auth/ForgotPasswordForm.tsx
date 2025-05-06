@@ -68,10 +68,9 @@ const ForgotPasswordForm = () => {
         <div className="flex flex-col space-y-3">
           <Button
             variant="ghost"
-            onClick={() => form.reset()}
+            onClick={() => setEmailSent(false)}
             className="mt-2"
             type="button"
-            onClick={() => setEmailSent(false)}
           >
             Try again
           </Button>

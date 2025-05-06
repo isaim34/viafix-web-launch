@@ -98,13 +98,11 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          },
-          redirectTo: redirectUrl,
-          // Always pass user_type to ensure role is set appropriately
-          data: { 
+            // Add user_type and role parameters to query string
             user_type: determinedRole,
-            role: determinedRole // Add role as well for backward compatibility
-          }
+            role: determinedRole
+          },
+          redirectTo: redirectUrl
         }
       });
 
