@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { useMechanicData } from '@/hooks/useMechanicData';
 import { useMechanicProfileChat } from './mechanic-profile/useMechanicProfileChat';
 import { useMechanicProfileBooking } from './mechanic-profile/useMechanicProfileBooking';
@@ -6,8 +7,11 @@ import { useMechanicProfileReporting } from './mechanic-profile/useMechanicProfi
 import { useMechanicProfileCustomOffer } from './mechanic-profile/useMechanicProfileCustomOffer';
 
 export const useMechanicProfilePage = () => {
+  // Track if we need to refresh mechanic data (e.g., after a review is added)
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
   // Get mechanic data
-  const { mechanic, loading, id } = useMechanicData();
+  const { mechanic, loading, id, refetchMechanic } = useMechanicData(refreshTrigger);
   
   // Add console log to debug mechanic data
   console.log("MechanicProfile data:", { mechanic, loading, id });
@@ -35,6 +39,12 @@ export const useMechanicProfilePage = () => {
     chatHook.handleSendMessage
   );
   
+  // Function to handle when a review is added
+  const handleReviewAdded = () => {
+    setRefreshTrigger(prev => prev + 1);
+    refetchMechanic();
+  };
+  
   return {
     // Mechanic data
     mechanic,
@@ -53,6 +63,9 @@ export const useMechanicProfilePage = () => {
     ...reportingHook,
     
     // Custom offer functionality
-    ...customOfferHook
+    ...customOfferHook,
+    
+    // Review functionality
+    handleReviewAdded
   };
 };

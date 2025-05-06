@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import './App.css';
@@ -23,6 +22,7 @@ import TwoFactorAuth from './pages/TwoFactorAuth';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Messages from './pages/Messages';
+import Favorites from './pages/Favorites';
 
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './contexts/auth';
@@ -84,6 +84,9 @@ function App() {
             {/* Debug Routes */}
             <Route path="/debug" element={<Debug />} />
             <Route path="/zipcode-test" element={<ZipcodeTest />} />
+            
+            {/* Favorites route */}
+            <Route path="/favorites" element={<Favorites />} />
             
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
