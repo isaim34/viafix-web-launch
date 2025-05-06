@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -100,7 +99,7 @@ const MechanicSigninForm = () => {
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          <GoogleAuthButton />
+          <GoogleAuthButton userRole="mechanic" />
         </form>
       </Form>
       

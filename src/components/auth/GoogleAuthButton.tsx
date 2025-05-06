@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,9 +6,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 interface GoogleAuthButtonProps {
   mode?: 'signin' | 'signup';
+  userRole?: 'customer' | 'mechanic';  // Added explicit userRole prop
 }
 
-export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => {
+export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,8 +49,11 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
         localStorage.setItem('userEmail', userEmail || '');
         localStorage.setItem('userName', userName);
         
-        // Set user role based on metadata or default to customer
-        const userType = session.user.user_metadata?.user_type || 'customer';
+        // Use the user type from metadata, or fallback to the provided userRole, or default to customer
+        const userType = session.user.user_metadata?.user_type || 
+                        session.user.user_metadata?.role || 
+                        'customer';
+        
         localStorage.setItem('userRole', userType);
         localStorage.setItem('userId', session.user.id);
         
@@ -59,7 +62,7 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
         
         toast({
           title: "Success!",
-          description: "You've successfully authenticated with Google.",
+          description: `You've successfully authenticated with Google as a ${userType}.`,
         });
         
         // Redirect based on user type
@@ -81,7 +84,13 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
       // Use window.location.origin for the base URL without additional paths
       const redirectUrl = `${window.location.origin}`;
       
-      console.log(`Initiating Google auth with redirect to: ${redirectUrl}`);
+      // Determine user role based on props or current page
+      // If userRole is explicitly provided, use it
+      // Otherwise, try to detect from the current URL path
+      const determinedRole = userRole || 
+                           (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
+      
+      console.log(`Initiating Google auth with redirect to: ${redirectUrl} as role: ${determinedRole}`);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -91,13 +100,11 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
             prompt: 'consent',
           },
           redirectTo: redirectUrl,
-          // Pass user_type based on current mode (signin vs signup) and current tab selection
-          ...(mode === 'signup' && {
-            // Extract current tab from pathname to determine if user is mechanic/customer
-            data: { 
-              user_type: location.pathname.includes('mechanic') ? 'mechanic' : 'customer' 
-            }
-          })
+          // Always pass user_type to ensure role is set appropriately
+          data: { 
+            user_type: determinedRole,
+            role: determinedRole // Add role as well for backward compatibility
+          }
         }
       });
 
@@ -145,7 +152,7 @@ export const GoogleAuthButton = ({ mode = 'signin' }: GoogleAuthButtonProps) => 
           </g>
         </svg>
       )}
-      {isLoading ? 'Connecting...' : `Continue with Google${mode === 'signup' ? ' to sign up' : ''}`}
+      {isLoading ? 'Connecting...' : `Continue with Google${mode === 'signup' ? ' to sign up' : ''} as ${userRole || (location.pathname.includes('mechanic') ? 'mechanic' : 'customer')}`}
     </Button>
   );
 };

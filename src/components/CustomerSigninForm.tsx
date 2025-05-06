@@ -115,7 +115,7 @@ const CustomerSigninForm = () => {
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          <GoogleAuthButton />
+          <GoogleAuthButton userRole="customer" />
         </form>
       </Form>
       
