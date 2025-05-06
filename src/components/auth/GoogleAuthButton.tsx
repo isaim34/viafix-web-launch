@@ -92,7 +92,7 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
       
       console.log(`Initiating Google auth with redirect to: ${redirectUrl} as role: ${determinedRole}`);
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           queryParams: {
@@ -114,7 +114,7 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
           variant: "destructive"
         });
       } else {
-        console.log("Auth initiated successfully, awaiting redirect...", data);
+        console.log("Auth initiated successfully, awaiting redirect...");
       }
     } catch (error) {
       console.error('Google sign in error:', error);
