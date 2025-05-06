@@ -10,12 +10,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 
 interface PasswordFieldProps {
   form: UseFormReturn<any>;
+  hideResetLink?: boolean;
 }
 
-const PasswordField = ({ form }: PasswordFieldProps) => {
+const PasswordField = ({ form, hideResetLink = false }: PasswordFieldProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -44,15 +46,16 @@ const PasswordField = ({ form }: PasswordFieldProps) => {
             </div>
           </FormControl>
           <FormMessage />
-          <div className="text-sm text-right mt-2">
-            <button 
-              type="button" 
-              className="text-primary hover:underline font-medium"
-              onClick={() => console.log('Forgot password')}
-            >
-              Forgot password?
-            </button>
-          </div>
+          {!hideResetLink && (
+            <div className="text-sm text-right mt-2">
+              <Link 
+                to="/forgot-password"
+                className="text-primary hover:underline font-medium"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          )}
         </FormItem>
       )}
     />

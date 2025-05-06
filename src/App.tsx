@@ -13,6 +13,8 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Signin from './pages/Signin';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MechanicDashboard from './pages/MechanicDashboard';
 import CustomerProfile from './pages/CustomerProfile';
 import VehicleSafetyCheck from './pages/VehicleSafetyCheck';
@@ -49,6 +51,8 @@ function App() {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/signin" element={<Signin />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/2fa" element={<TwoFactorAuth />} />

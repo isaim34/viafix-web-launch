@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -12,6 +11,7 @@ export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  resetPassword: async () => {},
   isLoggedIn: false,
   authChecked: false,
   updateUserName: () => {},
@@ -264,6 +264,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      console.log("Attempting to reset password for email:", email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        console.error("Password reset error:", error.message);
+        throw error;
+      }
+      
+      console.log("Password reset email sent successfully");
+      return true;
+    } catch (error) {
+      console.error("Error during password reset:", error);
+      throw error;
+    }
+  };
+
   const updateUserName = (name: string) => {
     setCurrentUserName(name);
     localStorage.setItem('userName', name);
@@ -293,6 +313,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn, 
       signUp, 
       signOut,
+      resetPassword,
       currentUserRole,
       currentUserName,
       isLoggedIn,

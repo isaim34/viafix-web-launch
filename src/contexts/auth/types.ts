@@ -1,21 +1,21 @@
 
-import { Session, User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 
-export type UserRole = 'customer' | 'mechanic' | null;
+export type UserRole = 'customer' | 'mechanic' | 'admin' | undefined;
 
 export interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  // Update return types to match Supabase's actual return types
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string, userData: any) => Promise<any>;
   signOut: () => Promise<void>;
-  currentUserRole?: string;
-  currentUserName?: string;
+  resetPassword: (email: string) => Promise<boolean>;
   isLoggedIn: boolean;
   authChecked: boolean;
-  updateUserName: (name: string) => void;
+  currentUserRole?: string;
+  currentUserName?: string;
   userEmail?: string;
-  getFirstName: (fullName: string) => string;
+  updateUserName: (name: string) => void;
+  getFirstName: (name?: string) => string;
 }
