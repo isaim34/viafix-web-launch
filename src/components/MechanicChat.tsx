@@ -1,17 +1,23 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, ArrowLeft } from 'lucide-react';
 import { ChatThreadsList } from './chat/ChatThreadsList';
 import { ChatView } from './chat/ChatView';
-import { getChatThreads } from '@/services/chat/threadService'; // Fixed import path
+import { getChatThreads } from '@/services/chat/threadService'; 
 import { ChatThread } from '@/types/mechanic';
 import { useAuth } from '@/hooks/useAuth';
 import ErrorBoundary from '@/ErrorBoundary';
+import { Button } from '@/components/ui/button';
 
-const MechanicChat = () => {
+interface MechanicChatProps {
+  initialThreadId?: string;
+  onBack?: () => void;
+}
+
+const MechanicChat = ({ initialThreadId, onBack }: MechanicChatProps) => {
   const [threads, setThreads] = useState<ChatThread[]>([]);
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(initialThreadId || null);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(!!initialThreadId);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -22,7 +28,8 @@ const MechanicChat = () => {
   console.log('MechanicChat rendering with user:', { 
     userId: currentUserId, 
     userRole: currentUserRole,
-    userName: userName 
+    userName: userName,
+    initialThreadId
   });
   
   const loadThreads = useCallback(async () => {
@@ -59,6 +66,14 @@ const MechanicChat = () => {
     }
   }, [user, loadThreads]);
   
+  useEffect(() => {
+    // Set initial thread if provided
+    if (initialThreadId) {
+      setSelectedThreadId(initialThreadId);
+      setShowChatOnMobile(true);
+    }
+  }, [initialThreadId]);
+  
   const handleSelectThread = (threadId: string) => {
     console.log('Thread selected:', threadId);
     setSelectedThreadId(threadId);
@@ -67,6 +82,11 @@ const MechanicChat = () => {
   
   const handleBackToList = () => {
     setShowChatOnMobile(false);
+    
+    // If there's a parent back handler, call it
+    if (onBack) {
+      onBack();
+    }
   };
   
   const handleNewMessage = (threadId: string) => {
