@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ChatThread } from '@/types/mechanic';
+import { ChatThread, ChatMessage } from '@/types/mechanic';
 
 /**
  * Get all chat threads for a user
@@ -22,7 +22,7 @@ export async function getChatThreads(userId: string): Promise<ChatThread[]> {
     console.log(`Found ${threads.length} threads for user ${userId}`, threads);
     
     // Convert to ChatThread format
-    return threads.map(thread => {
+    const threadPromises = threads.map(async (thread) => {
       // Process participant names
       let participantNames: Record<string, string> = {};
       
@@ -41,15 +41,46 @@ export async function getChatThreads(userId: string): Promise<ChatThread[]> {
         });
       }
       
+      // Get last message for the thread
+      const { data: lastMessages, error: msgError } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('thread_id', thread.id)
+        .order('timestamp', { ascending: false })
+        .limit(1);
+      
+      if (msgError) {
+        console.error("Error fetching last message:", msgError);
+      }
+      
+      // Format last message if available
+      let lastMessage = null;
+      if (lastMessages && lastMessages.length > 0) {
+        const msg = lastMessages[0];
+        lastMessage = {
+          id: msg.id,
+          senderId: msg.sender_id,
+          senderName: msg.sender_name,
+          receiverId: msg.receiver_id,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          isRead: msg.is_read
+        };
+      }
+      
       // Create the ChatThread object
       return {
         id: thread.id,
         participants: thread.participants,
         participantNames: participantNames,
+        lastMessage: lastMessage,
         lastMessageAt: thread.last_message_at,
         unreadCount: thread.unread_count || 0
       };
     });
+    
+    // Wait for all thread data to resolve
+    return Promise.all(threadPromises);
   } catch (error) {
     console.error('Error getting chat threads:', error);
     return []; // Return empty array on error

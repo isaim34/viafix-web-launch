@@ -8,6 +8,7 @@ import { ChatThread } from '@/types/mechanic';
 import { useAuth } from '@/hooks/useAuth';
 import ErrorBoundary from '@/ErrorBoundary';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface MechanicChatProps {
   initialThreadId?: string;
@@ -33,23 +34,25 @@ const MechanicChat = ({ initialThreadId, onBack }: MechanicChatProps) => {
   });
   
   const loadThreads = useCallback(async () => {
+    if (!currentUserId || currentUserId === 'anonymous') {
+      console.warn('User ID is not available, skipping thread loading');
+      setThreads([]);
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
     
     try {
       console.log('Loading chat threads for user:', currentUserId);
-      if (!currentUserId || currentUserId === 'anonymous') {
-        console.warn('User ID is not available, skipping thread loading');
-        setThreads([]);
-        return;
-      }
-      
       const userThreads = await getChatThreads(currentUserId);
       console.log('Loaded threads:', userThreads);
       setThreads(userThreads);
     } catch (error) {
       console.error("Error loading threads:", error);
       setError("Failed to load chat threads. Please try again later.");
+      toast.error("Error loading messages. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -67,12 +70,17 @@ const MechanicChat = ({ initialThreadId, onBack }: MechanicChatProps) => {
   }, [user, loadThreads]);
   
   useEffect(() => {
-    // Set initial thread if provided
-    if (initialThreadId) {
-      setSelectedThreadId(initialThreadId);
-      setShowChatOnMobile(true);
+    // Set initial thread if provided and threads are loaded
+    if (initialThreadId && threads.length > 0) {
+      const threadExists = threads.some(thread => thread.id === initialThreadId);
+      if (threadExists) {
+        setSelectedThreadId(initialThreadId);
+        setShowChatOnMobile(true);
+      } else {
+        console.warn(`Thread with ID ${initialThreadId} not found in loaded threads`);
+      }
     }
-  }, [initialThreadId]);
+  }, [initialThreadId, threads]);
   
   const handleSelectThread = (threadId: string) => {
     console.log('Thread selected:', threadId);

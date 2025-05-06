@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, ChatThread } from '@/types/mechanic';
 import { getChatMessages, sendChatMessage, markMessagesAsRead } from '@/services/chat';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,8 @@ export const ChatView = ({
 }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<any>(null);
   
   // Get the other participant (not the current user)
   const otherParticipantId = thread.participants.find(p => p !== currentUserId) || '';
@@ -29,6 +31,8 @@ export const ChatView = ({
   
   const loadMessages = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       console.log(`Loading messages for thread ${thread.id}`);
       const chatMessages = await getChatMessages(thread.id);
@@ -40,6 +44,7 @@ export const ChatView = ({
       
     } catch (error) {
       console.error("Error loading messages:", error);
+      setError("Failed to load messages. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -76,23 +81,33 @@ export const ChatView = ({
           };
           
           // Only add the message if it's not already in our list
-          if (!messages.some(msg => msg.id === formattedMessage.id)) {
-            setMessages(prev => [...prev, formattedMessage]);
-            
-            // If the message is not from the current user, mark it as read
-            if (formattedMessage.senderId !== currentUserId) {
-              markMessagesAsRead(thread.id, currentUserId);
+          setMessages(prev => {
+            if (prev.some(msg => msg.id === formattedMessage.id)) {
+              return prev;
             }
+            return [...prev, formattedMessage];
+          });
+          
+          // If the message is not from the current user, mark it as read
+          if (formattedMessage.senderId !== currentUserId) {
+            markMessagesAsRead(thread.id, currentUserId);
           }
         }
       )
       .subscribe();
+    
+    // Store channel reference for cleanup
+    channelRef.current = channel;
       
-    // Clean up subscription on unmount
+    // Clean up subscription on unmount or when thread changes
     return () => {
-      supabase.removeChannel(channel);
+      console.log(`Cleaning up channel for thread ${thread.id}`);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [thread.id, currentUserId, messages]);
+  }, [thread.id, currentUserId]); // Removed messages from dependency array
   
   const handleSendMessage = async (messageText: string) => {
     try {
@@ -118,6 +133,7 @@ export const ChatView = ({
       onNewMessage(thread.id);
     } catch (error) {
       console.error("Error sending message:", error);
+      setError("Failed to send message. Please try again.");
     }
   };
   
@@ -127,6 +143,18 @@ export const ChatView = ({
         participantName={otherParticipantName}
         onBack={onBack}
       />
+      
+      {error && (
+        <div className="bg-red-50 p-2 text-red-500 text-sm text-center">
+          {error}
+          <button 
+            className="ml-2 underline"
+            onClick={loadMessages}
+          >
+            Retry
+          </button>
+        </div>
+      )}
       
       <ChatMessageList 
         messages={messages}
