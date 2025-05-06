@@ -53,6 +53,18 @@ export const useFilteredMechanics = (
         m.id === 'local-mechanic'
       );
       
+      // Get reviews for local mechanic from localStorage
+      const localReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+      const mechanicReviews = localReviews.filter((review: any) => review.mechanic_id === 'local-mechanic');
+      
+      // Calculate actual rating and review count
+      let rating = 5.0;
+      const reviewCount = mechanicReviews.length;
+      if (reviewCount > 0) {
+        const totalRating = mechanicReviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+        rating = totalRating / reviewCount;
+      }
+      
       const specialtiesArray = typeof localMechanicProfile.specialties === 'string'
         ? localMechanicProfile.specialties.split(',').map(s => s.trim())
         : localMechanicProfile.specialties || [];
@@ -62,8 +74,8 @@ export const useFilteredMechanics = (
         name: localUserName || `${localMechanicProfile.firstName} ${localMechanicProfile.lastName}`,
         avatar: userAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
         specialties: specialtiesArray,
-        rating: 5.0,
-        reviewCount: 0,
+        rating: rating,
+        reviewCount: reviewCount,
         location: locationName || 'Worcester, MA',
         hourlyRate: localMechanicProfile.hourlyRate || 75,
         zipCode: localMechanicProfile.zipCode || '01605'
@@ -86,14 +98,26 @@ export const useFilteredMechanics = (
       const hasLocalMechanic = allMechanics.some(m => m.id === 'local-mechanic');
       
       if (!hasLocalMechanic) {
+        // Get reviews for default vendor from localStorage
+        const localReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+        const vendorReviews = localReviews.filter((review: any) => review.mechanic_id === 'default-vendor');
+        
+        // Calculate actual rating
+        let rating = 5.0;
+        const reviewCount = vendorReviews.length;
+        if (reviewCount > 0) {
+          const totalRating = vendorReviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+          rating = totalRating / reviewCount;
+        }
+        
         console.log('Adding default vendor mechanic to results with avatar:', vendorAvatar?.substring(0, 30) + '...');
         const defaultVendorMechanic = {
           id: 'local-mechanic',
           name: vendorName,
           avatar: vendorAvatar,
           specialties: ['General Repairs', 'Diagnostics', 'Oil Changes'],
-          rating: 5.0,
-          reviewCount: 12,
+          rating: rating,
+          reviewCount: reviewCount,
           location: locationName || 'Worcester, MA',
           hourlyRate: 75,
           zipCode: zipCode || '01605' // Use customer's current zip code or default

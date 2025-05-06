@@ -24,8 +24,12 @@ export const fetchLocalMechanic = async (id: string): Promise<MechanicDetail | n
       }
     }
     
-    // Fetch real reviews for the local mechanic or default vendor
-    const { data: reviews, error: reviewsError } = await supabase
+    // Get reviews from localStorage for the special mechanic ids
+    const specialReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+    const localReviews = specialReviews.filter((review: any) => review.mechanic_id === id);
+    
+    // Try to fetch real reviews for the local mechanic or default vendor
+    const { data: supabaseReviews, error: reviewsError } = await supabase
       .from('mechanic_reviews')
       .select('id, author, rating, text, created_at')
       .eq('mechanic_id', id === 'local-mechanic' ? localStorage.getItem('userId') : 'default-vendor');
@@ -34,12 +38,26 @@ export const fetchLocalMechanic = async (id: string): Promise<MechanicDetail | n
       console.error('Error fetching reviews:', reviewsError);
     }
     
+    // Combine both local and Supabase reviews
+    const reviews = [
+      ...(localReviews || []).map((r: any) => ({ 
+        author: r.author, 
+        rating: r.rating, 
+        text: r.text 
+      })),
+      ...(supabaseReviews || []).map((r: any) => ({ 
+        author: r.author, 
+        rating: r.rating, 
+        text: r.text 
+      }))
+    ];
+    
     return createLocalMechanicProfile(
       id,
       vendorName,
       vendorAvatar,
       mechanicProfile,
-      reviews || []
+      reviews
     );
   } catch (error) {
     console.error('Error in fetchLocalMechanic:', error);
