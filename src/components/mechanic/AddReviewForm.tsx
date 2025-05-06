@@ -9,9 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 const reviewSchema = z.object({
-  rating: z.number().min(1).max(5),
+  rating: z.number().min(1, "Please select a rating").max(5),
   text: z.string().min(10, "Review should be at least 10 characters long").max(500),
 });
 
@@ -60,7 +61,37 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         ? `${profiles.first_name || ''} ${profiles.last_name || ''}`.trim() 
         : user.user.email?.split('@')[0] || 'Anonymous';
       
-      // Insert review
+      // Handle special case for default-vendor and local-mechanic IDs
+      let reviewData;
+      
+      if (mechanicId === 'default-vendor' || mechanicId === 'local-mechanic') {
+        // For special IDs like default-vendor, store the review in localStorage instead
+        const existingReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+        
+        const newReview = {
+          id: uuidv4(),
+          mechanic_id: mechanicId,
+          customer_id: user.user.id,
+          author: authorName,
+          rating: values.rating,
+          text: values.text,
+          created_at: new Date().toISOString()
+        };
+        
+        existingReviews.push(newReview);
+        localStorage.setItem('special_mechanic_reviews', JSON.stringify(existingReviews));
+        
+        // Success case for localStorage storage
+        toast({
+          title: "Review Submitted",
+          description: `Thank you for reviewing ${mechanicName}!`,
+        });
+        
+        onSuccess();
+        return;
+      }
+      
+      // For regular mechanic IDs, use Supabase
       const { error } = await supabase
         .from('mechanic_reviews')
         .insert({

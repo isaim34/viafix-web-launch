@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MechanicDetail } from '@/types/mechanic';
+import { MechanicDetail, Review } from '@/types/mechanic';
 import { fetchMechanicProfile } from '@/services/mechanic/fetchMechanicProfile';
 import { fetchLocalMechanic } from '@/services/mechanic/fetchLocalMechanic';
 
@@ -39,10 +39,35 @@ export const useMechanicData = () => {
         
         // Handle special cases: default-vendor or local-mechanic
         if ((id === 'default-vendor' || id === 'local-mechanic')) {
-          mechanicData = await fetchLocalMechanic(id);
+          mechanicData = await fetchLocalMechanic(id || '');
         } else {
           // For other mechanics, fetch from the database
           mechanicData = await fetchMechanicProfile(id || '');
+        }
+        
+        // If this is a special mechanic (default-vendor or local-mechanic),
+        // also load reviews from localStorage
+        if (id === 'default-vendor' || id === 'local-mechanic') {
+          const localReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+          const mechanicReviews = localReviews.filter((review: any) => review.mechanic_id === id);
+          
+          // Add local reviews to mechanic data if it exists
+          if (mechanicData) {
+            const reviews: Review[] = mechanicReviews.map((review: any) => ({
+              author: review.author,
+              rating: review.rating,
+              text: review.text
+            }));
+            
+            mechanicData.reviews = reviews;
+            mechanicData.reviewCount = reviews.length;
+            
+            // Calculate average rating if there are reviews
+            if (reviews.length > 0) {
+              const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+              mechanicData.rating = totalRating / reviews.length;
+            }
+          }
         }
         
         setMechanic(mechanicData);
