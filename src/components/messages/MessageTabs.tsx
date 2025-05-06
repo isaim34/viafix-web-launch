@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, Inbox } from 'lucide-react';
@@ -44,11 +43,8 @@ const MessageTabs = ({
             </TabsTrigger>
           </>
         ) : (
-          // For customers, simplify to just "Messages" since they don't need mechanic-specific tabs
-          <TabsTrigger value="chat" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Messages
-          </TabsTrigger>
+          // For customers, we're removing the Messages tab entirely since it's not needed
+          <></>
         )}
       </TabsList>
       
