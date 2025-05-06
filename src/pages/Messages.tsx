@@ -12,7 +12,6 @@ import { ChatThread } from '@/types/mechanic';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from '@/ErrorBoundary';
-import MechanicChat from '@/components/MechanicChat';
 
 const Messages = () => {
   const { isLoggedIn, currentUserRole, user } = useAuth();
@@ -21,7 +20,6 @@ const Messages = () => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showChatView, setShowChatView] = useState(false);
   const navigate = useNavigate();
 
   const currentUserId = user?.id || localStorage.getItem('userId') || 'anonymous';
@@ -35,6 +33,7 @@ const Messages = () => {
       setError(null);
       
       try {
+        // For debugging
         console.log("Fetching threads for user:", currentUserId);
         
         const userThreads = await getChatThreads(currentUserId);
@@ -58,15 +57,10 @@ const Messages = () => {
 
   const handleSelectThread = (threadId: string) => {
     setSelectedThreadId(threadId);
-    setShowChatView(true);
   };
 
   const handleSignInClick = () => {
     navigate('/signin', { state: { redirectTo: '/messages' } });
-  };
-
-  const handleBackToList = () => {
-    setShowChatView(false);
   };
 
   // Show login required message if not logged in
@@ -95,97 +89,88 @@ const Messages = () => {
         <h1 className="text-3xl font-bold mb-6">Messages</h1>
         
         <ErrorBoundary>
-          {showChatView && selectedThreadId ? (
-            <div className="bg-white rounded-lg border shadow-sm">
-              <MechanicChat 
-                initialThreadId={selectedThreadId}
-                onBack={handleBackToList}
-              />
-            </div>
-          ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="mb-6">
-                {currentUserRole === 'mechanic' ? (
-                  <>
-                    <TabsTrigger value="inbox" className="flex items-center gap-2">
-                      <Inbox className="h-4 w-4" />
-                      Inbox
-                    </TabsTrigger>
-                    <TabsTrigger value="chat" className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Chat Messages
-                    </TabsTrigger>
-                  </>
-                ) : (
-                  // For customers, simplify to just "Messages" since they don't need mechanic-specific tabs
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6">
+              {currentUserRole === 'mechanic' ? (
+                <>
+                  <TabsTrigger value="inbox" className="flex items-center gap-2">
+                    <Inbox className="h-4 w-4" />
+                    Inbox
+                  </TabsTrigger>
                   <TabsTrigger value="chat" className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    Messages
+                    Chat Messages
                   </TabsTrigger>
-                )}
-              </TabsList>
-              
-              {/* Mechanic-specific inbox tab */}
-              {currentUserRole === 'mechanic' && (
-                <TabsContent value="inbox">
-                  <MechanicMailbox />
-                </TabsContent>
+                </>
+              ) : (
+                // For customers, simplify to just "Messages" since they don't need mechanic-specific tabs
+                <TabsTrigger value="chat" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Messages
+                </TabsTrigger>
               )}
-              
-              {/* Chat messages tab - available for both roles but with different presentation */}
-              <TabsContent value="chat">
-                {currentUserRole === 'mechanic' ? (
-                  <div className="bg-white rounded-lg border shadow-sm">
-                    <div className="p-4 border-b">
-                      <h2 className="text-lg font-medium">Your Customer Conversations</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Manage your conversations with customers here.
-                      </p>
-                    </div>
-                    {error ? (
-                      <Alert variant="destructive" className="m-4">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    ) : (
-                      <ChatThreadsList 
-                        threads={threads}
-                        currentUserId={currentUserId}
-                        onSelectThread={handleSelectThread}
-                        selectedThreadId={selectedThreadId || undefined}
-                        isLoading={isLoading}
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg border shadow-sm">
-                    <div className="p-4 border-b">
-                      <h2 className="text-lg font-medium">Your Mechanic Conversations</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Contact and chat with mechanics about your vehicle repairs and maintenance here.
-                      </p>
-                    </div>
-                    {error ? (
-                      <Alert variant="destructive" className="m-4">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    ) : (
-                      <ChatThreadsList 
-                        threads={threads}
-                        currentUserId={currentUserId}
-                        onSelectThread={handleSelectThread}
-                        selectedThreadId={selectedThreadId || undefined}
-                        isLoading={isLoading}
-                      />
-                    )}
-                  </div>
-                )}
+            </TabsList>
+            
+            {/* Mechanic-specific inbox tab */}
+            {currentUserRole === 'mechanic' && (
+              <TabsContent value="inbox">
+                <MechanicMailbox />
               </TabsContent>
-            </Tabs>
-          )}
+            )}
+            
+            {/* Chat messages tab - available for both roles but with different presentation */}
+            <TabsContent value="chat">
+              {currentUserRole === 'mechanic' ? (
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-4 border-b">
+                    <h2 className="text-lg font-medium">Your Customer Conversations</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Manage your conversations with customers here.
+                    </p>
+                  </div>
+                  {error ? (
+                    <Alert variant="destructive" className="m-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : (
+                    <ChatThreadsList 
+                      threads={threads}
+                      currentUserId={currentUserId}
+                      onSelectThread={handleSelectThread}
+                      selectedThreadId={selectedThreadId || undefined}
+                      isLoading={isLoading}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg border shadow-sm">
+                  <div className="p-4 border-b">
+                    <h2 className="text-lg font-medium">Your Mechanic Conversations</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Contact and chat with mechanics about your vehicle repairs and maintenance here.
+                    </p>
+                  </div>
+                  {error ? (
+                    <Alert variant="destructive" className="m-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  ) : (
+                    <ChatThreadsList 
+                      threads={threads}
+                      currentUserId={currentUserId}
+                      onSelectThread={handleSelectThread}
+                      selectedThreadId={selectedThreadId || undefined}
+                      isLoading={isLoading}
+                    />
+                  )}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </ErrorBoundary>
       </div>
     </Layout>
