@@ -1,28 +1,35 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, ArrowLeft } from 'lucide-react';
 import { ChatThreadsList } from './chat/ChatThreadsList';
 import { ChatView } from './chat/ChatView';
-import { getChatThreads } from '@/services/chat/threadService'; // Fixed import path
+import { getChatThreads } from '@/services/chat/threadService'; 
 import { ChatThread } from '@/types/mechanic';
 import { useAuth } from '@/hooks/useAuth';
 import ErrorBoundary from '@/ErrorBoundary';
+import { Button } from '@/components/ui/button';
 
-const MechanicChat = () => {
+interface MechanicChatProps {
+  initialThreadId?: string;
+  onBack?: () => void;
+}
+
+const MechanicChat = ({ initialThreadId, onBack }: MechanicChatProps) => {
   const [threads, setThreads] = useState<ChatThread[]>([]);
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(initialThreadId || null);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(!!initialThreadId);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const { user, currentUserRole, currentUserName } = useAuth();
-  const currentUserId = user?.id || 'anonymous';
+  const currentUserId = user?.id || localStorage.getItem('userId') || 'anonymous';
   const userName = currentUserName || 'User';
   
   console.log('MechanicChat rendering with user:', { 
     userId: currentUserId, 
     userRole: currentUserRole,
-    userName: userName 
+    userName: userName,
+    initialThreadId
   });
   
   const loadThreads = useCallback(async () => {
@@ -40,24 +47,24 @@ const MechanicChat = () => {
       const userThreads = await getChatThreads(currentUserId);
       console.log('Loaded threads:', userThreads);
       setThreads(userThreads);
+      
+      // If we have an initialThreadId and haven't found it in the loaded threads yet,
+      // make sure it's selected
+      if (initialThreadId && !selectedThreadId) {
+        setSelectedThreadId(initialThreadId);
+      }
     } catch (error) {
       console.error("Error loading threads:", error);
       setError("Failed to load chat threads. Please try again later.");
     } finally {
       setIsLoading(false);
     }
-  }, [currentUserId]);
+  }, [currentUserId, initialThreadId, selectedThreadId]);
   
   useEffect(() => {
-    // Only load threads if we have a valid user ID
-    if (user?.id) {
-      console.log('User detected, loading threads');
-      loadThreads();
-    } else {
-      console.log('No user detected, not loading threads');
-      setIsLoading(false);
-    }
-  }, [user, loadThreads]);
+    // Load threads whenever component mounts or user changes
+    loadThreads();
+  }, [loadThreads]);
   
   const handleSelectThread = (threadId: string) => {
     console.log('Thread selected:', threadId);
@@ -67,6 +74,11 @@ const MechanicChat = () => {
   
   const handleBackToList = () => {
     setShowChatOnMobile(false);
+    
+    // If there's a parent back handler, call it
+    if (onBack) {
+      onBack();
+    }
   };
   
   const handleNewMessage = (threadId: string) => {
