@@ -26,7 +26,7 @@ const ReviewsTab = () => {
       try {
         setLoading(true);
         
-        // Get reviews without trying to join with service_bookings
+        // Get reviews from mechanic_reviews table
         const { data, error } = await supabase
           .from('mechanic_reviews')
           .select(`
@@ -43,18 +43,17 @@ const ReviewsTab = () => {
           return;
         }
 
-        // Get service bookings separately if you need them
-        // or simply use a default service title
+        console.log('Fetched reviews:', data?.length || 0);
         
         // Transform the data to match the Review interface
-        const formattedReviews = data.map(review => ({
+        const formattedReviews = data?.map(review => ({
           id: review.id,
-          customerName: review.author,
-          rating: review.rating,
+          customerName: review.author || 'Anonymous',
+          rating: review.rating || 0,
           comment: review.text || '',
           date: new Date(review.created_at).toISOString(),
           serviceTitle: 'Service' // Default service title since we're not getting it from the join
-        }));
+        })) || [];
         
         setReviews(formattedReviews);
       } catch (error) {
