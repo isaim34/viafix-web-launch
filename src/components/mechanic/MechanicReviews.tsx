@@ -1,17 +1,34 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
+import { Star, MessageSquare } from 'lucide-react';
 import { Review } from '@/types/mechanic';
+import { Button } from '@/components/ui/button';
+import ReviewDialog from './ReviewDialog';
 
 interface MechanicReviewsProps {
   reviews: Review[];
   rating: number;
   reviewCount: number;
+  mechanicId: string;
+  mechanicName: string;
+  isCustomerLoggedIn: boolean;
+  onReviewAdded: () => void;
   delay?: number;
 }
 
-export const MechanicReviews = ({ reviews, rating, reviewCount, delay = 0.3 }: MechanicReviewsProps) => {
+export const MechanicReviews = ({ 
+  reviews, 
+  rating, 
+  reviewCount, 
+  mechanicId,
+  mechanicName,
+  isCustomerLoggedIn,
+  onReviewAdded,
+  delay = 0.3 
+}: MechanicReviewsProps) => {
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+
   return (
     <motion.div 
       className="glass-card p-6"
@@ -27,6 +44,26 @@ export const MechanicReviews = ({ reviews, rating, reviewCount, delay = 0.3 }: M
           <span className="ml-1 text-gray-500">({reviewCount})</span>
         </div>
       </div>
+      
+      {isCustomerLoggedIn && (
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => setIsReviewDialogOpen(true)}
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Write a Review
+          </Button>
+          <ReviewDialog 
+            open={isReviewDialogOpen}
+            onOpenChange={setIsReviewDialogOpen}
+            mechanicId={mechanicId}
+            mechanicName={mechanicName}
+            onSuccess={onReviewAdded}
+          />
+        </div>
+      )}
       
       {reviews.length > 0 ? (
         <div className="space-y-6">

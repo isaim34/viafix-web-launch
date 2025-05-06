@@ -13,13 +13,15 @@ interface MechanicProfileLeftColumnProps {
   isCustomerLoggedIn: boolean;
   onSelectService: (service: Service | null) => void;
   onReportMechanic: () => void;
+  onReviewAdded: () => void;
 }
 
 export const MechanicProfileLeftColumn = ({
   mechanic,
   isCustomerLoggedIn,
   onSelectService,
-  onReportMechanic
+  onReportMechanic,
+  onReviewAdded
 }: MechanicProfileLeftColumnProps) => {
   return (
     <div className="col-span-1 lg:col-span-2 space-y-6">
@@ -36,7 +38,11 @@ export const MechanicProfileLeftColumn = ({
       <MechanicReviews 
         reviews={mechanic.reviews} 
         rating={mechanic.rating} 
-        reviewCount={mechanic.reviewCount} 
+        reviewCount={mechanic.reviewCount}
+        mechanicId={mechanic.id}
+        mechanicName={mechanic.name}
+        isCustomerLoggedIn={isCustomerLoggedIn}
+        onReviewAdded={onReviewAdded}
       />
       
       {/* Report Mechanic Card */}

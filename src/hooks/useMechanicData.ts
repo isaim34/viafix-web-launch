@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MechanicDetail } from '@/types/mechanic';
 import { fetchMechanicProfile } from '@/services/mechanic/fetchMechanicProfile';
@@ -13,6 +13,11 @@ export const useMechanicData = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [mechanic, setMechanic] = useState<MechanicDetail | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  const refreshData = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
   
   useEffect(() => {
     // Check if user is logged in as a mechanic
@@ -50,7 +55,7 @@ export const useMechanicData = () => {
     };
     
     fetchMechanicData();
-  }, [id, navigate]);
+  }, [id, navigate, refreshTrigger]);
 
   // Log the selected mechanic for debugging
   useEffect(() => {
@@ -62,5 +67,5 @@ export const useMechanicData = () => {
     });
   }, [id, mechanic]);
   
-  return { mechanic, id, loading };
+  return { mechanic, id, loading, refreshData };
 };

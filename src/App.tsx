@@ -23,6 +23,7 @@ import TwoFactorAuth from './pages/TwoFactorAuth';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Messages from './pages/Messages';
+import Favorites from './pages/Favorites';
 
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './contexts/auth';
@@ -42,6 +43,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/mechanics" element={<Mechanics />} />
             <Route path="/mechanics/:id" element={<MechanicProfile />} />
+            <Route path="/favorites" element={<Favorites />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />

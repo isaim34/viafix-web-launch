@@ -22,6 +22,9 @@ export const Navigation = () => {
       <Link to="/mechanics" className={getLinkClass('/mechanics')}>
         Find Mechanics 
       </Link>
+      <Link to="/favorites" className={getLinkClass('/favorites')}>
+        My Favorites
+      </Link>
       <Link to="/blog" className={getLinkClass('/blog')}>
         Blog
       </Link>

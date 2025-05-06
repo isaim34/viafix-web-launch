@@ -7,7 +7,7 @@ import { useMechanicProfileCustomOffer } from './mechanic-profile/useMechanicPro
 
 export const useMechanicProfilePage = () => {
   // Get mechanic data
-  const { mechanic, loading, id } = useMechanicData();
+  const { mechanic, loading, id, refreshData } = useMechanicData();
   
   // Add console log to debug mechanic data
   console.log("MechanicProfile data:", { mechanic, loading, id });
@@ -42,6 +42,7 @@ export const useMechanicProfilePage = () => {
     id,
     isCustomerLoggedIn: chatHook.isCustomerLoggedIn,
     user: chatHook.user,
+    refreshMechanicData: refreshData,
     
     // Booking functionality
     ...bookingHook,
