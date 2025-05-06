@@ -33,8 +33,7 @@ export const MechanicProfileContent: React.FC<MechanicProfileContentProps> = ({ 
     handleBookService,
     handleContact,
     handleCustomOffer,
-    user,
-    handleReviewAdded
+    user
   } = profileData;
 
   const currentUserId = user?.id || 'anonymous';
@@ -49,7 +48,6 @@ export const MechanicProfileContent: React.FC<MechanicProfileContentProps> = ({ 
             isCustomerLoggedIn={isCustomerLoggedIn}
             onSelectService={handleSelectService}
             onReportMechanic={handleReportMechanic}
-            onReviewAdded={handleReviewAdded}
           />
           
           <MechanicProfileRightColumn 

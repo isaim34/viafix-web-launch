@@ -1,34 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Star } from 'lucide-react';
 import { Review } from '@/types/mechanic';
-import { AddReviewForm } from './AddReviewForm';
 
 interface MechanicReviewsProps {
   reviews: Review[];
   rating: number;
   reviewCount: number;
   delay?: number;
-  mechanicId: string;
-  mechanicName: string;
-  isCustomerLoggedIn: boolean;
-  onReviewAdded?: () => void;
 }
 
-export const MechanicReviews = ({ 
-  reviews, 
-  rating, 
-  reviewCount, 
-  delay = 0.3,
-  mechanicId,
-  mechanicName,
-  isCustomerLoggedIn,
-  onReviewAdded
-}: MechanicReviewsProps) => {
-  const [showReviewForm, setShowReviewForm] = useState(false);
-
+export const MechanicReviews = ({ reviews, rating, reviewCount, delay = 0.3 }: MechanicReviewsProps) => {
   return (
     <motion.div 
       className="glass-card p-6"
@@ -38,48 +21,12 @@ export const MechanicReviews = ({
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold">Reviews</h2>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center">
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            <span className="ml-1 font-bold text-lg">{rating.toFixed(1)}</span>
-            <span className="ml-1 text-gray-500">({reviewCount})</span>
-          </div>
-          
-          {isCustomerLoggedIn && !showReviewForm && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowReviewForm(true)}
-              className="flex items-center gap-1"
-            >
-              <Plus className="w-4 h-4" />
-              Add Review
-            </Button>
-          )}
+        <div className="flex items-center">
+          <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+          <span className="ml-1 font-bold text-lg">{rating.toFixed(1)}</span>
+          <span className="ml-1 text-gray-500">({reviewCount})</span>
         </div>
       </div>
-      
-      {showReviewForm && (
-        <div className="mb-6">
-          <AddReviewForm 
-            mechanicId={mechanicId}
-            mechanicName={mechanicName}
-            onReviewAdded={() => {
-              setShowReviewForm(false);
-              if (onReviewAdded) onReviewAdded();
-            }}
-          />
-          <div className="mt-4 flex justify-end">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowReviewForm(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
       
       {reviews.length > 0 ? (
         <div className="space-y-6">
