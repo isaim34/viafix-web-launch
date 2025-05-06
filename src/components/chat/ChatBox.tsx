@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage } from '@/types/mechanic';
 import { supabase } from '@/integrations/supabase/client';
+import { sendChatMessage } from '@/services/chat/messageService';
 
 interface ChatBoxProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const ChatBox = ({
 }: ChatBoxProps) => {
   const [messageText, setMessageText] = useState('');
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -90,16 +92,65 @@ export const ChatBox = ({
     }
   }, [localMessages, isOpen]);
 
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      onSendMessage(messageText);
-      setMessageText('');
-    } else {
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
       toast({
         title: "Can't send empty message",
         description: "Please type a message before sending",
         variant: "destructive",
       });
+      return;
+    }
+
+    try {
+      setSending(true);
+      
+      // If we're using the parent's onSendMessage
+      if (onSendMessage) {
+        onSendMessage(messageText);
+        setMessageText('');
+        return;
+      }
+      
+      // Direct send if we have threadId
+      if (threadId) {
+        console.log(`Directly sending message in thread ${threadId}: ${messageText}`);
+        
+        // Send message
+        const newMessage = await sendChatMessage(threadId, {
+          senderId: currentUserId,
+          senderName: currentUserName,
+          receiverId: recipientId,
+          content: messageText,
+          timestamp: new Date().toISOString(),
+          isRead: false
+        });
+        
+        console.log('Message sent successfully via ChatBox:', newMessage);
+        
+        // Add to local messages
+        setLocalMessages(prev => [...prev, newMessage]);
+        
+        // Clear input
+        setMessageText('');
+        
+        // Show toast
+        toast({
+          title: "Message Sent",
+          description: `Your message to ${recipientName} was sent successfully.`,
+        });
+      } else {
+        throw new Error("No thread ID available for sending message");
+      }
+    } catch (error) {
+      console.error("Error sending message from ChatBox:", error);
+      toast({
+        title: "Message Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -122,7 +173,7 @@ export const ChatBox = ({
       </div>
       
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {isLoading ? (
+        {isLoading || sending ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -162,14 +213,15 @@ export const ChatBox = ({
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className="min-h-[60px] resize-none"
-            disabled={isLoading}
+            disabled={isLoading || sending}
           />
           <Button 
             onClick={handleSendMessage}
             className="ml-2 h-[60px]"
-            disabled={isLoading}
+            disabled={isLoading || sending}
           >
             <Send className="h-5 w-5" />
+            {sending && <span className="ml-2 animate-pulse">...</span>}
           </Button>
         </div>
       </div>

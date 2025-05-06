@@ -69,11 +69,16 @@ export async function sendChatMessage(
       .select()
       .single();
       
-    if (messageError) throw messageError;
+    if (messageError) {
+      console.error("Message insertion error:", messageError);
+      throw messageError;
+    }
     
     if (!newMessage) {
       throw new Error("Failed to save chat message");
     }
+    
+    console.log("Message inserted successfully:", newMessage);
     
     // Update the thread's last_message_at and unread_count
     const { data: threadData, error: threadError } = await supabase
@@ -102,16 +107,19 @@ export async function sendChatMessage(
     
     const unreadCount = threadData ? Number(threadData.unread_count || 0) + 1 : 1;
     
-    const { error: updateError } = await supabase
+    const { data: updatedThreadData, error: updateError } = await supabase
       .from('chat_threads')
       .update({ 
         last_message_at: message.timestamp,
         unread_count: unreadCount
       })
-      .eq('id', threadId);
+      .eq('id', threadId)
+      .select();
       
     if (updateError) {
       console.error("Error updating thread:", updateError);
+    } else {
+      console.log("Thread updated successfully:", updatedThreadData);
     }
     
     console.log('Message sent successfully');
@@ -136,24 +144,35 @@ export async function sendChatMessage(
  */
 export async function markMessagesAsRead(threadId: string, userId: string): Promise<void> {
   try {
+    console.log(`Marking messages as read for user ${userId} in thread ${threadId}`);
+    
     // Mark all messages to this user as read
-    const { error } = await supabase
+    const { data: messages, error } = await supabase
       .from('chat_messages')
       .update({ is_read: true })
       .eq('thread_id', threadId)
       .eq('receiver_id', userId)
-      .eq('is_read', false);
+      .eq('is_read', false)
+      .select();
       
-    if (error) throw error;
+    if (error) {
+      console.error("Error marking messages as read:", error);
+      throw error;
+    }
+    
+    console.log(`Marked ${messages?.length || 0} messages as read`);
     
     // Reset unread counter in thread for this user
-    const { error: threadUpdateError } = await supabase
+    const { data: threadData, error: threadUpdateError } = await supabase
       .from('chat_threads')
       .update({ unread_count: 0 })
-      .eq('id', threadId);
+      .eq('id', threadId)
+      .select();
       
     if (threadUpdateError) {
       console.error("Error resetting unread count:", threadUpdateError);
+    } else {
+      console.log("Thread unread count reset successfully:", threadData);
     }
   } catch (error) {
     console.error('Error marking messages as read:', error);

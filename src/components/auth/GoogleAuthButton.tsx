@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,10 +50,11 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
         localStorage.setItem('userEmail', userEmail || '');
         localStorage.setItem('userName', userName);
         
-        // Use the user type from metadata, or fallback to the provided userRole, or default to customer
+        // Determine user role from metadata or fall back to default
         const userType = session.user.user_metadata?.user_type || 
                         session.user.user_metadata?.role || 
-                        'customer';
+                        userRole || // Use the provided userRole prop if available
+                        (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
         
         localStorage.setItem('userRole', userType);
         localStorage.setItem('userId', session.user.id);
@@ -75,7 +77,7 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
     };
     
     checkForErrors();
-  }, [navigate]);
+  }, [navigate, userRole, location.pathname]);
 
   const handleGoogleSignIn = async () => {
     try {

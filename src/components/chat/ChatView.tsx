@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatViewProps {
   thread: ChatThread;
@@ -113,15 +114,20 @@ export const ChatView = ({
     try {
       console.log(`Sending message in thread ${thread.id}: ${messageText}`);
       
+      // Get the current user name from localStorage or thread data
+      const currentUserName = thread.participantNames[currentUserId] || localStorage.getItem('userName') || 'Me';
+      
       // Send message
       const newMessageData = {
         senderId: currentUserId,
-        senderName: thread.participantNames[currentUserId] || 'Me',
+        senderName: currentUserName,
         receiverId: otherParticipantId,
         content: messageText,
         timestamp: new Date().toISOString(),
         isRead: false
       };
+      
+      console.log('Preparing to send message with data:', newMessageData);
       
       const newMessage = await sendChatMessage(thread.id, newMessageData);
       console.log('Message sent successfully:', newMessage);
@@ -129,11 +135,22 @@ export const ChatView = ({
       // Update local state with the returned message that has an ID
       setMessages(prev => [...prev, newMessage]);
       
+      // Show confirmation toast
+      toast({
+        title: "Message Sent",
+        description: `Your message to ${otherParticipantName} was sent successfully.`
+      });
+      
       // Notify parent
       onNewMessage(thread.id);
     } catch (error) {
       console.error("Error sending message:", error);
       setError("Failed to send message. Please try again.");
+      toast({
+        title: "Message Error",
+        description: "Your message could not be sent. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
