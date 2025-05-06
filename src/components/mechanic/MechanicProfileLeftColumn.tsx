@@ -28,7 +28,10 @@ export const MechanicProfileLeftColumn = ({
   return (
     <div className="col-span-2 space-y-6">
       <div className="flex justify-between items-start">
-        <MechanicProfileHeader mechanic={mechanic} />
+        <MechanicProfileHeader 
+          mechanic={mechanic} 
+          isCustomerLoggedIn={isCustomerLoggedIn}
+        />
         
         <div className="flex space-x-2">
           <FavoriteButton 
@@ -71,7 +74,10 @@ export const MechanicProfileLeftColumn = ({
       />
       
       {mechanic.galleryImages && mechanic.galleryImages.length > 0 && (
-        <MechanicGallery images={mechanic.galleryImages} delay={0.4} />
+        <MechanicGallery 
+          images={mechanic.galleryImages} 
+          delay={0.4} 
+        />
       )}
     </div>
   );

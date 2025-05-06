@@ -6,9 +6,10 @@ import { Card } from '@/components/ui/card';
 
 interface MechanicGalleryProps {
   images: string[];
+  delay?: number;
 }
 
-export const MechanicGallery = ({ images }: MechanicGalleryProps) => {
+export const MechanicGallery = ({ images, delay = 0.4 }: MechanicGalleryProps) => {
   if (!images || images.length === 0) {
     return null;
   }
@@ -17,7 +18,7 @@ export const MechanicGallery = ({ images }: MechanicGalleryProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.4, delay }}
       className="glass-card p-6 mb-8"
     >
       <h2 className="text-xl font-bold mb-4">Work Gallery</h2>
