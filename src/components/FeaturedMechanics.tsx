@@ -5,9 +5,9 @@ import { Button } from './Button';
 import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { mechanicsDetailedData } from '@/data/mechanicsData';
+import { mechanicsDetailedData } from '@/data/mechanicsDetailedData';
 
-// Sample mechanic data with gallery images from mechanicdDetailedData
+// Sample mechanic data with gallery images from mechanicDetailedData
 const mechanics = [
   {
     id: '1',
