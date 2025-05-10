@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import type { UserRole } from '@/contexts/auth/types';
-// Import the sign in forms directly
+// Import the sign in forms directly without lazy loading
 import CustomerSigninForm from '@/components/CustomerSigninForm';
 import MechanicSigninForm from '@/components/MechanicSigninForm';
 
@@ -30,7 +30,7 @@ const Signin = () => {
     });
   }, [isLoggedIn, authChecked, currentUserRole, location.state]);
 
-  // Redirect if already logged in - moved to top level of component
+  // Redirect if already logged in
   if (authChecked && isLoggedIn) {
     console.log(`User is logged in as ${currentUserRole}, redirecting to profile`);
     const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);

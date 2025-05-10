@@ -87,8 +87,6 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
       const redirectUrl = `${window.location.origin}`;
       
       // Determine user role based on props or current page
-      // If userRole is explicitly provided, use it
-      // Otherwise, try to detect from the current URL path
       const determinedRole = userRole || 
                            (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
       
