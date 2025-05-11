@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { persistUserToLocalStorage } from '@/contexts/auth/authUtils';
 
 interface GoogleAuthButtonProps {
   mode?: 'signin' | 'signup';
@@ -49,10 +50,14 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
         let determinedRole = session.user.user_metadata?.user_type || 
                             session.user.user_metadata?.role;
         
-        // If role is not in metadata, use the prop or infer from URL
+        // If role is not in metadata, use the prop or infer from URL or localStorage
         if (!determinedRole) {
+          // Get role from prop, URL, localStorage, or default
           determinedRole = userRole || 
-                          (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
+                         location.pathname.includes('mechanic') ? 'mechanic' : 
+                         localStorage.getItem('pendingAuthRole') || 
+                         localStorage.getItem('selectedRole') || 
+                         'customer';
           console.log(`Role not found in auth metadata, using determined role: ${determinedRole}`);
           
           // Important: Update user metadata with the role if it's missing
@@ -72,11 +77,39 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
         console.log("Role being set for authenticated user:", determinedRole);
         
         // Store critical auth information in localStorage with consistent keys
-        localStorage.setItem('userLoggedIn', 'true');
-        localStorage.setItem('userEmail', userEmail || '');
-        localStorage.setItem('userName', userName);
-        localStorage.setItem('userRole', determinedRole);
-        localStorage.setItem('userId', session.user.id);
+        persistUserToLocalStorage({
+          id: session.user.id,
+          email: userEmail || '',
+          name: userName,
+          role: determinedRole
+        });
+        
+        // Add role-specific data
+        if (determinedRole === 'mechanic') {
+          localStorage.setItem('vendorName', userName);
+          
+          // Create simple profile if none exists
+          if (!localStorage.getItem('mechanicProfile')) {
+            const profile = {
+              firstName: userName.split(' ')[0] || '',
+              lastName: userName.split(' ').slice(1).join(' ') || '',
+              specialties: 'General Auto Repair',
+              hourlyRate: '75',
+              profileImage: ''
+            };
+            localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+          }
+        } else {
+          // Create simple profile if none exists
+          if (!localStorage.getItem('customerProfile')) {
+            const profile = {
+              firstName: userName.split(' ')[0] || '',
+              lastName: userName.split(' ').slice(1).join(' ') || '',
+              profileImage: ''
+            };
+            localStorage.setItem('customerProfile', JSON.stringify(profile));
+          }
+        }
         
         // Dispatch event to notify all components about auth state change
         window.dispatchEvent(new Event('storage-event'));
@@ -105,9 +138,12 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
       // Use window.location.origin for the base URL without additional paths
       const redirectUrl = `${window.location.origin}`;
       
-      // Determine user role based on props or current page
+      // Determine user role based on props, current page, or localStorage
       const determinedRole = userRole || 
-                           (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
+                           (location.pathname.includes('mechanic') ? 'mechanic' : 
+                           localStorage.getItem('pendingAuthRole') || 
+                           localStorage.getItem('selectedRole') || 
+                           'customer');
       
       console.log(`Initiating Google auth with redirect to: ${redirectUrl} as role: ${determinedRole}`);
       
@@ -172,7 +208,7 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
           </g>
         </svg>
       )}
-      {isLoading ? 'Connecting...' : `Continue with Google${mode === 'signup' ? ' to sign up' : ''} as ${userRole || (location.pathname.includes('mechanic') ? 'mechanic' : 'customer')}`}
+      {isLoading ? 'Connecting...' : `Continue with Google${mode === 'signup' ? ' to sign up' : ''}`}
     </Button>
   );
 };

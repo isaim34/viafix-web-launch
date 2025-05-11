@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AdvertisingTab() {
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +32,8 @@ export default function AdvertisingTab() {
       isLoggedIn, 
       authChecked, 
       currentUserRole,
-      retryCount
+      retryCount,
+      localStorageRole: localStorage.getItem('userRole')
     });
     
     // Try to get role from localStorage as fallback
@@ -39,7 +41,7 @@ export default function AdvertisingTab() {
     setLocalRole(storedRole);
     
     // Decide whether to load section or show error
-    const checkAccess = () => {
+    const checkAccess = async () => {
       setIsLoading(true);
       
       if (!authChecked) {
@@ -55,14 +57,37 @@ export default function AdvertisingTab() {
       }
       
       // Check role from context or localStorage
-      const effectiveRole = currentUserRole || storedRole;
+      let effectiveRole = currentUserRole || storedRole;
+      
+      // Try to get user role directly from Supabase if needed
+      if (!effectiveRole && isLoggedIn) {
+        try {
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError) {
+            console.error("Error getting user from Supabase:", userError);
+          } else if (user) {
+            console.log("Got user from Supabase:", user);
+            effectiveRole = user.user_metadata?.role || user.user_metadata?.user_type;
+            
+            // Update local state if role found
+            if (effectiveRole) {
+              localStorage.setItem('userRole', effectiveRole);
+              window.dispatchEvent(new Event('storage-event'));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user from Supabase:", error);
+        }
+      }
+      
       console.log("Effective role:", effectiveRole);
       
       if (!effectiveRole) {
-        // If we've tried a few times and still no role, show an error
-        if (retryCount >= 3) {
+        // If we've tried a few times and still no role, show an error with a test button
+        if (retryCount >= 2) {
           console.log("No role detected after multiple attempts");
-          setError("Unable to determine your user role. Please try signing out and signing in again.");
+          setError("Unable to determine your user role. Click 'Quick Fix' below to set your role as mechanic for testing.");
           setIsLoading(false);
         } else {
           // Try again with a short delay, incrementing retry count
@@ -100,6 +125,42 @@ export default function AdvertisingTab() {
     setIsLoading(true);
     // Force a refresh of auth state
     window.dispatchEvent(new Event('storage-event'));
+  };
+
+  // Quick fix function to set role as mechanic for testing
+  const handleQuickFix = () => {
+    // Set user role to mechanic in localStorage
+    localStorage.setItem('userRole', 'mechanic');
+    localStorage.setItem('pendingAuthRole', 'mechanic');
+    localStorage.setItem('selectedRole', 'mechanic');
+    
+    // Update Supabase user metadata if possible
+    supabase.auth.updateUser({
+      data: {
+        user_type: 'mechanic',
+        role: 'mechanic'
+      }
+    }).then(({data, error}) => {
+      if (error) {
+        console.error("Error updating user metadata:", error);
+      } else {
+        console.log("Updated user metadata with mechanic role:", data);
+      }
+    });
+    
+    // Trigger auth state refresh
+    window.dispatchEvent(new Event('storage-event'));
+    
+    // Reset state
+    setRetryCount(0);
+    setError(null);
+    setIsLoading(true);
+    
+    // Show toast
+    toast({
+      title: "Role Updated",
+      description: "Your user role has been set to 'mechanic' for testing purposes.",
+    });
   };
 
   // Show loading state
@@ -150,14 +211,14 @@ export default function AdvertisingTab() {
                   Checked={authChecked ? 'yes' : 'no'},
                   RetryCount={retryCount}
                 </p>
-                <div className="flex gap-3 mt-2">
+                <div className="flex flex-wrap gap-3 mt-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="w-fit" 
-                    onClick={() => navigate('/signin')}
+                    onClick={() => navigate('/signin?role=mechanic')}
                   >
-                    Sign In
+                    Sign In as Mechanic
                   </Button>
                   <Button 
                     variant="secondary" 
@@ -171,9 +232,9 @@ export default function AdvertisingTab() {
                   <Button 
                     variant="default" 
                     size="sm" 
-                    onClick={() => window.location.reload()}
+                    onClick={handleQuickFix}
                   >
-                    Refresh Page
+                    Quick Fix (Set as Mechanic)
                   </Button>
                 </div>
               </AlertDescription>

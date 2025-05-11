@@ -37,12 +37,16 @@ const Signin = () => {
     
     setActiveTab(initialRole);
     console.log(`Initial role tab set to: ${initialRole} (from URL: ${roleParam}, from storage: ${storedSelectedRole})`);
+    
+    // Store pending role for Google Auth
+    localStorage.setItem('pendingAuthRole', initialRole);
   }, []);
 
   // Set user role in localStorage when tab changes to ensure consistency
   useEffect(() => {
     if (activeTab) {
       localStorage.setItem('selectedRole', activeTab);
+      localStorage.setItem('pendingAuthRole', activeTab);
       
       // Also update URL to reflect selected role without causing navigation
       const url = new URL(window.location.href);
@@ -100,7 +104,7 @@ const Signin = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Welcome to ViaFix</h1>
             <p className="text-muted-foreground">
-              Sign in as a customer or mechanic
+              Quick Sign In for Testing (No Password Required)
             </p>
           </div>
 

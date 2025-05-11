@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,51 +7,148 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
-import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
-import { LogIn } from 'lucide-react';
-import { generateUserId, getUserNameFromEmail } from '@/utils/authUtils';
-import { useAuthSubmit } from '@/hooks/useAuthSubmit';
+import { LogIn, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { persistUserToLocalStorage } from '@/contexts/auth/authUtils';
+import { getUserNameFromEmail } from '@/utils/authUtils';
 
 const mechanicFormSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Please enter a valid email address")
 });
 
 type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 
 const MechanicSigninForm = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { handleSubmit: authSubmit } = useAuthSubmit();
+  const { authChecked, isLoggedIn } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Log auth state for debugging
+  React.useEffect(() => {
+    console.log("MechanicSigninForm auth state:", { authChecked, isLoggedIn });
+  }, [authChecked, isLoggedIn]);
+
+  // Don't render the form if we're already logged in
+  if (isLoggedIn) {
+    return (
+      <div className="p-6 text-center">
+        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+        <p>Already signed in, redirecting...</p>
+      </div>
+    );
+  }
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
     defaultValues: {
       email: '',
-      password: '',
     },
   });
 
-  const onSubmit = async (data: MechanicFormValues) => {
-    setIsLoading(true);
+  const handleQuickSignin = async (data: MechanicFormValues) => {
     try {
-      // Make sure the email and password are treated as required strings
-      const authData = {
-        email: data.email as string,
-        password: data.password as string
-      };
+      setIsLoading(true);
+      console.log("Processing quick sign in for:", data.email);
       
-      // Use the authentication handler with isNewAccount=false
-      await authSubmit(authData, false);
+      // Generate a random password (not visible to user)
+      const randomPassword = Math.random().toString(36).slice(-12);
+      
+      // Check if user exists
+      const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: randomPassword
+      });
+      
+      // If user doesn't exist, sign them up
+      if (checkError?.message.includes("Invalid login credentials")) {
+        console.log("User doesn't exist, creating new account");
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: data.email,
+          password: randomPassword,
+          options: {
+            data: {
+              full_name: getUserNameFromEmail(data.email),
+              user_type: 'mechanic',
+              role: 'mechanic'
+            }
+          }
+        });
+        
+        if (signUpError) throw signUpError;
+        
+        // Magic link sign in for the new user
+        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+          email: data.email
+        });
+        
+        if (magicLinkError) throw magicLinkError;
+        
+        // Set up local authentication immediately for testing
+        const userName = getUserNameFromEmail(data.email);
+        persistUserToLocalStorage({
+          id: signUpData.user?.id || `temp-${Date.now()}`,
+          email: data.email,
+          role: 'mechanic',
+          name: userName
+        });
+        
+        // Set additional mechanic data
+        localStorage.setItem('vendorName', userName);
+        
+        // Create profile info
+        const profile = {
+          firstName: userName.split(' ')[0] || '',
+          lastName: userName.split(' ').slice(1).join(' ') || '',
+          specialties: 'General Auto Repair',
+          hourlyRate: '75',
+          profileImage: ''
+        };
+        localStorage.setItem('mechanicProfile', JSON.stringify(profile));
+        
+        // Notify app of auth change
+        window.dispatchEvent(new Event('storage-event'));
+        
+        toast({
+          title: "Quick Testing Mode",
+          description: `Created a temporary account as ${userName}. You can now access mechanic features.`,
+        });
+        
+        // Navigate to mechanic dashboard
+        navigate('/mechanic-dashboard');
+      } else {
+        // For existing users, we'll set up the authentication state manually
+        const userName = getUserNameFromEmail(data.email);
+        persistUserToLocalStorage({
+          id: existingUser?.user?.id || `temp-${Date.now()}`,
+          email: data.email,
+          role: 'mechanic',
+          name: userName
+        });
+        
+        // Set additional mechanic data
+        localStorage.setItem('vendorName', userName);
+        
+        // Notify app of auth change
+        window.dispatchEvent(new Event('storage-event'));
+        
+        toast({
+          title: "Quick Testing Mode",
+          description: `Signed in as ${userName}. You can now access mechanic features.`,
+        });
+        
+        // Navigate to mechanic dashboard
+        navigate('/mechanic-dashboard');
+      }
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error("Sign in error:", error);
       toast({
         title: "Sign in failed",
-        description: "Please check your credentials and try again.",
+        description: "An error occurred during the sign in process.",
         variant: "destructive"
       });
     } finally {
@@ -59,16 +157,15 @@ const MechanicSigninForm = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-medium">Sign In to Your Account</h3>
+    <div className="space-y-6">      
+      <h3 className="text-lg font-medium">Quick Mechanic Sign In</h3>
       <p className="text-sm text-gray-500">
-        Welcome back! Please enter your details.
+        Enter your email to sign in or create a mechanic account.
       </p>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleQuickSignin)} className="space-y-6">
           <EmailField form={form} />
-          <PasswordField form={form} />
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             <div className="flex items-center justify-center">
@@ -80,17 +177,14 @@ const MechanicSigninForm = () => {
               ) : (
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
-                  <span>Sign In</span>
+                  <span>Quick Sign In as Mechanic</span>
                 </>
               )}
             </div>
           </Button>
           
-          <p className="text-center text-sm text-gray-500">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
-              Sign up
-            </Link>
+          <p className="text-center text-sm text-gray-500 italic">
+            For testing only - no password required
           </p>
           
           <div className="relative flex items-center">
