@@ -5,13 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { persistUserToLocalStorage } from '@/contexts/auth/authUtils';
 import { getUserNameFromEmail } from '@/utils/authUtils';
 
@@ -24,7 +23,6 @@ type CustomerFormValues = z.infer<typeof customerFormSchema>;
 const CustomerSigninForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { authChecked, isLoggedIn } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -55,87 +53,35 @@ const CustomerSigninForm = () => {
       setIsLoading(true);
       console.log("Processing quick sign in for:", data.email);
       
-      // Generate a random password (not visible to user)
-      const randomPassword = Math.random().toString(36).slice(-12);
+      // Set up local authentication for testing
+      const userName = getUserNameFromEmail(data.email);
       
-      // Check if user exists
-      const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
+      // Store auth data
+      persistUserToLocalStorage({
+        id: `temp-${Date.now()}`,
         email: data.email,
-        password: randomPassword
+        role: 'customer',
+        name: userName
       });
       
-      // If user doesn't exist, sign them up
-      if (checkError?.message.includes("Invalid login credentials")) {
-        console.log("User doesn't exist, creating new account");
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: data.email,
-          password: randomPassword,
-          options: {
-            data: {
-              full_name: getUserNameFromEmail(data.email),
-              user_type: 'customer',
-              role: 'customer'
-            }
-          }
-        });
-        
-        if (signUpError) throw signUpError;
-        
-        // Magic link sign in for the new user
-        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-          email: data.email
-        });
-        
-        if (magicLinkError) throw magicLinkError;
-        
-        // Set up local authentication immediately for testing
-        const userName = getUserNameFromEmail(data.email);
-        persistUserToLocalStorage({
-          id: signUpData.user?.id || `temp-${Date.now()}`,
-          email: data.email,
-          role: 'customer',
-          name: userName
-        });
-        
-        // Create profile info
-        const profile = {
-          firstName: userName.split(' ')[0] || '',
-          lastName: userName.split(' ').slice(1).join(' ') || '',
-          profileImage: ''
-        };
-        localStorage.setItem('customerProfile', JSON.stringify(profile));
-        
-        // Notify app of auth change
-        window.dispatchEvent(new Event('storage-event'));
-        
-        toast({
-          title: "Quick Testing Mode",
-          description: `Created a temporary account as ${userName}. You can now access customer features.`,
-        });
-        
-        // Navigate to customer profile
-        navigate('/customer-profile');
-      } else {
-        // For existing users, we'll set up the authentication state manually
-        const userName = getUserNameFromEmail(data.email);
-        persistUserToLocalStorage({
-          id: existingUser?.user?.id || `temp-${Date.now()}`,
-          email: data.email,
-          role: 'customer',
-          name: userName
-        });
-        
-        // Notify app of auth change
-        window.dispatchEvent(new Event('storage-event'));
-        
-        toast({
-          title: "Quick Testing Mode",
-          description: `Signed in as ${userName}. You can now access customer features.`,
-        });
-        
-        // Navigate to customer profile
-        navigate('/customer-profile');
-      }
+      // Create profile info
+      const profile = {
+        firstName: userName.split(' ')[0] || '',
+        lastName: userName.split(' ').slice(1).join(' ') || '',
+        profileImage: ''
+      };
+      localStorage.setItem('customerProfile', JSON.stringify(profile));
+      
+      // Notify app of auth change
+      window.dispatchEvent(new Event('storage-event'));
+      
+      toast({
+        title: "Quick Testing Mode",
+        description: `Signed in as ${userName}. You can now access customer features.`,
+      });
+      
+      // Navigate to customer profile
+      navigate('/customer-profile');
     } catch (error) {
       console.error("Sign in error:", error);
       toast({

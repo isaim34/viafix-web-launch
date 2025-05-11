@@ -22,38 +22,48 @@ const Signin = () => {
 
   // Try to restore the active tab from localStorage or URL on first render
   useEffect(() => {
-    const storedSelectedRole = localStorage.getItem('selectedRole');
-    const urlParams = new URLSearchParams(window.location.search);
-    const roleParam = urlParams.get('role');
-    
-    // Priority: URL param > localStorage > default (customer)
-    let initialRole = 'customer';
-    
-    if (roleParam === 'mechanic' || roleParam === 'customer') {
-      initialRole = roleParam;
-    } else if (storedSelectedRole === 'mechanic' || storedSelectedRole === 'customer') {
-      initialRole = storedSelectedRole;
+    try {
+      const storedSelectedRole = localStorage.getItem('selectedRole');
+      const urlParams = new URLSearchParams(window.location.search);
+      const roleParam = urlParams.get('role');
+      
+      // Priority: URL param > localStorage > default (customer)
+      let initialRole = 'customer';
+      
+      if (roleParam === 'mechanic' || roleParam === 'customer') {
+        initialRole = roleParam;
+      } else if (storedSelectedRole === 'mechanic' || storedSelectedRole === 'customer') {
+        initialRole = storedSelectedRole;
+      }
+      
+      setActiveTab(initialRole);
+      console.log(`Initial role tab set to: ${initialRole} (from URL: ${roleParam}, from storage: ${storedSelectedRole})`);
+      
+      // Store pending role for Google Auth
+      localStorage.setItem('pendingAuthRole', initialRole);
+    } catch (error) {
+      console.error("Error in tab initialization:", error);
+      // Fallback to customer if there's an error
+      setActiveTab('customer');
     }
-    
-    setActiveTab(initialRole);
-    console.log(`Initial role tab set to: ${initialRole} (from URL: ${roleParam}, from storage: ${storedSelectedRole})`);
-    
-    // Store pending role for Google Auth
-    localStorage.setItem('pendingAuthRole', initialRole);
   }, []);
 
   // Set user role in localStorage when tab changes to ensure consistency
   useEffect(() => {
     if (activeTab) {
-      localStorage.setItem('selectedRole', activeTab);
-      localStorage.setItem('pendingAuthRole', activeTab);
-      
-      // Also update URL to reflect selected role without causing navigation
-      const url = new URL(window.location.href);
-      url.searchParams.set('role', activeTab);
-      window.history.replaceState({}, '', url.toString());
-      
-      console.log(`Selected role tab changed to: ${activeTab}`);
+      try {
+        localStorage.setItem('selectedRole', activeTab);
+        localStorage.setItem('pendingAuthRole', activeTab);
+        
+        // Also update URL to reflect selected role without causing navigation
+        const url = new URL(window.location.href);
+        url.searchParams.set('role', activeTab);
+        window.history.replaceState({}, '', url.toString());
+        
+        console.log(`Selected role tab changed to: ${activeTab}`);
+      } catch (error) {
+        console.error("Error updating role in storage:", error);
+      }
     }
   }, [activeTab]);
 
@@ -64,13 +74,12 @@ const Signin = () => {
       authChecked,
       currentUserRole,
       activeTab,
-      locationState: location.state,
-      localStorageRole: localStorage.getItem('userRole')
+      locationState: location.state
     });
   }, [isLoggedIn, authChecked, currentUserRole, activeTab, location.state]);
 
   // Redirect if already logged in
-  if (authChecked && isLoggedIn) {
+  if (authChecked && isLoggedIn && currentUserRole) {
     console.log(`User is logged in as ${currentUserRole}, redirecting to profile`);
     const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
     return <Navigate to={redirectTo} replace />;
@@ -92,6 +101,7 @@ const Signin = () => {
     );
   }
 
+  // Render the main sign-in content
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">

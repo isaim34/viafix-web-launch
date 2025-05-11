@@ -12,27 +12,27 @@ export function useAuth() {
 
   // Add enhanced debug logging for role detection issues
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      // Check if we have role in localStorage but not in context
-      const localStorageRole = localStorage.getItem('userRole');
-      const isLoggedInStorage = localStorage.getItem('userLoggedIn') === 'true';
-      
-      // Log authentication state for debugging
-      console.debug('useAuth hook state:', {
-        isLoggedIn: authContext.isLoggedIn,
-        authChecked: authContext.authChecked,
-        currentUserRole: authContext.currentUserRole || 'undefined',
-        localStorageRole,
-        localStorageLoggedIn: isLoggedInStorage,
-      });
-      
-      // If we're logged in but missing role in context, try to use the localStorage role
-      if (authContext.isLoggedIn && !authContext.currentUserRole && localStorageRole) {
-        console.debug('Role missing in context but found in localStorage, triggering auth refresh');
-        // Dispatch storage event to notify auth provider to update state from localStorage
-        window.dispatchEvent(new Event('storage-event'));
-        setRoleDetected(true);
-      }
+    // Check if we have role in localStorage but not in context
+    const localStorageRole = localStorage.getItem('userRole');
+    const isLoggedInStorage = localStorage.getItem('userLoggedIn') === 'true';
+    const userName = localStorage.getItem('userName');
+    
+    // Log authentication state for debugging
+    console.debug('useAuth hook state:', {
+      isLoggedIn: authContext.isLoggedIn,
+      authChecked: authContext.authChecked,
+      currentUserRole: authContext.currentUserRole || 'undefined',
+      localStorageRole,
+      localStorageLoggedIn: isLoggedInStorage,
+      userName
+    });
+    
+    // If we're logged in but missing role in context, try to use the localStorage role
+    if (authContext.isLoggedIn && !authContext.currentUserRole && localStorageRole) {
+      console.debug('Role missing in context but found in localStorage, triggering auth refresh');
+      // Dispatch storage event to notify auth provider to update state from localStorage
+      window.dispatchEvent(new Event('storage-event'));
+      setRoleDetected(true);
     }
   }, [authContext.isLoggedIn, authContext.authChecked, authContext.currentUserRole]);
 
