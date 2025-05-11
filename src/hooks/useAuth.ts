@@ -1,5 +1,5 @@
 
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '@/contexts/auth';
 
 /**
@@ -7,5 +7,20 @@ import { AuthContext } from '@/contexts/auth';
  * @returns AuthContext values
  */
 export function useAuth() {
-  return useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+
+  // Add debug logging for role detection issues
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('useAuth hook state:', {
+        isLoggedIn: authContext.isLoggedIn,
+        authChecked: authContext.authChecked,
+        currentUserRole: authContext.currentUserRole,
+        localStorageRole: localStorage.getItem('userRole'),
+        localStorageLoggedIn: localStorage.getItem('userLoggedIn'),
+      });
+    }
+  }, [authContext.isLoggedIn, authContext.authChecked, authContext.currentUserRole]);
+
+  return authContext;
 }

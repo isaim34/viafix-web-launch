@@ -45,18 +45,24 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
                          userEmail?.split('@')[0] || 
                          'User';
         
-        // Store critical auth information in localStorage
+        // Ensure we have the user role either from metadata or fallback
+        let determinedRole = session.user.user_metadata?.user_type || 
+                            session.user.user_metadata?.role;
+        
+        // If role is not in metadata, use the prop or infer from URL
+        if (!determinedRole) {
+          determinedRole = userRole || 
+                          (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
+          console.log(`Role not found in auth metadata, using determined role: ${determinedRole}`);
+        }
+        
+        console.log("Role being set for authenticated user:", determinedRole);
+        
+        // Store critical auth information in localStorage with consistent keys
         localStorage.setItem('userLoggedIn', 'true');
         localStorage.setItem('userEmail', userEmail || '');
         localStorage.setItem('userName', userName);
-        
-        // Determine user role from metadata or fall back to default
-        const userType = session.user.user_metadata?.user_type || 
-                        session.user.user_metadata?.role || 
-                        userRole || // Use the provided userRole prop if available
-                        (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
-        
-        localStorage.setItem('userRole', userType);
+        localStorage.setItem('userRole', determinedRole);
         localStorage.setItem('userId', session.user.id);
         
         // Dispatch event to notify all components about auth state change
@@ -64,11 +70,11 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
         
         toast({
           title: "Success!",
-          description: `You've successfully authenticated with Google as a ${userType}.`,
+          description: `You've successfully authenticated with Google as a ${determinedRole}.`,
         });
         
         // Redirect based on user type
-        if (userType === 'mechanic') {
+        if (determinedRole === 'mechanic') {
           navigate('/mechanic-dashboard', { replace: true });
         } else {
           navigate('/profile', { replace: true });

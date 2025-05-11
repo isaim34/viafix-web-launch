@@ -20,15 +20,25 @@ const Signin = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
+  // Set user role in localStorage when tab changes to ensure consistency
+  useEffect(() => {
+    if (activeTab) {
+      localStorage.setItem('selectedRole', activeTab);
+      console.log(`Selected role tab changed to: ${activeTab}`);
+    }
+  }, [activeTab]);
+
   // Add additional debug logging
   useEffect(() => {
     console.log("Signin component authentication state:", {
       isLoggedIn,
       authChecked,
       currentUserRole,
-      locationState: location.state
+      activeTab,
+      locationState: location.state,
+      localStorageRole: localStorage.getItem('userRole')
     });
-  }, [isLoggedIn, authChecked, currentUserRole, location.state]);
+  }, [isLoggedIn, authChecked, currentUserRole, activeTab, location.state]);
 
   // Redirect if already logged in
   if (authChecked && isLoggedIn) {
@@ -72,7 +82,11 @@ const Signin = () => {
           <Tabs 
             defaultValue="customer" 
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={(value) => {
+              setActiveTab(value);
+              // Store selected role in localStorage for better persistence
+              localStorage.setItem('selectedRole', value);
+            }}
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-2 mb-8">
