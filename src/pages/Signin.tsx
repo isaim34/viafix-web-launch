@@ -20,6 +20,9 @@ const Signin = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
+  // Log render for debugging
+  console.log('Signin component rendering');
+
   // Try to restore the active tab from localStorage or URL on first render
   useEffect(() => {
     try {

@@ -1,10 +1,64 @@
-
 export const generateUserId = (email: string): string => {
   return `customer-${btoa(email).replace(/[=+/]/g, '').substring(0, 10)}`;
 };
 
+/**
+ * Generates a user name from an email address
+ * If the email is in the format firstname.lastname@domain.com, it will return "Firstname Lastname"
+ * Otherwise, it will return the part before the @ symbol
+ * 
+ * @param email - The user's email address
+ * @returns A formatted user name based on the email
+ */
 export const getUserNameFromEmail = (email: string): string => {
-  return email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+  if (!email) return 'User';
+  
+  try {
+    // Get the part before the @ symbol
+    const localPart = email.split('@')[0];
+    
+    if (localPart.includes('.')) {
+      // If there's a dot, assume it's firstname.lastname format
+      return localPart
+        .split('.')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    } else if (localPart.includes('_')) {
+      // If there's an underscore, assume it's firstname_lastname format
+      return localPart
+        .split('_')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    } else {
+      // Otherwise just capitalize the local part
+      return localPart.charAt(0).toUpperCase() + localPart.slice(1);
+    }
+  } catch (error) {
+    console.error("Error generating username from email:", error);
+    return 'User';
+  }
+};
+
+/**
+ * Extracts the first name from a full name
+ * 
+ * @param fullName - The user's full name
+ * @returns The first name, or the full name if no space is found
+ */
+export const getFirstName = (fullName: string): string => {
+  if (!fullName) return '';
+  return fullName.split(' ')[0];
+};
+
+/**
+ * Validates if a provided string is a valid email address
+ * 
+ * @param email - The string to validate as an email address
+ * @returns Boolean indicating if the string is a valid email
+ */
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
 export const getStoredCustomerProfile = (email: string) => {

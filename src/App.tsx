@@ -32,6 +32,8 @@ import { AuthProvider } from './contexts/auth';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 function App() {
+  console.log("App component rendering");
+  
   return (
     <HelmetProvider>
       <AuthProvider>

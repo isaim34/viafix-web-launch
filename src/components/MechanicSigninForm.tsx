@@ -21,6 +21,7 @@ const mechanicFormSchema = z.object({
 type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 
 const MechanicSigninForm = () => {
+  console.log("MechanicSigninForm rendering");
   const [isLoading, setIsLoading] = useState(false);
   const { authChecked, isLoggedIn } = useAuth();
   const navigate = useNavigate();

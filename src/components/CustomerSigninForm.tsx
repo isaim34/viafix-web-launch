@@ -21,6 +21,7 @@ const customerFormSchema = z.object({
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSigninForm = () => {
+  console.log("CustomerSigninForm rendering");
   const [isLoading, setIsLoading] = useState(false);
   const { authChecked, isLoggedIn } = useAuth();
   const navigate = useNavigate();
