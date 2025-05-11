@@ -20,10 +20,35 @@ const Signin = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
+  // Try to restore the active tab from localStorage or URL on first render
+  useEffect(() => {
+    const storedSelectedRole = localStorage.getItem('selectedRole');
+    const urlParams = new URLSearchParams(window.location.search);
+    const roleParam = urlParams.get('role');
+    
+    // Priority: URL param > localStorage > default (customer)
+    let initialRole = 'customer';
+    
+    if (roleParam === 'mechanic' || roleParam === 'customer') {
+      initialRole = roleParam;
+    } else if (storedSelectedRole === 'mechanic' || storedSelectedRole === 'customer') {
+      initialRole = storedSelectedRole;
+    }
+    
+    setActiveTab(initialRole);
+    console.log(`Initial role tab set to: ${initialRole} (from URL: ${roleParam}, from storage: ${storedSelectedRole})`);
+  }, []);
+
   // Set user role in localStorage when tab changes to ensure consistency
   useEffect(() => {
     if (activeTab) {
       localStorage.setItem('selectedRole', activeTab);
+      
+      // Also update URL to reflect selected role without causing navigation
+      const url = new URL(window.location.href);
+      url.searchParams.set('role', activeTab);
+      window.history.replaceState({}, '', url.toString());
+      
       console.log(`Selected role tab changed to: ${activeTab}`);
     }
   }, [activeTab]);
@@ -80,10 +105,12 @@ const Signin = () => {
           </div>
 
           <Tabs 
-            defaultValue="customer" 
+            defaultValue={activeTab} 
             value={activeTab}
             onValueChange={(value) => {
               setActiveTab(value);
+              // Update pending role in localStorage for Google auth
+              localStorage.setItem('pendingAuthRole', value);
               // Store selected role in localStorage for better persistence
               localStorage.setItem('selectedRole', value);
             }}

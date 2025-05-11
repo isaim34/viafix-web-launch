@@ -54,6 +54,19 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
           determinedRole = userRole || 
                           (location.pathname.includes('mechanic') ? 'mechanic' : 'customer');
           console.log(`Role not found in auth metadata, using determined role: ${determinedRole}`);
+          
+          // Important: Update user metadata with the role if it's missing
+          try {
+            await supabase.auth.updateUser({
+              data: { 
+                user_type: determinedRole,
+                role: determinedRole
+              }
+            });
+            console.log("Updated user metadata with role:", determinedRole);
+          } catch (error) {
+            console.error("Error updating user metadata:", error);
+          }
         }
         
         console.log("Role being set for authenticated user:", determinedRole);
@@ -121,6 +134,9 @@ export const GoogleAuthButton = ({ mode = 'signin', userRole }: GoogleAuthButton
         });
       } else {
         console.log("Auth initiated successfully, awaiting redirect...");
+        
+        // Add a localStorage item to track the intended role during redirect
+        localStorage.setItem('pendingAuthRole', determinedRole);
       }
     } catch (error) {
       console.error('Google sign in error:', error);

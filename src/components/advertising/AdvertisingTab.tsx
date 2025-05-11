@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, CreditCard, Star, AlertCircle, Tags } from 'lucide-react';
+import { MessageCircle, CreditCard, Star, AlertCircle, Tags, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FeaturedPlansSection } from './FeaturedPlansSection';
 import { MessagePackagesSection } from './MessagePackagesSection';
@@ -23,10 +23,16 @@ export default function AdvertisingTab() {
   
   // Add failsafe role detection from localStorage
   const [localRole, setLocalRole] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     // Log authentication state for debugging
-    console.log("AdvertisingTab auth state:", { isLoggedIn, authChecked, currentUserRole });
+    console.log("AdvertisingTab auth state:", { 
+      isLoggedIn, 
+      authChecked, 
+      currentUserRole,
+      retryCount
+    });
     
     // Try to get role from localStorage as fallback
     const storedRole = localStorage.getItem('userRole');
@@ -53,9 +59,20 @@ export default function AdvertisingTab() {
       console.log("Effective role:", effectiveRole);
       
       if (!effectiveRole) {
-        console.log("No role detected");
-        setError("Unable to determine your user role. Please try signing out and signing in again.");
-        setIsLoading(false);
+        // If we've tried a few times and still no role, show an error
+        if (retryCount >= 3) {
+          console.log("No role detected after multiple attempts");
+          setError("Unable to determine your user role. Please try signing out and signing in again.");
+          setIsLoading(false);
+        } else {
+          // Try again with a short delay, incrementing retry count
+          console.log(`Retry attempt ${retryCount + 1} to detect role`);
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+            // Try to refresh auth state by triggering storage event
+            window.dispatchEvent(new Event('storage-event'));
+          }, 500);
+        }
         return;
       }
       
@@ -74,7 +91,16 @@ export default function AdvertisingTab() {
     // Check access with a slight delay to ensure auth state is loaded
     const timer = setTimeout(checkAccess, 300);
     return () => clearTimeout(timer);
-  }, [isLoggedIn, authChecked, currentUserRole]);
+  }, [isLoggedIn, authChecked, currentUserRole, retryCount]);
+
+  // Manual refresh function to retry role detection
+  const handleRefresh = () => {
+    setRetryCount(0);
+    setError(null);
+    setIsLoading(true);
+    // Force a refresh of auth state
+    window.dispatchEvent(new Event('storage-event'));
+  };
 
   // Show loading state
   if (isLoading) {
@@ -121,7 +147,8 @@ export default function AdvertisingTab() {
                 <p className="text-sm text-gray-700">
                   Debug info: Role={currentUserRole || localRole || 'unknown'}, 
                   Auth={isLoggedIn ? 'logged-in' : 'logged-out'}, 
-                  Checked={authChecked ? 'yes' : 'no'}
+                  Checked={authChecked ? 'yes' : 'no'},
+                  RetryCount={retryCount}
                 </p>
                 <div className="flex gap-3 mt-2">
                   <Button 
@@ -134,6 +161,15 @@ export default function AdvertisingTab() {
                   </Button>
                   <Button 
                     variant="secondary" 
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={handleRefresh}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Retry Detection
+                  </Button>
+                  <Button 
+                    variant="default" 
                     size="sm" 
                     onClick={() => window.location.reload()}
                   >
@@ -148,6 +184,7 @@ export default function AdvertisingTab() {
     );
   }
 
+  // Normal content display
   return (
     <div className="space-y-6">
       <Card>
