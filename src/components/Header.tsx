@@ -10,6 +10,10 @@ import { useHeader } from '@/hooks/useHeader';
 export const Header = () => {
   const { isScrolled, isMobileMenuOpen, setIsMobileMenuOpen } = useHeader();
 
+  const handleCloseMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header 
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
@@ -44,7 +48,7 @@ export const Header = () => {
       </div>
 
       {/* Mobile Menu */}
-      <MobileMenu isOpen={isMobileMenuOpen} />
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={handleCloseMobileMenu} />
     </header>
   );
 };

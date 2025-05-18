@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { AuthButtons } from './AuthButtons';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -31,19 +32,27 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
     <div className="md:hidden">
       <div className="fixed inset-0 z-40 bg-black bg-opacity-50" onClick={onClose} />
       <nav className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-xl">
-        <div className="flex flex-col p-4 space-y-4">
-          <Link to="/" className={getLinkClass('/')} onClick={handleLinkClick}>
-            Home
-          </Link>
-          <Link to="/mechanics" className={getLinkClass('/mechanics')} onClick={handleLinkClick}>
-            Find Mechanics
-          </Link>
-          <Link to="/blog" className={getLinkClass('/blog')} onClick={handleLinkClick}>
-            Blog
-          </Link>
-          <Link to="/how-it-works" className={getLinkClass('/how-it-works')} onClick={handleLinkClick}>
-            How It Works
-          </Link>
+        <div className="flex flex-col p-4">
+          {/* Navigation Links */}
+          <div className="space-y-4 border-b border-gray-200 pb-4 mb-4">
+            <Link to="/" className={getLinkClass('/')} onClick={handleLinkClick}>
+              Home
+            </Link>
+            <Link to="/mechanics" className={getLinkClass('/mechanics')} onClick={handleLinkClick}>
+              Find Mechanics
+            </Link>
+            <Link to="/blog" className={getLinkClass('/blog')} onClick={handleLinkClick}>
+              Blog
+            </Link>
+            <Link to="/how-it-works" className={getLinkClass('/how-it-works')} onClick={handleLinkClick}>
+              How It Works
+            </Link>
+          </div>
+          
+          {/* Auth Buttons */}
+          <div className="mt-2">
+            <AuthButtons isMobile={true} />
+          </div>
         </div>
       </nav>
     </div>
