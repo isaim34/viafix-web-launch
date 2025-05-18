@@ -110,29 +110,7 @@ export function useAuthSubmit() {
             description: "Check your email for a confirmation link to complete signup.",
           });
           
-          // Still add to local storage for immediate login in development environment
-          persistUserToLocalStorage({
-            id: authData.user.id,
-            email: authData.user.email,
-            role: 'mechanic',
-            name: userName
-          });
-          
-          localStorage.setItem('vendorName', userName);
-          
-          // Create a simple profile if none exists
-          const profile = {
-            firstName: userName.split(' ')[0] || '',
-            lastName: userName.split(' ').slice(1).join(' ') || '',
-            profileImage: ''
-          };
-          localStorage.setItem('mechanicProfile', JSON.stringify(profile));
-          
-          // Trigger auth change notification
-          window.dispatchEvent(new Event('storage-event'));
-          
-          // Navigate to mechanic dashboard
-          navigate('/mechanic-dashboard', { replace: true });
+          navigate('/signin', { replace: true });
           return true;
         }
       }

@@ -1,21 +1,22 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
+import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { persistUserToLocalStorage } from '@/contexts/auth/authUtils';
-import { getUserNameFromEmail } from '@/utils/authUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const customerFormSchema = z.object({
-  email: z.string().email("Please enter a valid email address")
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required")
 });
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -27,11 +28,6 @@ const CustomerSigninForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Log auth state for debugging
-  React.useEffect(() => {
-    console.log("CustomerSigninForm auth state:", { authChecked, isLoggedIn });
-  }, [authChecked, isLoggedIn]);
-
   // Don't render the form if we're already logged in
   if (isLoggedIn) {
     return (
@@ -46,43 +42,45 @@ const CustomerSigninForm = () => {
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
       email: '',
+      password: ''
     },
   });
 
-  const handleQuickSignin = async (data: CustomerFormValues) => {
+  const handleSignin = async (data: CustomerFormValues) => {
     try {
       setIsLoading(true);
-      console.log("Processing quick sign in for:", data.email);
+      console.log("Processing sign in for:", data.email);
       
-      // Set up local authentication for testing
-      const userName = getUserNameFromEmail(data.email);
-      
-      // Store auth data
-      persistUserToLocalStorage({
-        id: `temp-${Date.now()}`,
+      // Attempt to sign in with Supabase
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
-        role: 'customer',
-        name: userName
+        password: data.password
       });
       
-      // Create profile info
-      const profile = {
-        firstName: userName.split(' ')[0] || '',
-        lastName: userName.split(' ').slice(1).join(' ') || '',
-        profileImage: ''
-      };
-      localStorage.setItem('customerProfile', JSON.stringify(profile));
+      if (error) {
+        console.error("Sign in error:", error);
+        toast({
+          title: "Sign in failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
       
-      // Notify app of auth change
-      window.dispatchEvent(new Event('storage-event'));
-      
-      toast({
-        title: "Quick Testing Mode",
-        description: `Signed in as ${userName}. You can now access customer features.`,
-      });
-      
-      // Navigate to customer profile
-      navigate('/customer-profile');
+      if (authData.user) {
+        // Get user name from metadata or generate from email
+        const userName = authData.user.user_metadata?.full_name || 
+                       authData.user.user_metadata?.name || 
+                       data.email.split('@')[0];
+        
+        toast({
+          title: `Welcome back!`,
+          description: "You have successfully signed in.",
+        });
+        
+        // Navigate to customer profile
+        navigate('/customer-profile');
+      }
     } catch (error) {
       console.error("Sign in error:", error);
       toast({
@@ -97,14 +95,15 @@ const CustomerSigninForm = () => {
 
   return (
     <div className="space-y-6">      
-      <h3 className="text-lg font-medium">Quick Customer Sign In</h3>
+      <h3 className="text-lg font-medium">Customer Sign In</h3>
       <p className="text-sm text-gray-500">
-        Enter your email to sign in or create a customer account.
+        Enter your credentials to sign in to your customer account.
       </p>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleQuickSignin)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSignin)} className="space-y-6">
           <EmailField form={form} />
+          <PasswordField form={form} />
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             <div className="flex items-center justify-center">
@@ -116,15 +115,20 @@ const CustomerSigninForm = () => {
               ) : (
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
-                  <span>Quick Sign In as Customer</span>
+                  <span>Sign In</span>
                 </>
               )}
             </div>
           </Button>
           
-          <p className="text-center text-sm text-gray-500 italic">
-            For testing only - no password required
-          </p>
+          <div className="flex items-center justify-between">
+            <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+              Forgot your password?
+            </Link>
+            <Link to="/signup" className="text-sm text-primary hover:underline">
+              Create account
+            </Link>
+          </div>
           
           <div className="relative flex items-center">
             <div className="flex-grow border-t border-gray-300"></div>

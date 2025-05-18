@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -217,15 +216,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, [isLoggedIn, authChecked, currentUserRole, currentUserName, user, session, localAuthState]);
 
-  // Skip authentication methods for quick sign in
+  // Skip authentication methods for development mode only
   const signIn = async (email: string, password: string) => {
-    console.log("Skipping actual sign in for quick testing mode");
-    return { user: null, session: null };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Sign in error:", error);
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string, userData: any) => {
-    console.log("Skipping actual sign up for quick testing mode");
-    return { user: null, session: null };
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Sign up error:", error);
+      throw error;
+    }
   };
 
   const signOut = async () => {

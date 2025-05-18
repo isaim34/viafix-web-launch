@@ -20,9 +20,6 @@ const Signin = () => {
   const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
-  // Log render for debugging
-  console.log('Signin component rendering');
-
   // Try to restore the active tab from localStorage or URL on first render
   useEffect(() => {
     try {
@@ -40,7 +37,6 @@ const Signin = () => {
       }
       
       setActiveTab(initialRole);
-      console.log(`Initial role tab set to: ${initialRole} (from URL: ${roleParam}, from storage: ${storedSelectedRole})`);
       
       // Store pending role for Google Auth
       localStorage.setItem('pendingAuthRole', initialRole);
@@ -62,28 +58,14 @@ const Signin = () => {
         const url = new URL(window.location.href);
         url.searchParams.set('role', activeTab);
         window.history.replaceState({}, '', url.toString());
-        
-        console.log(`Selected role tab changed to: ${activeTab}`);
       } catch (error) {
         console.error("Error updating role in storage:", error);
       }
     }
   }, [activeTab]);
 
-  // Add additional debug logging
-  useEffect(() => {
-    console.log("Signin component authentication state:", {
-      isLoggedIn,
-      authChecked,
-      currentUserRole,
-      activeTab,
-      locationState: location.state
-    });
-  }, [isLoggedIn, authChecked, currentUserRole, activeTab, location.state]);
-
   // Redirect if already logged in
   if (authChecked && isLoggedIn && currentUserRole) {
-    console.log(`User is logged in as ${currentUserRole}, redirecting to profile`);
     const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
     return <Navigate to={redirectTo} replace />;
   }
@@ -117,7 +99,7 @@ const Signin = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Welcome to ViaFix</h1>
             <p className="text-muted-foreground">
-              Quick Sign In for Testing (No Password Required)
+              Sign in to your account
             </p>
           </div>
 

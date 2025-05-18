@@ -1,8 +1,7 @@
 
 import { MaintenanceRecord } from '@/types/customer';
 
-// This file is kept for backward compatibility but no longer provides sample data
-// Real data is now fetched from the database
+// This file now contains empty data arrays since test data has been removed
 export function getSampleRecords(): MaintenanceRecord[] {
   return [];
 }
