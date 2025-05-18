@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthButtons } from './AuthButtons';
 import { X } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -11,6 +12,9 @@ interface MobileMenuProps {
 
 export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const location = useLocation();
+  const { currentUserRole } = useAuth();
+  const isMechanicRole = currentUserRole === 'mechanic';
+  const isMechanicProfile = location.pathname.startsWith('/mechanics/');
   
   if (!isOpen) return null;
   
@@ -51,15 +55,22 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             <Link to="/" className={getLinkClass('/')} onClick={handleLinkClick}>
               Home
             </Link>
-            <Link to="/mechanics" className={getLinkClass('/mechanics')} onClick={handleLinkClick}>
-              Find Mechanics
-            </Link>
+            
+            {/* Only show Find Mechanics link if not on a mechanic profile and not a mechanic user */}
+            {!isMechanicProfile && !isMechanicRole && (
+              <Link to="/mechanics" className={getLinkClass('/mechanics')} onClick={handleLinkClick}>
+                Find Mechanics
+              </Link>
+            )}
+            
             <Link to="/favorites" className={getLinkClass('/favorites')} onClick={handleLinkClick}>
               My Favorites
             </Link>
+            
             <Link to="/blog" className={getLinkClass('/blog')} onClick={handleLinkClick}>
               Blog
             </Link>
+            
             <Link to="/how-it-works" className={getLinkClass('/how-it-works')} onClick={handleLinkClick}>
               How It Works
             </Link>
