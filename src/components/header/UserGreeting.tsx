@@ -11,7 +11,7 @@ export const UserGreeting = ({ isMobile = false }: UserGreetingProps) => {
   const firstName = getFirstName(currentUserName);
 
   return (
-    <div className={isMobile ? "px-4 py-2" : ""}>
+    <div className={isMobile ? "" : ""}>
       <p className="font-medium">
         Welcome, {firstName || 'User'}!
       </p>

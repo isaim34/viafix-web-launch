@@ -12,7 +12,7 @@ interface MobileMenuProps {
 
 export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const location = useLocation();
-  const { currentUserRole } = useAuth();
+  const { currentUserRole, isLoggedIn, currentUserName, getFirstName } = useAuth();
   const isMechanicRole = currentUserRole === 'mechanic';
   const isMechanicProfile = location.pathname.startsWith('/mechanics/');
   
@@ -87,6 +87,12 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
           
           {/* Auth Buttons */}
           <div className="px-4 py-4 border-t border-gray-100">
+            {isLoggedIn && (
+              <div className="mb-3 px-2">
+                <p className="text-sm text-gray-600">Welcome,</p>
+                <p className="font-medium">{getFirstName(currentUserName) || 'User'}</p>
+              </div>
+            )}
             <AuthButtons isMobile={true} />
           </div>
         </div>

@@ -11,6 +11,7 @@ import { UserGreeting } from './UserGreeting';
 import { UserAvatar } from './UserAvatar';
 import { UserMenuItems } from './UserMenuItems';
 import { useAuth } from '@/hooks/useAuth';
+import { User } from 'lucide-react';
 
 interface AuthButtonsProps {
   isMobile?: boolean;
@@ -39,16 +40,18 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   if (isLoggedIn) {
     return (
       <div className={isMobile ? "space-y-4" : "flex items-center space-x-4"}>
-        <div className={isMobile ? "mb-2" : "text-sm"}>
-          <UserGreeting isMobile={isMobile} />
-        </div>
+        {!isMobile && (
+          <div className="text-sm">
+            <UserGreeting />
+          </div>
+        )}
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
-              variant="ghost" 
-              size="icon" 
-              className={`rounded-full ${isMobile ? "w-full flex justify-between items-center" : ""}`}
+              variant={isMobile ? "outline" : "ghost"} 
+              size={isMobile ? "default" : "icon"} 
+              className={`${isMobile ? "w-full justify-start" : "rounded-full"}`}
             >
               <UserAvatar />
               {isMobile && <span className="ml-3">My Account</span>}
@@ -76,6 +79,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
         Sign in
       </Button>
       <Button 
+        variant="default"
         className={isMobile ? "w-full justify-start" : ""} 
         onClick={() => navigate('/signup')}
       >
