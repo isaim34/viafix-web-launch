@@ -3,12 +3,15 @@ import React, { useEffect } from 'react';
 import { Header } from './Header';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const isMobile = useIsMobile();
+  
   // Add debug logging
   useEffect(() => {
     console.log("Layout component mounted");

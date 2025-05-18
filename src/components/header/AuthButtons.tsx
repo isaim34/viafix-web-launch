@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,18 +38,26 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
   // Authentication is checked and user is logged in
   if (isLoggedIn) {
     return (
-      <div className={isMobile ? "space-y-3" : "flex items-center space-x-4"}>
-        <div className="text-sm">
+      <div className={isMobile ? "space-y-4" : "flex items-center space-x-4"}>
+        <div className={isMobile ? "mb-2" : "text-sm"}>
           <UserGreeting isMobile={isMobile} />
         </div>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={`rounded-full ${isMobile ? "w-full flex justify-between items-center" : ""}`}
+            >
               <UserAvatar />
+              {isMobile && <span className="ml-3">My Account</span>}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent 
+            align={isMobile ? "center" : "end"}
+            className="w-56"
+          >
             <UserMenuItems />
           </DropdownMenuContent>
         </DropdownMenu>
@@ -58,7 +67,7 @@ export const AuthButtons: React.FC<AuthButtonsProps> = ({ isMobile = false }) =>
 
   // Authentication is checked and user is not logged in
   return (
-    <div className={isMobile ? "space-y-3" : "space-x-4"}>
+    <div className={isMobile ? "space-y-3" : "space-x-4 flex"}>
       <Button 
         variant="ghost" 
         className={isMobile ? "w-full justify-start" : ""} 

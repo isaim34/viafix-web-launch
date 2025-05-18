@@ -6,9 +6,11 @@ import { Navigation } from './header/Navigation';
 import { AuthButtons } from './header/AuthButtons';
 import { MobileMenu } from './header/MobileMenu';
 import { useHeader } from '@/hooks/useHeader';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const Header = () => {
   const { isScrolled, isMobileMenuOpen, setIsMobileMenuOpen } = useHeader();
+  const isMobile = useIsMobile();
 
   const handleCloseMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -35,8 +37,9 @@ export const Header = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden p-2 rounded-md" 
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors" 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6" />

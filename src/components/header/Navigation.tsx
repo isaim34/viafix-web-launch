@@ -2,24 +2,31 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const Navigation = () => {
   const location = useLocation();
   const { currentUserRole } = useAuth();
   const isMechanicRole = currentUserRole === 'mechanic';
   const isMechanicProfile = location.pathname.startsWith('/mechanics/');
+  const isMobile = useIsMobile();
   
   // Active link styling
   const getLinkClass = (path: string) => {
-    const baseClass = "transition-colors";
+    const baseClass = "transition-colors text-sm";
     const isActive = location.pathname === path;
     return isActive 
       ? `${baseClass} text-primary font-medium` 
       : `${baseClass} text-gray-700 hover:text-primary`;
   };
   
+  // Don't render on mobile - it will use the MobileMenu instead
+  if (isMobile) {
+    return null;
+  }
+  
   return (
-    <nav className="hidden md:flex items-center space-x-8">
+    <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
       <Link to="/" className={getLinkClass('/')}>
         Home
       </Link>

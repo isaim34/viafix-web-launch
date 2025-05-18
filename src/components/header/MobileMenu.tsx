@@ -20,7 +20,7 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   
   // Active link styling
   const getLinkClass = (path: string) => {
-    const baseClass = "text-gray-700 hover:text-primary transition-colors py-3 px-4 block font-medium";
+    const baseClass = "text-gray-700 hover:text-primary transition-colors py-3 px-4 block w-full font-medium";
     const isActive = location.pathname === path;
     return isActive 
       ? `${baseClass} text-primary border-l-2 border-primary` 
@@ -35,8 +35,17 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
 
   return (
     <div className="md:hidden">
-      <div className="fixed inset-0 z-40 bg-black bg-opacity-50" onClick={onClose} />
-      <nav className="fixed inset-y-0 right-0 z-50 w-72 bg-white shadow-xl overflow-y-auto flex flex-col">
+      <div 
+        className="fixed inset-0 z-40 bg-black bg-opacity-50" 
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <nav 
+        className="fixed inset-y-0 right-0 z-50 w-72 max-w-full bg-white shadow-xl overflow-y-auto flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Main menu"
+      >
         {/* Header with close button */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <h2 className="font-medium text-lg">Menu</h2>
