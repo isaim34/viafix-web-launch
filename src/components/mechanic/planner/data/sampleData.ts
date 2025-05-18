@@ -2,7 +2,7 @@
 import { format } from 'date-fns';
 import { PlannerEntry } from '../types/plannerTypes';
 
-// Sample data removed - in a real app, this would come from an API or database
+// This file now contains empty data arrays since test data has been removed
 export const sampleData: PlannerEntry[] = [];
 
 export const getEmptyEntry = () => ({
