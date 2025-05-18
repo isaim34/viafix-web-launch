@@ -15,7 +15,7 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   
   // Active link styling
   const getLinkClass = (path: string) => {
-    const baseClass = "text-gray-700 hover:text-primary transition-colors py-2";
+    const baseClass = "text-gray-700 hover:text-primary transition-colors py-2 block";
     const isActive = location.pathname === path;
     return isActive 
       ? `${baseClass} text-primary font-medium` 
@@ -31,7 +31,7 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   return (
     <div className="md:hidden">
       <div className="fixed inset-0 z-40 bg-black bg-opacity-50" onClick={onClose} />
-      <nav className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-xl">
+      <nav className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-xl overflow-y-auto">
         <div className="flex flex-col p-4">
           {/* Navigation Links */}
           <div className="space-y-4 border-b border-gray-200 pb-4 mb-4">
@@ -40,6 +40,9 @@ export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
             </Link>
             <Link to="/mechanics" className={getLinkClass('/mechanics')} onClick={handleLinkClick}>
               Find Mechanics
+            </Link>
+            <Link to="/favorites" className={getLinkClass('/favorites')} onClick={handleLinkClick}>
+              My Favorites
             </Link>
             <Link to="/blog" className={getLinkClass('/blog')} onClick={handleLinkClick}>
               Blog
