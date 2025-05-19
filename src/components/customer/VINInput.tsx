@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Check, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Mail } from 'lucide-react';
 import { decodeVin, VehicleInfo } from '@/services/nhtsa';
+import { toast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface VINInputProps {
   value: string;
@@ -15,12 +18,31 @@ const VINInput = ({ value, onChange, onVehicleInfoChange }: VINInputProps) => {
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  
+  // Check if user is subscribed on component mount
+  useEffect(() => {
+    const subscribedEmail = localStorage.getItem('subscribed_email');
+    if (subscribedEmail) {
+      setIsSubscribed(true);
+    }
+  }, []);
   
   const validateVIN = async () => {
     if (!value || value.length < 17) {
       setIsValid(false);
       setVehicleInfo(null);
       if (onVehicleInfoChange) onVehicleInfoChange(null);
+      return;
+    }
+    
+    // Check if subscribed
+    if (!isSubscribed) {
+      toast({
+        title: "Subscription required",
+        description: "Please subscribe with your email on our vehicle safety page to access VIN lookup features",
+        variant: "default"
+      });
       return;
     }
     
@@ -57,6 +79,17 @@ const VINInput = ({ value, onChange, onVehicleInfoChange }: VINInputProps) => {
   
   return (
     <div className="space-y-2">
+      {!isSubscribed && (
+        <Alert className="bg-blue-50 border-blue-100 mb-4">
+          <Mail className="h-4 w-4 text-blue-600" />
+          <AlertTitle className="text-blue-800">Subscription Required</AlertTitle>
+          <AlertDescription className="text-blue-700 text-xs">
+            To use our VIN lookup features, please subscribe with your email on our 
+            <a href="/vehicle-safety-check" className="text-blue-600 underline ml-1">vehicle safety check</a> page.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div>
         <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
         <div className="relative mt-1">

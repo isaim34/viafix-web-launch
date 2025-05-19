@@ -4,19 +4,39 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Car, AlertCircle, Check, ExternalLink } from 'lucide-react';
+import { Loader2, Car, AlertCircle, Check, ExternalLink, Mail } from 'lucide-react';
 import { decodeVin, VehicleInfo } from '@/services/nhtsa';
 import VehicleSafetyData from './VehicleSafetyData';
 import useVehicleSafetyData from '@/hooks/useVehicleSafetyData';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+const subscriptionSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
 
 const VINLookupTool = () => {
   const [vin, setVin] = useState('');
   const [isDecoding, setIsDecoding] = useState(false);
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   
   const safetyData = useVehicleSafetyData(vin, vehicleInfo);
+
+  const form = useForm<SubscriptionFormData>({
+    resolver: zodResolver(subscriptionSchema),
+    defaultValues: {
+      email: '',
+    }
+  });
   
   const handleVINChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Convert to uppercase and remove non-alphanumeric characters
@@ -38,6 +58,15 @@ const VINLookupTool = () => {
   const handleLookup = async () => {
     if (!vin || vin.length !== 17) {
       setError("Please enter a valid 17-character VIN");
+      return;
+    }
+    
+    if (!isSubscribed) {
+      toast({
+        title: "Email required",
+        description: "Please subscribe with your email to access vehicle safety data",
+        variant: "default"
+      });
       return;
     }
     
@@ -63,6 +92,65 @@ const VINLookupTool = () => {
     setVehicleInfo(null);
     setError(null);
   };
+
+  const onSubscribe = async (data: SubscriptionFormData) => {
+    try {
+      // First, check if the email is already subscribed
+      const { data: existingSubscriber, error: checkError } = await supabase
+        .from('subscribers')
+        .select('email')
+        .eq('email', data.email)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error("Error checking subscription:", checkError);
+        throw new Error("Failed to check subscription status");
+      }
+      
+      if (!existingSubscriber) {
+        // If not already subscribed, add to subscribers table
+        const { error: insertError } = await supabase
+          .from('subscribers')
+          .insert({
+            email: data.email,
+            subscription_tier: 'free',
+            subscribed: true,
+            user_id: null, // No user account required
+          });
+          
+        if (insertError) {
+          console.error("Error subscribing:", insertError);
+          throw new Error("Failed to subscribe");
+        }
+      }
+      
+      // Store subscription status in localStorage
+      localStorage.setItem('subscribed_email', data.email);
+      localStorage.setItem('subscription_updated_at', new Date().toISOString());
+      
+      setIsSubscribed(true);
+      toast({
+        title: "Subscribed successfully",
+        description: "You now have access to VIN lookup features",
+      });
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast({
+        title: "Subscription failed",
+        description: error instanceof Error ? error.message : "Failed to subscribe",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Check for existing subscription on component mount
+  React.useEffect(() => {
+    const subscribedEmail = localStorage.getItem('subscribed_email');
+    if (subscribedEmail) {
+      form.setValue('email', subscribedEmail);
+      setIsSubscribed(true);
+    }
+  }, []);
   
   return (
     <Card className="w-full">
@@ -74,6 +162,63 @@ const VINLookupTool = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {!isSubscribed ? (
+            <div className="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
+              <h3 className="flex items-center text-blue-800 text-sm font-medium mb-2">
+                <Mail className="h-4 w-4 mr-2" />
+                Subscribe for Free VIN Lookup
+              </h3>
+              <p className="text-blue-700 text-xs mb-4">
+                Enter your email to access our VIN lookup tool and receive updates about vehicle safety
+              </p>
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubscribe)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex gap-2">
+                            <Input 
+                              placeholder="Enter your email" 
+                              {...field} 
+                              className="flex-1" 
+                            />
+                            <Button 
+                              type="submit" 
+                              variant="default"
+                              disabled={form.formState.isSubmitting}
+                            >
+                              {form.formState.isSubmitting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Subscribing
+                                </>
+                              ) : (
+                                'Subscribe'
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </div>
+          ) : (
+            <Alert className="bg-green-50 border-green-200 mb-4">
+              <Check className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-800">Subscribed</AlertTitle>
+              <AlertDescription className="text-green-700">
+                Thank you for subscribing! You now have full access to our VIN lookup tools.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="vin-lookup">Vehicle Identification Number (VIN)</Label>
             <div className="flex space-x-2">
@@ -89,7 +234,7 @@ const VINLookupTool = () => {
               <Button 
                 type="button"
                 onClick={handleLookup}
-                disabled={isDecoding || !vin || vin.length !== 17}
+                disabled={isDecoding || !vin || vin.length !== 17 || !isSubscribed}
               >
                 {isDecoding ? (
                   <>
