@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { motion } from 'framer-motion';
 import { Search, Wrench, Clock, ChevronDown } from 'lucide-react';
@@ -9,6 +9,7 @@ import { ZipCodeSearchForm } from './ZipCodeSearchForm';
 export const HeroSection = () => {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features');
@@ -17,9 +18,31 @@ export const HeroSection = () => {
     }
   };
 
-  // Use local images from the project assets
-  const mechanicImageUrl = "/lovable-uploads/664f10c1-89ec-4a3b-b2cc-011ee02c5d12.png";
+  // Use local images from the project assets with timestamp to avoid caching
+  const mechanicImageUrl = `/lovable-uploads/664f10c1-89ec-4a3b-b2cc-011ee02c5d12.png?t=${Date.now()}`;
   const fallbackImage = "/placeholder.svg";
+
+  // Debug image loading
+  useEffect(() => {
+    console.log("Image URL being used:", mechanicImageUrl);
+    
+    // Preload the image to check if it exists
+    const img = new Image();
+    img.onload = () => {
+      console.log("Image loaded successfully");
+      setImageLoaded(true);
+    };
+    img.onerror = (e) => {
+      console.error("Error loading image:", e);
+      setImageError(true);
+    };
+    img.src = mechanicImageUrl;
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [mechanicImageUrl]);
 
   return (
     <section className="relative overflow-hidden py-20 sm:py-32">
@@ -122,12 +145,33 @@ export const HeroSection = () => {
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-xl -z-10" />
-              <img 
-                src={imageError ? fallbackImage : mechanicImageUrl}
-                alt="Team of professional mechanics" 
-                className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
-                onError={() => setImageError(true)}
-              />
+              
+              {imageError ? (
+                // Fallback image
+                <img 
+                  src={fallbackImage}
+                  alt="Team of professional mechanics" 
+                  className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
+                />
+              ) : (
+                // Primary image with error handling
+                <img 
+                  src={mechanicImageUrl}
+                  alt="Team of professional mechanics" 
+                  className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
+                  onError={() => {
+                    console.error("Image failed to load in component");
+                    setImageError(true);
+                  }}
+                />
+              )}
+              
+              {/* Debug info during development */}
+              {process.env.NODE_ENV === 'development' && !imageLoaded && !imageError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-xl">
+                  <p className="text-gray-500">Loading image...</p>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
