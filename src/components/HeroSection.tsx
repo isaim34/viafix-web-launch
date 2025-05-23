@@ -17,8 +17,8 @@ export const HeroSection = () => {
     }
   };
 
-  // Use a reliable image source from Unsplash for the mechanic team
-  const mechanicImageUrl = "https://images.unsplash.com/photo-1613056022581-ea04de7dbbd8?q=80&w=2071&auto=format&fit=crop";
+  // Use local images from the project assets
+  const mechanicImageUrl = "/lovable-uploads/664f10c1-89ec-4a3b-b2cc-011ee02c5d12.png";
   const fallbackImage = "/placeholder.svg";
 
   return (
