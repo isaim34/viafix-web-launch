@@ -8,6 +8,7 @@ import { ZipCodeSearchForm } from './ZipCodeSearchForm';
 
 export const HeroSection = () => {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById('features');
@@ -15,6 +16,10 @@ export const HeroSection = () => {
       featuresSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  // Use a reliable image source from Unsplash for the mechanic team
+  const mechanicImageUrl = "https://images.unsplash.com/photo-1613056022581-ea04de7dbbd8?q=80&w=2071&auto=format&fit=crop";
+  const fallbackImage = "/placeholder.svg";
 
   return (
     <section className="relative overflow-hidden py-20 sm:py-32">
@@ -118,13 +123,10 @@ export const HeroSection = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-xl -z-10" />
               <img 
-                src="/placeholder.svg" 
+                src={imageError ? fallbackImage : mechanicImageUrl}
                 alt="Team of professional mechanics" 
-                className="rounded-xl shadow-xl w-full h-auto"
-                onError={(e) => {
-                  console.error("Image failed to load, falling back to placeholder");
-                  e.currentTarget.src = "/placeholder.svg";
-                }}
+                className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
+                onError={() => setImageError(true)}
               />
             </div>
           </motion.div>
@@ -193,4 +195,3 @@ export const HeroSection = () => {
     </section>
   );
 };
-
