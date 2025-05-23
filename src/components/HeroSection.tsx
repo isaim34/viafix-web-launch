@@ -118,9 +118,13 @@ export const HeroSection = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-xl -z-10" />
               <img 
-                src="/lovable-uploads/664f10c1-89ec-4a3b-b2cc-011ee02c5d12.png" 
+                src="/placeholder.svg" 
                 alt="Team of professional mechanics" 
                 className="rounded-xl shadow-xl w-full h-auto"
+                onError={(e) => {
+                  console.error("Image failed to load, falling back to placeholder");
+                  e.currentTarget.src = "/placeholder.svg";
+                }}
               />
             </div>
           </motion.div>
@@ -189,3 +193,4 @@ export const HeroSection = () => {
     </section>
   );
 };
+
