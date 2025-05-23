@@ -118,9 +118,9 @@ export const HeroSection = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-xl -z-10" />
               <img 
-                src="/lovable-uploads/664f10c1-89ec-4a3b-b2cc-011ee02c5d12.png" 
+                src="/lovable-uploads/616c0c0c-86b3-451a-ba0d-f94998ce8ec2.png" 
                 alt="Team of professional mechanics" 
-                className="rounded-xl shadow-xl"
+                className="rounded-xl shadow-xl w-full h-auto"
               />
             </div>
           </motion.div>
