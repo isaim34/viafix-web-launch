@@ -5,7 +5,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Input } from '@/components/ui/input';
 import { MaintenanceRecord } from '@/types/customer';
 import VINInput from '../VINInput';
-import { VehicleInfo } from '@/services/nhtsa';
+import { VehicleInfo } from '@/services/nhtsaService';
 
 interface VehicleInfoFieldsProps {
   onVehicleInfoChange: (info: VehicleInfo | null) => void;
