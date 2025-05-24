@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { createCheckoutSession } from '@/lib/stripe';
 import { supabase } from '@/integrations/supabase/client';
+import { CheckoutResult } from '@/lib/stripe/types';
 
 export const useCheckoutOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +50,7 @@ export const useCheckoutOperations = () => {
       console.log("Calling createCheckoutSession...");
       
       // Add timeout handling for the checkout session creation
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise<CheckoutResult>((_, reject) => {
         setTimeout(() => reject(new Error('Request timeout - please try again')), 30000);
       });
       
