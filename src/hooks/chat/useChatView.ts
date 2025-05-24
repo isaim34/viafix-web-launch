@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { ChatThread } from '@/types/mechanic';
 import { useChatMessages } from './useChatMessages';
 import { useChatSubscription } from './useChatSubscription';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 interface UseChatViewProps {
   thread: ChatThread;
@@ -11,6 +12,8 @@ interface UseChatViewProps {
 }
 
 export function useChatView({ thread, currentUserId, onNewMessage }: UseChatViewProps) {
+  const { markAsRead } = useNotifications();
+  
   // Get the other participant (not the current user)
   const otherParticipantId = useMemo(() => 
     thread.participants.find(p => p !== currentUserId) || '', 
@@ -56,10 +59,16 @@ export function useChatView({ thread, currentUserId, onNewMessage }: UseChatView
     onMessageReceived: addMessage
   });
 
-  // Load messages when component mounts
+  // Load messages when component mounts and mark as read
   useEffect(() => {
     loadMessages();
-  }, [loadMessages]);
+    
+    // Mark thread as read when viewing it
+    if (thread.unreadCount > 0) {
+      console.log('ChatView - Marking thread as read:', thread.id);
+      markAsRead(thread.id);
+    }
+  }, [loadMessages, thread.id, thread.unreadCount, markAsRead]);
 
   const handleSendMessage = (messageText: string) => {
     return sendMessage(messageText, otherParticipantId, thread.participantNames);

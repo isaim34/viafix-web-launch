@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 export function useMessagePage() {
   const { isLoggedIn, currentUserRole, user } = useAuth();
-  const { refreshUnreadCount } = useNotifications();
+  const { refreshUnreadCount, markAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState<string>("chat");
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
@@ -88,10 +88,24 @@ export function useMessagePage() {
     console.log('useMessagePage - Thread selected:', threadId);
     setSelectedThreadId(threadId);
     setShowChatView(true);
+    
+    // Find the selected thread and mark as read if it has unread messages
+    const selectedThread = threads.find(t => t.id === threadId);
+    if (selectedThread && selectedThread.unreadCount > 0) {
+      console.log('useMessagePage - Marking selected thread as read:', threadId);
+      markAsRead(threadId);
+    }
   };
 
   const handleBackToList = () => {
     setShowChatView(false);
+    // Refresh threads to get updated unread counts
+    if (isLoggedIn && currentUserId && currentUserId !== 'anonymous') {
+      getChatThreads(currentUserId).then(userThreads => {
+        setThreads(userThreads);
+        refreshUnreadCount();
+      });
+    }
   };
 
   const handleSignInClick = () => {

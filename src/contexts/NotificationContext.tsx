@@ -16,6 +16,7 @@ interface NotificationContextType {
   toggleBrowserNotifications: () => void;
   refreshUnreadCount: () => void;
   requestNotificationPermission: () => Promise<boolean>;
+  markAsRead: (threadId: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -79,11 +80,22 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     try {
       const threads = await getChatThreads(currentUserId);
       const totalUnread = threads.reduce((sum: number, thread: ChatThread) => sum + (thread.unreadCount || 0), 0);
+      console.log('NotificationContext - Total unread count:', totalUnread);
       setUnreadCount(totalUnread);
     } catch (error) {
       console.error('Error refreshing unread count:', error);
     }
   }, [isLoggedIn, getCurrentUserId]);
+
+  // Mark specific thread as read and update count
+  const markAsRead = useCallback((threadId: string) => {
+    console.log('NotificationContext - Marking thread as read:', threadId);
+    // Trigger a refresh of the unread count after a short delay
+    // to allow the database to update
+    setTimeout(() => {
+      refreshUnreadCount();
+    }, 500);
+  }, [refreshUnreadCount]);
 
   // Set up real-time subscription for unread count updates
   useEffect(() => {
@@ -135,6 +147,38 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
             // Refresh unread count
             refreshUnreadCount();
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'chat_messages'
+        },
+        (payload) => {
+          const updatedMessage = payload.new as any;
+          
+          // If a message was marked as read, refresh unread count
+          if (updatedMessage.is_read && updatedMessage.receiver_id === currentUserId) {
+            console.log('Message marked as read, refreshing unread count');
+            refreshUnreadCount();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'chat_threads'
+        },
+        (payload) => {
+          const updatedThread = payload.new as any;
+          
+          // If thread unread count changed, refresh our count
+          console.log('Thread updated, refreshing unread count');
+          refreshUnreadCount();
         }
       )
       .subscribe();
@@ -236,7 +280,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     toggleSound,
     toggleBrowserNotifications,
     refreshUnreadCount,
-    requestNotificationPermission
+    requestNotificationPermission,
+    markAsRead
   };
 
   return (
