@@ -61,9 +61,11 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
     
     console.log("Calling Supabase edge function...");
     
-    // Always include the email in the request body for consistent authentication fallback
+    // Prepare the request body - this is the key fix
     const requestBody = {
-      ...options,
+      paymentType: options.paymentType,
+      planType: options.planType,
+      quantity: options.quantity,
       email: userEmail
     };
     
@@ -74,11 +76,9 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
     const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
     
     try {
+      // Fixed: Pass the body correctly to the edge function
       const response = await supabase.functions.invoke('create-checkout', {
-        body: requestBody,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        body: requestBody
       });
       
       clearTimeout(timeoutId);
