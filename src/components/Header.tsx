@@ -5,11 +5,15 @@ import { Logo } from './header/Logo';
 import { Navigation } from './header/Navigation';
 import { AuthButtons } from './header/AuthButtons';
 import { MobileMenu } from './header/MobileMenu';
+import { NotificationBadge } from './notifications/NotificationBadge';
 import { useHeader } from '@/hooks/useHeader';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'react-router-dom';
 
 export const Header = () => {
   const { isScrolled, isMobileMenuOpen, setIsMobileMenuOpen } = useHeader();
+  const { isLoggedIn } = useAuth();
   const isMobile = useIsMobile();
 
   const handleCloseMobileMenu = () => {
@@ -32,21 +36,41 @@ export const Header = () => {
 
           {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
+            {isLoggedIn && (
+              <Link 
+                to="/messages" 
+                className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+                title="Messages"
+              >
+                <NotificationBadge />
+              </Link>
+            )}
             <AuthButtons />
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors" 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
+          <div className="md:hidden flex items-center space-x-2">
+            {isLoggedIn && (
+              <Link 
+                to="/messages" 
+                className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+                title="Messages"
+              >
+                <NotificationBadge />
+              </Link>
             )}
-          </button>
+            <button 
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

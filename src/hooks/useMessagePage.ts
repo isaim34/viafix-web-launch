@@ -1,12 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { getChatThreads } from '@/services/chat/threadService';
 import { ChatThread } from '@/types/mechanic';
 import { useNavigate } from 'react-router-dom';
 
 export function useMessagePage() {
   const { isLoggedIn, currentUserRole, user } = useAuth();
+  const { refreshUnreadCount } = useNotifications();
   const [activeTab, setActiveTab] = useState<string>("chat");  // Default to "chat" for customers
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
@@ -59,6 +61,9 @@ export function useMessagePage() {
         console.log("useMessagePage - Fetched threads:", userThreads);
         
         setThreads(userThreads);
+        
+        // Refresh global unread count
+        refreshUnreadCount();
       } catch (error) {
         console.error("useMessagePage - Error fetching chat threads:", error);
         setError("Failed to load messages. Please try again later.");
@@ -77,7 +82,7 @@ export function useMessagePage() {
       });
       setIsLoading(false);
     }
-  }, [isLoggedIn, currentUserId, currentUserRole]);
+  }, [isLoggedIn, currentUserId, currentUserRole, refreshUnreadCount]);
 
   const handleSelectThread = (threadId: string) => {
     console.log('useMessagePage - Thread selected:', threadId);

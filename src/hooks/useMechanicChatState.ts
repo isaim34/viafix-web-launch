@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { getChatThreads } from '@/services/chat/threadService';
 import { ChatThread } from '@/types/mechanic';
 import { toast } from 'sonner';
@@ -13,6 +14,7 @@ export function useMechanicChatState(initialThreadId?: string) {
   const [error, setError] = useState<string | null>(null);
   
   const { user, currentUserRole, currentUserName } = useAuth();
+  const { refreshUnreadCount } = useNotifications();
   
   // Enhanced user ID retrieval with debugging
   const getCurrentUserId = () => {
@@ -58,6 +60,9 @@ export function useMechanicChatState(initialThreadId?: string) {
       const userThreads = await getChatThreads(currentUserId);
       console.log('useMechanicChatState - Loaded threads:', userThreads);
       setThreads(userThreads);
+      
+      // Refresh global unread count
+      refreshUnreadCount();
     } catch (error) {
       console.error("useMechanicChatState - Error loading threads:", error);
       setError("Failed to load chat threads. Please try again later.");
@@ -65,7 +70,7 @@ export function useMechanicChatState(initialThreadId?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [currentUserId]);
+  }, [currentUserId, refreshUnreadCount]);
   
   useEffect(() => {
     // Only load threads if we have a valid user ID
