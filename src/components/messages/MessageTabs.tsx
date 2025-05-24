@@ -1,8 +1,8 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Inbox } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { ChatThreadsList } from '@/components/chat/ChatThreadsList';
-import MechanicMailbox from '@/components/MechanicMailbox';
 import { ChatThread } from '@/types/mechanic';
 
 interface MessageTabsProps {
@@ -29,33 +29,14 @@ const MessageTabs = ({
   error
 }: MessageTabsProps) => {
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value="chat" className="w-full">
       <TabsList className="mb-6">
-        {currentUserRole === 'mechanic' ? (
-          <>
-            <TabsTrigger value="inbox" className="flex items-center gap-2">
-              <Inbox className="h-4 w-4" />
-              Inbox
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Chat Messages
-            </TabsTrigger>
-          </>
-        ) : (
-          // For customers, we're removing the Messages tab entirely since it's not needed
-          <></>
-        )}
+        <TabsTrigger value="chat" className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4" />
+          Messages
+        </TabsTrigger>
       </TabsList>
       
-      {/* Mechanic-specific inbox tab */}
-      {currentUserRole === 'mechanic' && (
-        <TabsContent value="inbox">
-          <MechanicMailbox />
-        </TabsContent>
-      )}
-      
-      {/* Chat messages tab - available for both roles but with different presentation */}
       <TabsContent value="chat">
         <MessageThreadsPanel 
           threads={threads}
@@ -95,13 +76,13 @@ const MessageThreadsPanel = ({
       <div className="p-4 border-b">
         <h2 className="text-lg font-medium">
           {currentUserRole === 'mechanic' 
-            ? 'Your Customer Conversations' 
-            : 'Your Mechanic Conversations'}
+            ? 'Customer Conversations' 
+            : 'Mechanic Conversations'}
         </h2>
         <p className="text-sm text-muted-foreground">
           {currentUserRole === 'mechanic'
-            ? 'Manage your conversations with customers here.'
-            : 'Contact and chat with mechanics about your vehicle repairs and maintenance here.'}
+            ? 'All your conversations with customers including booking requests, inquiries, and ongoing chats.'
+            : 'Contact and chat with mechanics about your vehicle repairs and maintenance.'}
         </p>
       </div>
       {error ? (

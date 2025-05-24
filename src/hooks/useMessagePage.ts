@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 export function useMessagePage() {
   const { isLoggedIn, currentUserRole, user } = useAuth();
   const { refreshUnreadCount } = useNotifications();
-  const [activeTab, setActiveTab] = useState<string>("chat");  // Default to "chat" for customers
+  const [activeTab, setActiveTab] = useState<string>("chat");
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

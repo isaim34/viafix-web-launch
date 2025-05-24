@@ -6,7 +6,6 @@ import {
   Wrench, 
   CheckSquare, 
   Calendar, 
-  Inbox, 
   MessageCircle, 
   Tags, 
   BarChart3, 
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
-import MechanicMailbox from '@/components/MechanicMailbox';
 import MechanicChat from '@/components/MechanicChat';
 import CompletedJobsTab from '@/components/CompletedJobsTab';
 import WeeklyPlannerTab from '@/components/WeeklyPlannerTab';
@@ -83,13 +81,9 @@ const MechanicDashboard = () => {
                   <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   <span className={isMobile ? "hidden xs:inline" : ""}>Planner</span>
                 </TabsTrigger>
-                <TabsTrigger value="inbox" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
-                  <Inbox className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className={isMobile ? "hidden xs:inline" : ""}>Inbox</span>
-                </TabsTrigger>
-                <TabsTrigger value="chat" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
+                <TabsTrigger value="messages" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
                   <MessageCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className={isMobile ? "hidden xs:inline" : ""}>Chat</span>
+                  <span className={isMobile ? "hidden xs:inline" : ""}>Messages</span>
                 </TabsTrigger>
               </div>
 
@@ -138,14 +132,8 @@ const MechanicDashboard = () => {
               </ErrorBoundary>
             </TabsContent>
             
-            <TabsContent value="inbox">
-              <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading inbox</div>}>
-                <MechanicMailbox />
-              </ErrorBoundary>
-            </TabsContent>
-            
-            <TabsContent value="chat">
-              <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading chat</div>}>
+            <TabsContent value="messages">
+              <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading messages</div>}>
                 <MechanicChat />
               </ErrorBoundary>
             </TabsContent>
