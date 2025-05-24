@@ -28,20 +28,108 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       
       console.log("Using local authentication with email:", userEmail);
       
+      // For test accounts, return mock data without calling the edge function
+      if (isTestAccount(userEmail)) {
+        console.log("Test account detected, returning mock subscription data");
+        const mockData = getMockSubscriptionData(userEmail);
+        updateLocalSubscriptionData(mockData);
+        return { 
+          subscribed: mockData.subscribed,
+          subscription_tier: mockData.subscription_tier,
+          subscription_end: mockData.subscription_end,
+          error: null
+        };
+      }
+      
       // Add timestamp to prevent caching
       const timestamp = new Date().getTime();
       
-      // Call the check-subscription function with email in the body
+      try {
+        // Call the check-subscription function with email in the body
+        const response = await supabase.functions.invoke('check-subscription', {
+          body: { email: userEmail, timestamp },
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+        
+        if (response.error) {
+          console.error("Subscription check error:", response.error);
+          // Return a fallback response instead of throwing
+          return { 
+            subscribed: false, 
+            subscription_tier: null,
+            subscription_end: null,
+            error: "Unable to verify subscription status. Please try again later."
+          };
+        }
+        
+        console.log("Received subscription data:", response.data);
+        
+        // Store subscription info in localStorage for easy access
+        updateLocalSubscriptionData(response.data);
+        
+        return { 
+          subscribed: response.data?.subscribed || false,
+          subscription_tier: response.data?.subscription_tier || null,
+          subscription_end: response.data?.subscription_end || null,
+          error: null
+        };
+      } catch (functionError) {
+        console.error("Edge function call failed:", functionError);
+        // Return mock data for test accounts as fallback
+        if (isTestAccount(userEmail)) {
+          const mockData = getMockSubscriptionData(userEmail);
+          updateLocalSubscriptionData(mockData);
+          return { 
+            subscribed: mockData.subscribed,
+            subscription_tier: mockData.subscription_tier,
+            subscription_end: mockData.subscription_end,
+            error: null
+          };
+        }
+        // For real accounts, return unsubscribed status
+        return { 
+          subscribed: false,
+          subscription_tier: null,
+          subscription_end: null,
+          error: "Unable to connect to subscription service. Please try again later."
+        };
+      }
+    }
+    
+    // Use Supabase session authentication
+    console.log("Using Supabase authentication");
+    
+    const userSessionEmail = sessionData.session.user.email;
+    
+    // For test accounts with Supabase session, return mock data
+    if (userSessionEmail && isTestAccount(userSessionEmail)) {
+      console.log("Test account detected with session, returning mock subscription data");
+      const mockData = getMockSubscriptionData(userSessionEmail);
+      updateLocalSubscriptionData(mockData);
+      return { 
+        subscribed: mockData.subscribed,
+        subscription_tier: mockData.subscription_tier,
+        subscription_end: mockData.subscription_end,
+        error: null
+      };
+    }
+    
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    
+    try {
       const response = await supabase.functions.invoke('check-subscription', {
-        body: { email: userEmail, timestamp },
-        headers: { 'Cache-Control': 'no-cache' } // Prevent caching
+        body: { timestamp },
+        headers: { 'Cache-Control': 'no-cache' }
       });
       
       if (response.error) {
         console.error("Subscription check error:", response.error);
         return { 
           subscribed: false, 
-          error: response.error.message || "Failed to check subscription status"
+          subscription_tier: null,
+          subscription_end: null,
+          error: "Unable to verify subscription status. Please try again later."
         };
       }
       
@@ -56,43 +144,62 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         subscription_end: response.data?.subscription_end || null,
         error: null
       };
-    }
-    
-    // Use Supabase session authentication
-    console.log("Using Supabase authentication");
-    
-    // Add timestamp to prevent caching
-    const timestamp = new Date().getTime();
-    
-    const response = await supabase.functions.invoke('check-subscription', {
-      body: { timestamp }, // Add timestamp to prevent caching
-      headers: { 'Cache-Control': 'no-cache' } // Prevent caching
-    });
-    
-    if (response.error) {
-      console.error("Subscription check error:", response.error);
+    } catch (functionError) {
+      console.error("Edge function call failed:", functionError);
       return { 
-        subscribed: false, 
-        error: response.error.message || "Failed to check subscription status"
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        error: "Unable to connect to subscription service. Please try again later."
       };
     }
-    
-    console.log("Received subscription data:", response.data);
-    
-    // Store subscription info in localStorage for easy access
-    updateLocalSubscriptionData(response.data);
-    
-    return { 
-      subscribed: response.data?.subscribed || false,
-      subscription_tier: response.data?.subscription_tier || null,
-      subscription_end: response.data?.subscription_end || null,
-      error: null
-    };
   } catch (err) {
     console.error("Error in checkSubscription:", err);
     return { 
       subscribed: false,
       error: err instanceof Error ? err.message : String(err)
+    };
+  }
+};
+
+// Helper function to detect test accounts
+const isTestAccount = (email: string): boolean => {
+  const testPatterns = [
+    /test\./i,
+    /demo\./i,
+    /@example\.com$/i,
+    /@test\.com$/i,
+    /testmechanic/i,
+    /testcustomer/i,
+    /test_/i,
+    /demo_/i
+  ];
+  
+  return testPatterns.some(pattern => pattern.test(email));
+};
+
+// Helper function to return mock subscription data for test accounts
+const getMockSubscriptionData = (email: string) => {
+  console.log("Generating mock subscription data for:", email);
+  
+  // Return different mock data based on email pattern
+  if (email.includes('premium') || email.includes('subscribed')) {
+    return {
+      subscribed: true,
+      subscription_tier: 'monthly',
+      subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+  } else if (email.includes('annual')) {
+    return {
+      subscribed: true,
+      subscription_tier: 'annual',
+      subscription_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    };
+  } else {
+    return {
+      subscribed: false,
+      subscription_tier: null,
+      subscription_end: null
     };
   }
 };

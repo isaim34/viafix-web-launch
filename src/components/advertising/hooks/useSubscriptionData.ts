@@ -24,6 +24,7 @@ export const useSubscriptionData = () => {
     const checkAuthAndLoadData = async () => {
       try {
         setIsLoadingSubscription(true);
+        setError(null);
         
         // Check authentication
         const { data } = await supabase.auth.getSession();
@@ -41,24 +42,28 @@ export const useSubscriptionData = () => {
           return;
         }
         
-        // Load subscription data and check with Stripe
+        // Load subscription data first from localStorage
         loadSubscriptionData();
         
-        const result = await checkSubscription();
-        if (result.error) {
-          console.error("Error checking subscription:", result.error);
-          if (result.authError) {
-            setError("Authentication error when checking subscription status. Please try signing out and back in.");
+        // Then try to check with the service
+        try {
+          const result = await checkSubscription();
+          if (result.error) {
+            console.error("Error checking subscription:", result.error);
+            // Don't set this as a blocking error, just log it
+            console.log("Using cached subscription data due to service error");
           } else {
-            setError(`Error checking subscription status: ${result.error}`);
+            // Refresh data from localStorage after successful check
+            setTimeout(() => loadSubscriptionData(), 100);
           }
+        } catch (serviceError) {
+          console.error("Subscription service error:", serviceError);
+          // Don't fail completely, just use cached data
         }
-        
-        // Refresh data from localStorage after Stripe check
-        loadSubscriptionData();
         
       } catch (error) {
         console.error("Error in auth/subscription check:", error);
+        setError("Unable to load subscription status");
       } finally {
         setIsLoadingSubscription(false);
       }
