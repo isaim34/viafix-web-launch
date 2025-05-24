@@ -70,7 +70,7 @@ export const TestAccountsGenerator = () => {
     localStorage.setItem('userId', mechanicData.userId);
     localStorage.setItem('vendorName', `${mechanicData.firstName} ${mechanicData.lastName}`);
 
-    // Create mechanic profile data with Austin, TX zip code
+    // Create mechanic profile data with Austin, TX location
     const mechanicProfile = {
       firstName: mechanicData.firstName,
       lastName: mechanicData.lastName,
@@ -80,7 +80,7 @@ export const TestAccountsGenerator = () => {
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
       profileImage: '',
       zipCode: '78730', // Austin, TX zip code
-      location: 'Austin, TX'
+      location: 'Austin, TX' // Ensure consistent location
     };
     
     localStorage.setItem('mechanicProfile', JSON.stringify(mechanicProfile));
@@ -119,7 +119,7 @@ export const TestAccountsGenerator = () => {
     localStorage.setItem('local-mechanic-name', testVendorData.name);
     localStorage.setItem('local-mechanic-avatar', testVendorData.avatar);
 
-    // Create a mechanic profile for the vendor with Austin zip code that matches the vendor name
+    // Create a mechanic profile for the vendor with consistent Austin location
     const vendorProfile = {
       firstName: 'Mike',
       lastName: 'Rodriguez',
@@ -127,7 +127,7 @@ export const TestAccountsGenerator = () => {
       hourlyRate: testVendorData.hourlyRate.toString(),
       yearsExperience: 8,
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
-      location: testVendorData.location,
+      location: testVendorData.location, // Consistent Austin, TX location
       profileImage: testVendorData.avatar,
       zipCode: testVendorData.zipCode // Ensure Austin zip code is set
     };

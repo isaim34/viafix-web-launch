@@ -1,5 +1,4 @@
-
-import { MechanicDetail } from '@/types/mechanic';
+import { MechanicDetail, Service, Review } from '@/types/mechanic';
 
 /**
  * Format mechanic data from Supabase into a MechanicDetail object
@@ -50,56 +49,49 @@ export const formatMechanicProfile = (
 };
 
 /**
- * Create a custom mechanic object for local/default mechanic
+ * Create a local mechanic profile (for default vendor or logged-in mechanic)
  */
 export const createLocalMechanicProfile = (
   id: string,
-  vendorName: string, 
+  vendorName: string,
   vendorAvatar: string,
   mechanicProfile: Record<string, any>,
-  reviews: any[] = []
+  reviews: Review[]
 ): MechanicDetail => {
-  // Handle specialties based on its type
-  let specialties: string[] = ['General Repairs', 'Diagnostics']; // Default specialties
-  
-  if (mechanicProfile.specialties !== undefined) {
-    const specialtiesValue = mechanicProfile.specialties;
-    
-    if (typeof specialtiesValue === 'string') {
-      // If it's a string, split it by commas
-      specialties = specialtiesValue.split(',').map(s => s.trim());
-    } else if (Array.isArray(specialtiesValue)) {
-      // If it's already an array, use it directly but ensure it's string[]
-      specialties = specialtiesValue.map(s => String(s));
-    }
+  // Calculate rating from reviews
+  let rating = 5.0;
+  const reviewCount = reviews.length;
+  if (reviewCount > 0) {
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    rating = totalRating / reviewCount;
   }
 
+  // Use Austin, TX as the default location for test vendors
+  const location = mechanicProfile.location || 'Austin, TX';
+  
   return {
-    id: id || 'local-mechanic',
+    id,
     name: vendorName,
     avatar: vendorAvatar,
-    specialties: specialties,
-    rating: 5.0,
-    reviewCount: reviews?.length || 0,
-    location: mechanicProfile.location || 'Worcester, MA',
-    hourlyRate: mechanicProfile.hourlyRate || 75,
+    specialties: typeof mechanicProfile.specialties === 'string' 
+      ? mechanicProfile.specialties.split(',').map((s: string) => s.trim())
+      : Array.isArray(mechanicProfile.specialties) ? mechanicProfile.specialties : ['General Repairs'],
+    rating,
+    reviewCount,
+    location, // Use the consistent location
+    hourlyRate: mechanicProfile.hourlyRate ? parseInt(mechanicProfile.hourlyRate) : 85,
+    responseTime: mechanicProfile.responseTime || 'Under 1 hour',
     yearsExperience: mechanicProfile.yearsExperience || 5,
-    about: mechanicProfile.about || "Certified mechanic specializing in general vehicle maintenance and repairs. I provide honest, reliable service at competitive rates.",
-    responseTime: "Under 1 hour",
+    about: mechanicProfile.about || 'Certified mechanic specializing in general vehicle maintenance and repairs. I provide honest, reliable service at competitive rates.',
     services: [
-      { name: "Diagnostic Scan", price: 75 },
-      { name: "Oil Change", price: 65 },
-      { name: "Brake Inspection", price: 45 },
-      { name: "General Tune-Up", price: 120 }
+      { id: 'oil-change', name: 'Oil Change', price: 50 },
+      { id: 'brake-service', name: 'Brake Service', price: 150 },
+      { id: 'diagnostics', name: 'Diagnostics', price: 100 }
     ],
-    reviews: reviews?.map(r => ({
-      author: r.author,
-      rating: r.rating,
-      text: r.text
-    })) || [],
+    reviews,
     galleryImages: [
-      'https://images.unsplash.com/photo-1632931612869-c1a971a02054?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
+      'https://images.unsplash.com/photo-1632823471565-1ecdf7a7e9b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
     ]
   };
 };
