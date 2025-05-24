@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/auth';
@@ -54,6 +55,7 @@ function AppContent() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
         <Route path="/mechanics" element={<Mechanics />} />
+        <Route path="/mechanics/:id" element={<MechanicProfile />} />
         <Route path="/mechanic/:id" element={<MechanicProfile />} />
         <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
         <Route path="/customer-profile" element={<CustomerProfile />} />
