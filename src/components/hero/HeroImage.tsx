@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Test with a placeholder image first
-  const mechanicImageUrl = "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop";
+  // Use an uploaded image from the project
+  const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error('Image failed to load:', mechanicImageUrl);
@@ -36,7 +36,6 @@ export const HeroImage = () => {
           className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
           onError={handleImageError}
           onLoad={handleImageLoad}
-          crossOrigin="anonymous"
         />
       </div>
     </motion.div>
