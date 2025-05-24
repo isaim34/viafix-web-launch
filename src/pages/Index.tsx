@@ -1,28 +1,29 @@
 
-import React from 'react';
-import { Layout } from '@/components/Layout';
-import { HeroSection } from '@/components/HeroSection';
-import { FeaturedMechanics } from '@/components/FeaturedMechanics';
-import { BlogSection } from '@/components/BlogSection';
-import { LinkChecker } from '@/components/LinkChecker';
-import { IndexSEO } from '@/components/sections/IndexSEO';
-import { VehicleSearchSection } from '@/components/sections/VehicleSearchSection';
-import { IndexHowItWorks } from '@/components/sections/IndexHowItWorks';
-import { IndexBenefits } from '@/components/sections/IndexBenefits';
+import { HeroSection } from "@/components/HeroSection";
+import { VehicleSearchSection } from "@/components/sections/VehicleSearchSection";
+import { IndexBenefits } from "@/components/sections/IndexBenefits";
+import { IndexHowItWorks } from "@/components/sections/IndexHowItWorks";
+import { FeaturedMechanics } from "@/components/FeaturedMechanics";
+import { BlogSection } from "@/components/BlogSection";
+import { Layout } from "@/components/Layout";
+import { IndexSEO } from "@/components/sections/IndexSEO";
+import { ChatTestHelper } from "@/components/chat/ChatTestHelper";
 
 const Index = () => {
   return (
     <Layout>
       <IndexSEO />
       <HeroSection />
-      
-      {process.env.NODE_ENV === 'development' && <LinkChecker />}
-      
       <VehicleSearchSection />
+      <IndexBenefits />
       <IndexHowItWorks />
       <FeaturedMechanics />
-      <IndexBenefits />
       <BlogSection />
+      
+      {/* Temporary Chat Test Helper */}
+      <div className="container py-12">
+        <ChatTestHelper />
+      </div>
     </Layout>
   );
 };
