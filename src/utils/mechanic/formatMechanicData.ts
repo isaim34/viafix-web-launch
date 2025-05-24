@@ -1,3 +1,4 @@
+
 import { MechanicDetail, Service, Review } from '@/types/mechanic';
 
 /**
@@ -78,15 +79,15 @@ export const createLocalMechanicProfile = (
       : Array.isArray(mechanicProfile.specialties) ? mechanicProfile.specialties : ['General Repairs'],
     rating,
     reviewCount,
-    location, // Use the consistent location
+    location,
     hourlyRate: mechanicProfile.hourlyRate ? parseInt(mechanicProfile.hourlyRate) : 85,
     responseTime: mechanicProfile.responseTime || 'Under 1 hour',
     yearsExperience: mechanicProfile.yearsExperience || 5,
     about: mechanicProfile.about || 'Certified mechanic specializing in general vehicle maintenance and repairs. I provide honest, reliable service at competitive rates.',
     services: [
-      { id: 'oil-change', name: 'Oil Change', price: 50 },
-      { id: 'brake-service', name: 'Brake Service', price: 150 },
-      { id: 'diagnostics', name: 'Diagnostics', price: 100 }
+      { name: 'Oil Change', price: 50 },
+      { name: 'Brake Service', price: 150 },
+      { name: 'Diagnostics', price: 100 }
     ],
     reviews,
     galleryImages: [
