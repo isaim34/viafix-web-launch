@@ -16,6 +16,7 @@ export const HeroImage = () => {
   const handleImageLoad = () => {
     console.log('Image loaded successfully:', mechanicImageUrl);
     console.log('Current URL:', window.location.href);
+    console.log('Image dimensions:', document.querySelector('[data-hero-image]')?.getBoundingClientRect());
   };
 
   return (
@@ -25,16 +26,18 @@ export const HeroImage = () => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5 }}
     >
-      <div className="relative">
+      <div className="relative bg-red-100 min-h-[300px] border-2 border-red-500">
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-xl -z-10" />
         
         <img 
+          data-hero-image
           src={mechanicImageUrl}
           alt="Professional team of mechanics ready to serve" 
-          className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
+          className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3] border-4 border-blue-500"
           onError={handleImageError}
           onLoad={handleImageLoad}
           crossOrigin="anonymous"
+          style={{ minHeight: '200px', backgroundColor: 'yellow' }}
         />
       </div>
     </motion.div>
