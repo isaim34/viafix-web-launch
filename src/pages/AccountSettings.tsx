@@ -1,12 +1,15 @@
 
 import React from 'react';
 import { Layout } from "@/components/Layout";
-import { AccountSettingsForm } from '@/components/settings/AccountSettingsForm';
+import AccountSettingsForm from '@/components/settings/AccountSettingsForm';
 import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/useAuth';
 
 const AccountSettings = () => {
+  const { currentUserRole } = useAuth();
+
   return (
     <Layout>
       <div className="container max-w-4xl py-8">
@@ -32,7 +35,7 @@ const AccountSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AccountSettingsForm />
+                <AccountSettingsForm userRole={currentUserRole} />
               </CardContent>
             </Card>
           </TabsContent>
