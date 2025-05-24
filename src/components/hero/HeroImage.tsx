@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Use a reliable uploaded image from the project
-  const mechanicImageUrl = "/lovable-uploads/8c83d7f4-0ce4-49c7-90a2-92a24cd5e29a.png";
+  // Use a mechanic working on a car image from the project uploads
+  const mechanicImageUrl = "/lovable-uploads/489f7032-b400-43c3-a86b-2f163b4ca524.png";
 
   return (
     <motion.div 
