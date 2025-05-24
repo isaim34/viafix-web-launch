@@ -2,13 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, CreditCard, Star, AlertCircle, Tags, RefreshCw } from 'lucide-react';
+import { Tags, AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FeaturedPlansSection } from './FeaturedPlansSection';
 import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
-import { ErrorAlert } from './ErrorAlert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -19,58 +18,41 @@ import { supabase } from '@/integrations/supabase/client';
 export default function AdvertisingTab() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+  
   const { isLoggedIn, authChecked, currentUserRole } = useAuth();
   const navigate = useNavigate();
-  
-  // Add failsafe role detection from localStorage
-  const [localRole, setLocalRole] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
+  // Single useEffect to handle all access checking
   useEffect(() => {
-    // Log authentication state for debugging
-    console.log("AdvertisingTab auth state:", { 
-      isLoggedIn, 
-      authChecked, 
-      currentUserRole,
-      retryCount,
-      localStorageRole: localStorage.getItem('userRole')
-    });
-    
-    // Try to get role from localStorage as fallback
-    const storedRole = localStorage.getItem('userRole');
-    setLocalRole(storedRole);
-    
-    // Decide whether to load section or show error
     const checkAccess = async () => {
       setIsLoading(true);
+      setError(null);
       
+      // Wait for auth to be checked
       if (!authChecked) {
-        console.log("Auth check still in progress...");
-        return; // Wait for auth check to complete
+        return;
       }
       
+      // Check if user is logged in
       if (!isLoggedIn) {
-        console.log("User is not logged in");
         setError("You must be logged in to access advertising options");
+        setHasAccess(false);
         setIsLoading(false);
         return;
       }
       
       // Check role from context or localStorage
-      let effectiveRole = currentUserRole || storedRole;
+      let effectiveRole = currentUserRole || localStorage.getItem('userRole');
       
-      // Try to get user role directly from Supabase if needed
+      // Try to get user role from Supabase if needed
       if (!effectiveRole && isLoggedIn) {
         try {
           const { data: { user }, error: userError } = await supabase.auth.getUser();
           
-          if (userError) {
-            console.error("Error getting user from Supabase:", userError);
-          } else if (user) {
-            console.log("Got user from Supabase:", user);
+          if (!userError && user) {
             effectiveRole = user.user_metadata?.role || user.user_metadata?.user_type;
             
-            // Update local state if role found
             if (effectiveRole) {
               localStorage.setItem('userRole', effectiveRole);
               window.dispatchEvent(new Event('storage-event'));
@@ -81,60 +63,34 @@ export default function AdvertisingTab() {
         }
       }
       
-      console.log("Effective role:", effectiveRole);
-      
-      if (!effectiveRole) {
-        // If we've tried a few times and still no role, show an error with a test button
-        if (retryCount >= 2) {
-          console.log("No role detected after multiple attempts");
-          setError("Unable to determine your user role. Click 'Quick Fix' below to set your role as mechanic for testing.");
-          setIsLoading(false);
-        } else {
-          // Try again with a short delay, incrementing retry count
-          console.log(`Retry attempt ${retryCount + 1} to detect role`);
-          setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-            // Try to refresh auth state by triggering storage event
-            window.dispatchEvent(new Event('storage-event'));
-          }, 500);
-        }
-        return;
-      }
-      
+      // Check if user is a mechanic
       if (effectiveRole !== 'mechanic') {
-        console.log(`User role (${effectiveRole}) is not mechanic`);
         setError("Advertising options are only available for mechanics");
+        setHasAccess(false);
         setIsLoading(false);
         return;
       }
       
-      console.log("Access granted to advertising tab");
+      // Access granted
+      setHasAccess(true);
       setError(null);
       setIsLoading(false);
     };
     
-    // Check access with a slight delay to ensure auth state is loaded
-    const timer = setTimeout(checkAccess, 300);
-    return () => clearTimeout(timer);
-  }, [isLoggedIn, authChecked, currentUserRole, retryCount]);
+    checkAccess();
+  }, [isLoggedIn, authChecked, currentUserRole]);
 
-  // Manual refresh function to retry role detection
   const handleRefresh = () => {
-    setRetryCount(0);
     setError(null);
     setIsLoading(true);
-    // Force a refresh of auth state
     window.dispatchEvent(new Event('storage-event'));
   };
 
-  // Quick fix function to set role as mechanic for testing
   const handleQuickFix = () => {
-    // Set user role to mechanic in localStorage
     localStorage.setItem('userRole', 'mechanic');
     localStorage.setItem('pendingAuthRole', 'mechanic');
     localStorage.setItem('selectedRole', 'mechanic');
     
-    // Update Supabase user metadata if possible
     supabase.auth.updateUser({
       data: {
         user_type: 'mechanic',
@@ -143,27 +99,20 @@ export default function AdvertisingTab() {
     }).then(({data, error}) => {
       if (error) {
         console.error("Error updating user metadata:", error);
-      } else {
-        console.log("Updated user metadata with mechanic role:", data);
       }
     });
     
-    // Trigger auth state refresh
     window.dispatchEvent(new Event('storage-event'));
     
-    // Reset state
-    setRetryCount(0);
     setError(null);
     setIsLoading(true);
     
-    // Show toast
     toast({
       title: "Role Updated",
       description: "Your user role has been set to 'mechanic' for testing purposes.",
     });
   };
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -188,8 +137,7 @@ export default function AdvertisingTab() {
     );
   }
 
-  // Handle auth error with retry option
-  if (error) {
+  if (error || !hasAccess) {
     return (
       <div className="space-y-6">
         <Card>
@@ -205,12 +153,6 @@ export default function AdvertisingTab() {
               <AlertTitle>Error accessing advertising options</AlertTitle>
               <AlertDescription className="flex flex-col gap-4">
                 <p>{error}</p>
-                <p className="text-sm text-gray-700">
-                  Debug info: Role={currentUserRole || localRole || 'unknown'}, 
-                  Auth={isLoggedIn ? 'logged-in' : 'logged-out'}, 
-                  Checked={authChecked ? 'yes' : 'no'},
-                  RetryCount={retryCount}
-                </p>
                 <div className="flex flex-wrap gap-3 mt-2">
                   <Button 
                     variant="outline" 
@@ -245,7 +187,6 @@ export default function AdvertisingTab() {
     );
   }
 
-  // Normal content display
   return (
     <div className="space-y-6">
       <Card>

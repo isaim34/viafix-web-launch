@@ -26,32 +26,31 @@ export const SubscriptionPlansSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const auth = useAuth();
   
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
-  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
-  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
-  
   const isSubscribed = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
 
-  // Load subscription data from localStorage and check with Stripe
-  useEffect(() => {
-    const loadSubscriptionData = () => {
-      setCurrentPlan(localStorage.getItem('subscription_plan'));
-      setSubscriptionStatus(localStorage.getItem('subscription_status'));
-      setSubscriptionEnd(localStorage.getItem('subscription_end'));
-    };
+  // Load subscription data from localStorage
+  const loadSubscriptionData = () => {
+    setCurrentPlan(localStorage.getItem('subscription_plan'));
+    setSubscriptionStatus(localStorage.getItem('subscription_status'));
+    setSubscriptionEnd(localStorage.getItem('subscription_end'));
+  };
 
-    const checkAuth = async () => {
+  // Check authentication and load subscription data
+  useEffect(() => {
+    const checkAuthAndLoadData = async () => {
       try {
-        // Set auth checked first to avoid showing signin error message prematurely
-        setAuthChecked(true);
+        setIsLoadingSubscription(true);
         
-        // First try to get session from Supabase
+        // Check authentication
         const { data } = await supabase.auth.getSession();
         const isAuthenticated = !!data.session;
         
@@ -61,24 +60,16 @@ export const SubscriptionPlansSection = () => {
         const userEmail = localStorage.getItem('userEmail');
         const hasLocalAuth = isLoggedInLocally && userRole && userEmail;
         
-        // If neither Supabase nor local auth is present, show error
         if (!isAuthenticated && !hasLocalAuth) {
-          console.warn("No authentication found");
           setError("You need to be signed in to view subscription status");
           setIsLoadingSubscription(false);
           return;
         }
         
-        // If we have any form of authentication, proceed with subscription check
-        console.log("Using authentication: ", {
-          supabase: isAuthenticated, 
-          local: hasLocalAuth
-        });
+        // Load subscription data and check with Stripe
+        loadSubscriptionData();
         
-        // Check subscription status with Stripe
-        setIsLoadingSubscription(true);
         const result = await checkSubscription();
-        
         if (result.error) {
           console.error("Error checking subscription:", result.error);
           if (result.authError) {
@@ -88,18 +79,19 @@ export const SubscriptionPlansSection = () => {
           }
         }
         
-        // Load data from localStorage (which should be updated by checkSubscription)
+        // Refresh data from localStorage after Stripe check
         loadSubscriptionData();
-        setIsLoadingSubscription(false);
+        
       } catch (error) {
-        console.error("Error checking auth status:", error);
+        console.error("Error in auth/subscription check:", error);
+      } finally {
         setIsLoadingSubscription(false);
       }
     };
+
+    checkAuthAndLoadData();
     
-    loadSubscriptionData();
-    checkAuth();
-    
+    // Listen for storage changes
     window.addEventListener('storage', loadSubscriptionData);
     window.addEventListener('storage-event', loadSubscriptionData);
     
@@ -107,6 +99,20 @@ export const SubscriptionPlansSection = () => {
       window.removeEventListener('storage', loadSubscriptionData);
       window.removeEventListener('storage-event', loadSubscriptionData);
     };
+  }, []);
+
+  // Check for checkout success in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'subscription') {
+      toast({
+        title: "Subscription purchase successful!",
+        description: "Your subscription has been activated. Refreshing status...",
+        variant: "default"
+      });
+      
+      setTimeout(() => refreshSubscriptionStatus(), 2000);
+    }
   }, []);
   
   const plans: SubscriptionPlan[] = [
@@ -185,14 +191,10 @@ export const SubscriptionPlansSection = () => {
       setRefreshing(true);
       setError(null);
       
-      // First try Supabase auth
       const { data: { session } } = await supabase.auth.getSession();
-      
-      // Then check local auth as backup
       const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
       const userEmail = localStorage.getItem('userEmail');
       
-      // If neither authentication method works, show error
       if (!session && (!isLoggedInLocally || !userEmail)) {
         setError("You need to be signed in to view subscription status");
         toast({
@@ -200,11 +202,9 @@ export const SubscriptionPlansSection = () => {
           description: "Please sign in to view your subscription status",
           variant: "destructive"
         });
-        setRefreshing(false);
         return;
       }
       
-      // Check subscription status with Stripe
       const result = await checkSubscription();
       
       if (result.error) {
@@ -214,10 +214,7 @@ export const SubscriptionPlansSection = () => {
           variant: "destructive"
         });
       } else {
-        // Load updated data from localStorage
-        setCurrentPlan(localStorage.getItem('subscription_plan'));
-        setSubscriptionStatus(localStorage.getItem('subscription_status'));
-        setSubscriptionEnd(localStorage.getItem('subscription_end'));
+        loadSubscriptionData();
         
         toast({
           title: "Subscription status refreshed",
@@ -245,7 +242,6 @@ export const SubscriptionPlansSection = () => {
       setIsLoading(true);
       setError(null);
       
-      // Check auth status in all possible ways
       const { data: { session } } = await supabase.auth.getSession();
       const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
       const localUserEmail = localStorage.getItem('userEmail');
@@ -260,7 +256,6 @@ export const SubscriptionPlansSection = () => {
         return;
       }
       
-      // Pass local auth email as an explicit option
       const { url, error, authError } = await createCheckoutSession({
         paymentType: 'subscription',
         planType: selectedPlan
@@ -314,37 +309,6 @@ export const SubscriptionPlansSection = () => {
       </div>
     );
   }
-  
-  if (!authChecked) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-pulse flex gap-2">
-          <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
-          <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
-          <div className="h-4 w-4 bg-slate-300 rounded-full"></div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Add auto-refresh when returning from checkout
-  useEffect(() => {
-    const checkURLForCheckoutSuccess = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'subscription') {
-        toast({
-          title: "Subscription purchase successful!",
-          description: "Your subscription has been activated. Refreshing status...",
-          variant: "default"
-        });
-        
-        // Short delay before refreshing to allow Stripe to process the payment
-        setTimeout(() => refreshSubscriptionStatus(), 2000);
-      }
-    };
-    
-    checkURLForCheckoutSuccess();
-  }, []);
   
   return (
     <div className="space-y-6">
