@@ -15,8 +15,20 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
   const { toast } = useToast();
   const { user, isLoggedIn, currentUserRole } = useAuth();
   
-  const currentUserId = user?.id || 'anonymous';
-  const currentUserName = user?.user_metadata?.full_name || user?.email || 'Customer';
+  // For testing - get user ID from localStorage if Supabase user is not available
+  const getUserId = () => {
+    return user?.id || localStorage.getItem('userId') || 'anonymous';
+  };
+  
+  const getUserName = () => {
+    return user?.user_metadata?.full_name || 
+           user?.email || 
+           localStorage.getItem('userName') || 
+           'Customer';
+  };
+  
+  const currentUserId = getUserId();
+  const currentUserName = getUserName();
   
   // Function to refresh messages
   const refreshMessages = useCallback(async () => {
@@ -95,8 +107,9 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
     try {
       console.log(`Opening chat between ${currentUserName} (${currentUserId}) and ${mechanicName} (${mechanicId})`);
       
-      if (!user || !user.id) {
-        throw new Error("User not authenticated");
+      // For testing - check if we have a user ID from localStorage
+      if (!currentUserId || currentUserId === 'anonymous') {
+        throw new Error("User not authenticated - no user ID found");
       }
       
       // Find or create a chat thread between customer and mechanic
@@ -139,7 +152,7 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
       return;
     }
     
-    if (!user || !user.id) {
+    if (!currentUserId || currentUserId === 'anonymous') {
       toast({
         title: "Authentication required",
         description: "You must be signed in to send messages.",
