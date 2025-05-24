@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Use the uploaded team of mechanics image
-  const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
+  // Use the newly uploaded team of mechanics image
+  const mechanicImageUrl = "/lovable-uploads/a81f85fa-2070-4354-94d0-d1c824fa98f1.png";
 
   return (
     <motion.div 
@@ -20,6 +20,13 @@ export const HeroImage = () => {
           src={mechanicImageUrl}
           alt="Professional team of mechanics ready to serve" 
           className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
+          onError={(e) => {
+            console.error('Image failed to load:', mechanicImageUrl);
+            console.log('Error details:', e);
+          }}
+          onLoad={() => {
+            console.log('Image loaded successfully:', mechanicImageUrl);
+          }}
         />
       </div>
     </motion.div>
