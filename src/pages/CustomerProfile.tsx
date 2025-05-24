@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VehicleMaintenanceLog from '@/components/customer/VehicleMaintenanceLog';
 import VehicleIntelligenceSystem from '@/components/fixiq/VehicleIntelligenceSystem';
 import VINLookupTool from '@/components/customer/VINLookupTool';
+import CustomOffersManagement from '@/components/customer/CustomOffersManagement';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Car, User, Shield } from 'lucide-react';
+import { Car, User, Shield, FileText } from 'lucide-react';
 
 const CustomerProfile = () => {
   const { isCustomerLoggedIn, currentUserId } = useCustomerAuth();
@@ -52,14 +53,18 @@ const CustomerProfile = () => {
         <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
         
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-8 grid w-full max-w-md grid-cols-3">
+          <TabsList className="mb-8 grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center justify-center gap-2">
               <User className="h-4 w-4" />
-              <span>Profile Information</span>
+              <span>Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="flex items-center justify-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span>My Requests</span>
             </TabsTrigger>
             <TabsTrigger value="maintenance" className="flex items-center justify-center gap-2">
               <Car className="h-4 w-4" />
-              <span>Vehicle Maintenance</span>
+              <span>Maintenance</span>
             </TabsTrigger>
             <TabsTrigger value="fixiq" className="flex items-center justify-center gap-2">
               <Shield className="h-4 w-4" />
@@ -70,6 +75,12 @@ const CustomerProfile = () => {
           <TabsContent value="profile">
             <Card className="p-8">
               <CustomerProfileEditor />
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="requests">
+            <Card className="p-8">
+              <CustomOffersManagement />
             </Card>
           </TabsContent>
           
