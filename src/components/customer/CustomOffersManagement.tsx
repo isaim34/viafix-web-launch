@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -118,17 +116,24 @@ const CustomOffersManagement = () => {
 
     const handleMessageMechanic = () => {
       openChat();
-      // Send a well-formatted contextual message about the custom offer
+      // Send a better formatted message for chat
       setTimeout(() => {
-        const message = `Hi! I wanted to follow up on my custom service request.
-
-📋 **Service Details:**
-• Description: ${offer.description}
-${offer.budget ? `• Budget: ${offer.budget}` : ''}
-${offer.timeframe ? `• Timeframe: ${offer.timeframe}` : ''}
-${offer.preferred_date ? `• Preferred Date: ${offer.preferred_date}` : ''}
-
-Please let me know if you have any questions or need additional information.`;
+        let message = `Hi! I wanted to follow up on my custom service request.\n\nService Details:\n`;
+        message += `Description: ${offer.description}\n`;
+        
+        if (offer.budget) {
+          message += `Budget: ${offer.budget}\n`;
+        }
+        
+        if (offer.timeframe) {
+          message += `Timeframe: ${offer.timeframe}\n`;
+        }
+        
+        if (offer.preferred_date) {
+          message += `Preferred Date: ${offer.preferred_date}\n`;
+        }
+        
+        message += `\nPlease let me know if you have any questions or need additional information.`;
         
         handleSendMessage(message);
       }, 500);
@@ -252,4 +257,3 @@ Please let me know if you have any questions or need additional information.`;
 };
 
 export default CustomOffersManagement;
-
