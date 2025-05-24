@@ -84,6 +84,11 @@ export const TestAccountsGenerator = () => {
     localStorage.setItem('mechanicProfile', JSON.stringify(mechanicProfile));
     localStorage.setItem(`mechanic_profile_${mechanicData.email}`, JSON.stringify(mechanicProfile));
     
+    // IMPORTANT: Also store the mechanic as vendor data so they appear in search results
+    localStorage.setItem('vendorAvatar', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80');
+    localStorage.setItem('local-mechanic-avatar', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80');
+    localStorage.setItem('local-mechanic-name', `${mechanicData.firstName} ${mechanicData.lastName}`);
+    
     // Trigger storage event to notify components
     window.dispatchEvent(new Event('storage-event'));
 
@@ -95,53 +100,114 @@ export const TestAccountsGenerator = () => {
     navigate('/mechanic-dashboard');
   };
 
+  const createTestVendorForSearch = () => {
+    // Create a test vendor that will show up in the mechanics search without logging in
+    const testVendorData = {
+      name: 'Mike Rodriguez',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
+      specialties: 'Engine Repair, Brake Service, Oil Changes',
+      hourlyRate: 85,
+      location: 'Austin, TX'
+    };
+
+    // Store vendor data for search results
+    localStorage.setItem('vendorName', testVendorData.name);
+    localStorage.setItem('vendorAvatar', testVendorData.avatar);
+    localStorage.setItem('local-mechanic-name', testVendorData.name);
+    localStorage.setItem('local-mechanic-avatar', testVendorData.avatar);
+
+    // Create a mechanic profile for the vendor
+    const vendorProfile = {
+      firstName: 'Mike',
+      lastName: 'Rodriguez',
+      specialties: testVendorData.specialties,
+      hourlyRate: testVendorData.hourlyRate.toString(),
+      yearsExperience: 8,
+      about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
+      location: testVendorData.location,
+      profileImage: testVendorData.avatar
+    };
+
+    localStorage.setItem('mechanicProfile', JSON.stringify(vendorProfile));
+    localStorage.setItem('test-vendor-profile', JSON.stringify(vendorProfile));
+
+    // Trigger storage event to notify components
+    window.dispatchEvent(new Event('storage-event'));
+
+    toast({
+      title: "Test Vendor Created",
+      description: "Test vendor Mike Rodriguez is now available in search results",
+    });
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Test Customer Account
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            <p><strong>Name:</strong> John Smith</p>
-            <p><strong>Email:</strong> test.customer@example.com</p>
-            <p><strong>Role:</strong> Customer</p>
-          </div>
-          <Button 
-            onClick={createCustomerAccount}
-            className="w-full"
-            variant="outline"
-          >
-            <User className="h-4 w-4 mr-2" />
-            Create & Login as Customer
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Test Customer Account
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              <p><strong>Name:</strong> John Smith</p>
+              <p><strong>Email:</strong> test.customer@example.com</p>
+              <p><strong>Role:</strong> Customer</p>
+            </div>
+            <Button 
+              onClick={createCustomerAccount}
+              className="w-full"
+              variant="outline"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Create & Login as Customer
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wrench className="h-5 w-5" />
+              Test Mechanic Account
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              <p><strong>Name:</strong> Mike Rodriguez</p>
+              <p><strong>Email:</strong> test.mechanic@example.com</p>
+              <p><strong>Role:</strong> Mechanic</p>
+              <p><strong>Rate:</strong> $85/hour</p>
+            </div>
+            <Button 
+              onClick={createMechanicAccount}
+              className="w-full"
+              variant="outline"
+            >
+              <Wrench className="h-4 w-4 mr-2" />
+              Create & Login as Mechanic
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
-            Test Mechanic Account
-          </CardTitle>
+          <CardTitle>Test Vendor for Search</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            <p><strong>Name:</strong> Mike Rodriguez</p>
-            <p><strong>Email:</strong> test.mechanic@example.com</p>
-            <p><strong>Role:</strong> Mechanic</p>
-            <p><strong>Rate:</strong> $85/hour</p>
-          </div>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Create a test vendor that will appear in the mechanics search results without logging in.
+          </p>
           <Button 
-            onClick={createMechanicAccount}
+            onClick={createTestVendorForSearch}
+            variant="secondary"
             className="w-full"
-            variant="outline"
           >
             <Wrench className="h-4 w-4 mr-2" />
-            Create & Login as Mechanic
+            Add Test Vendor to Search Results
           </Button>
         </CardContent>
       </Card>

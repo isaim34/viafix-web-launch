@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
-import { clearAllTestData, clearUserData } from '@/utils/clearTestData';
+import { clearAllTestData, clearIsaiMercadoData } from '@/utils/clearTestData';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -37,14 +37,16 @@ export const ClearDataButton = () => {
 
   const handleClearIsaiData = async () => {
     try {
-      // Clear Isai Mercado specific data
-      clearUserData('isai@example.com', 'Isai Mercado');
-      clearUserData('isai.mercado@example.com', 'Isai Mercado');
+      // Clear Isai Mercado specific data thoroughly
+      clearIsaiMercadoData();
       
       toast({
         title: "Isai Mercado Data Cleared",
-        description: "All data associated with Isai Mercado has been cleared",
+        description: "All data associated with Isai Mercado has been cleared completely",
       });
+      
+      // Refresh the page to see changes
+      window.location.reload();
     } catch (error) {
       console.error('Error clearing Isai data:', error);
       toast({

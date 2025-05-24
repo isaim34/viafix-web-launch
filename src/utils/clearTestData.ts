@@ -68,9 +68,43 @@ export const clearUserData = (email?: string, userName?: string) => {
   
   profileKeys.forEach(key => localStorage.removeItem(key));
 
+  // Also clear the default vendor data that might be cached
+  localStorage.removeItem('default-vendor-data');
+  localStorage.removeItem('isai-mercado-data');
+
   // Dispatch storage event to notify components
   window.dispatchEvent(new Event('storage'));
   window.dispatchEvent(new Event('storage-event'));
   
   console.log('User-specific data cleared from localStorage');
+};
+
+/**
+ * Clear all Isai Mercado related data thoroughly
+ */
+export const clearIsaiMercadoData = () => {
+  // Clear by email variations
+  clearUserData('isai@example.com', 'Isai Mercado');
+  clearUserData('isai.mercado@example.com', 'Isai Mercado');
+  
+  // Additional specific keys for Isai Mercado
+  const isaiKeys = [
+    'isai-mercado-profile',
+    'default-vendor-profile',
+    'vendor-isai-mercado',
+    'mechanic-isai-mercado'
+  ];
+  
+  isaiKeys.forEach(key => localStorage.removeItem(key));
+  
+  // Clear any reviews associated with Isai Mercado
+  const reviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+  const filteredReviews = reviews.filter((review: any) => 
+    !review.mechanic_id?.includes('isai') && 
+    !review.mechanic_id?.includes('default-vendor') &&
+    !review.mechanic_id?.includes('local-mechanic')
+  );
+  localStorage.setItem('special_mechanic_reviews', JSON.stringify(filteredReviews));
+  
+  console.log('Isai Mercado data cleared completely');
 };
