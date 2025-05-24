@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,12 +21,21 @@ interface CustomOffer {
   created_at: string;
 }
 
+interface ExistingMaintenanceRecord {
+  id: string;
+  service_type: string;
+  description: string;
+  vehicle_info: string;
+  date: string;
+}
+
 const CustomOffersTab = () => {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [completingOfferId, setCompletingOfferId] = useState<string | null>(null);
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<CustomOffer | null>(null);
+  const [existingMaintenanceRecord, setExistingMaintenanceRecord] = useState<ExistingMaintenanceRecord | null>(null);
+  const [customerVehicle, setCustomerVehicle] = useState<any>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -83,7 +91,7 @@ const CustomOffersTab = () => {
       
       // If completing the offer, add completion timestamp
       if (status === 'completed') {
-        updateData.completed_at = new Date().toISOString();
+        updateData.updated_at = new Date().toISOString();
       }
 
       const { error } = await supabase
@@ -112,8 +120,49 @@ const CustomOffersTab = () => {
     }
   };
 
-  const handleCompleteOffer = (offer: CustomOffer) => {
+  const fetchCustomerMaintenanceAndVehicle = async (customerId: string) => {
+    try {
+      // Fetch customer's most recent maintenance record
+      const { data: maintenanceData, error: maintenanceError } = await supabase
+        .from('maintenance_records')
+        .select('*')
+        .eq('customer_id', customerId)
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (maintenanceError && maintenanceError.code !== 'PGRST116') {
+        throw maintenanceError;
+      }
+
+      // Fetch customer's vehicle information
+      const { data: vehicleData, error: vehicleError } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('owner_id', customerId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (vehicleError && vehicleError.code !== 'PGRST116') {
+        throw vehicleError;
+      }
+
+      return { maintenanceRecord: maintenanceData, vehicle: vehicleData };
+    } catch (error) {
+      console.error('Error fetching customer data:', error);
+      return { maintenanceRecord: null, vehicle: null };
+    }
+  };
+
+  const handleCompleteOffer = async (offer: CustomOffer) => {
     setSelectedOffer(offer);
+    
+    // Check if customer has existing maintenance records and vehicle info
+    const { maintenanceRecord, vehicle } = await fetchCustomerMaintenanceAndVehicle(offer.customer_id);
+    
+    setExistingMaintenanceRecord(maintenanceRecord);
+    setCustomerVehicle(vehicle);
     setShowMaintenanceForm(true);
   };
 
@@ -123,6 +172,8 @@ const CustomOffersTab = () => {
     }
     setShowMaintenanceForm(false);
     setSelectedOffer(null);
+    setExistingMaintenanceRecord(null);
+    setCustomerVehicle(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -357,16 +408,26 @@ const CustomOffersTab = () => {
       <Dialog open={showMaintenanceForm} onOpenChange={setShowMaintenanceForm}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Complete Service & Create Maintenance Record</DialogTitle>
+            <DialogTitle>
+              {existingMaintenanceRecord 
+                ? 'Add Work to Existing Maintenance Record' 
+                : 'Complete Service & Create Maintenance Record'
+              }
+            </DialogTitle>
           </DialogHeader>
           {selectedOffer && (
             <MaintenanceRecordForm
               customerId={selectedOffer.customer_id}
               serviceName="Custom Service"
+              existingMaintenanceRecord={existingMaintenanceRecord}
+              customerVehicle={customerVehicle}
+              customOfferId={selectedOffer.id}
               onSuccess={handleMaintenanceRecordSuccess}
               onCancel={() => {
                 setShowMaintenanceForm(false);
                 setSelectedOffer(null);
+                setExistingMaintenanceRecord(null);
+                setCustomerVehicle(null);
               }}
             />
           )}
