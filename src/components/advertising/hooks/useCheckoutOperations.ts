@@ -13,6 +13,11 @@ export const useCheckoutOperations = () => {
   const handleProceedToCheckout = async (selectedPlan: string | null) => {
     if (!selectedPlan) {
       console.error("No plan selected");
+      toast({
+        title: "Plan Selection Required",
+        description: "Please select a subscription plan before proceeding",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -42,10 +47,18 @@ export const useCheckoutOperations = () => {
       }
       
       console.log("Calling createCheckoutSession...");
-      const result = await createCheckoutSession({
+      
+      // Add timeout handling for the checkout session creation
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout - please try again')), 30000);
+      });
+      
+      const checkoutPromise = createCheckoutSession({
         paymentType: 'subscription',
         planType: selectedPlan
       });
+      
+      const result = await Promise.race([checkoutPromise, timeoutPromise]);
       
       console.log("Checkout session result:", result);
       
@@ -72,10 +85,11 @@ export const useCheckoutOperations = () => {
           description: "You'll be taken to our secure payment processor."
         });
         
-        // Add a small delay to ensure the toast is visible
+        // Add a small delay to ensure the toast is visible, then redirect
         setTimeout(() => {
+          // Use window.location.href for better compatibility
           window.location.href = result.url;
-        }, 1000);
+        }, 1500);
       } else {
         console.error("No checkout URL received");
         throw new Error("Failed to create checkout session - no URL returned");
@@ -84,9 +98,21 @@ export const useCheckoutOperations = () => {
       console.error('Subscription checkout error:', err);
       const errorMessage = err instanceof Error ? err.message : String(err);
       
+      // Show user-friendly error messages
+      let userMessage = errorMessage;
+      if (errorMessage.includes('timeout')) {
+        userMessage = "The request timed out. Please check your connection and try again.";
+      } else if (errorMessage.includes('network')) {
+        userMessage = "Network error. Please check your connection and try again.";
+      } else if (errorMessage.includes('Authentication')) {
+        userMessage = "Please sign in and try again.";
+      } else if (errorMessage.includes('Invalid request format')) {
+        userMessage = "There was a problem with your request. Please try again.";
+      }
+      
       toast({
         title: "Checkout Error",
-        description: errorMessage,
+        description: userMessage,
         variant: "destructive"
       });
       

@@ -28,7 +28,14 @@ serve(async (req) => {
     // Get Stripe secret key from environment variables
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
-      throw new Error('STRIPE_SECRET_KEY is not configured');
+      logStep('ERROR: STRIPE_SECRET_KEY not configured');
+      return new Response(JSON.stringify({ 
+        error: 'Payment service not configured',
+        success: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
     }
     
     // Create Supabase client
@@ -36,7 +43,14 @@ serve(async (req) => {
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     
     if (!supabaseUrl || !supabaseServiceRole) {
-      throw new Error('Supabase environment variables are not configured');
+      logStep('ERROR: Supabase environment variables not configured');
+      return new Response(JSON.stringify({ 
+        error: 'Backend service not configured',
+        success: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
     }
     
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
@@ -68,12 +82,62 @@ serve(async (req) => {
       }
     }
     
-    // Parse request body
-    const requestBody = await req.json();
+    // Parse request body with error handling
+    let requestBody;
+    try {
+      const rawBody = await req.text();
+      logStep('Raw request body received', { bodyLength: rawBody.length, preview: rawBody.substring(0, 100) });
+      
+      if (!rawBody || rawBody.trim() === '') {
+        logStep('ERROR: Empty request body');
+        return new Response(JSON.stringify({ 
+          error: 'No request data provided',
+          success: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
+      
+      requestBody = JSON.parse(rawBody);
+      logStep('Successfully parsed request body', requestBody);
+    } catch (parseError) {
+      logStep('ERROR: Failed to parse JSON', { error: parseError.message });
+      return new Response(JSON.stringify({ 
+        error: 'Invalid request format',
+        success: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
     
-    // Explicitly extract data from the request body
+    // Validate required fields
     const { paymentType, quantity, planType, email: requestEmail } = requestBody;
-    logStep('Request payload', { paymentType, quantity, planType, hasEmail: !!requestEmail });
+    
+    if (!paymentType) {
+      logStep('ERROR: Missing paymentType');
+      return new Response(JSON.stringify({ 
+        error: 'Payment type is required',
+        success: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+    
+    if (paymentType === 'subscription' && !planType) {
+      logStep('ERROR: Missing planType for subscription');
+      return new Response(JSON.stringify({ 
+        error: 'Subscription plan is required',
+        success: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+    
+    logStep('Request validation passed', { paymentType, quantity, planType, hasEmail: !!requestEmail });
     
     // If no user from Supabase auth, check the request body for email (local auth)
     if (!userEmail && requestEmail) {
@@ -83,7 +147,14 @@ serve(async (req) => {
     
     // If still no user email, return error
     if (!userEmail) {
-      throw new Error('Authentication required. Please sign in to continue.');
+      logStep('ERROR: No authentication found');
+      return new Response(JSON.stringify({ 
+        error: 'Authentication required. Please sign in to continue.',
+        success: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
     }
 
     // Initialize Stripe
@@ -141,7 +212,14 @@ serve(async (req) => {
       };
       
       if (!planType || !priceAmounts[planType as keyof typeof priceAmounts]) {
-        throw new Error(`Invalid plan type: ${planType}`);
+        logStep('ERROR: Invalid plan type', { planType });
+        return new Response(JSON.stringify({ 
+          error: `Invalid plan type: ${planType}`,
+          success: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
       }
 
       logStep('Creating subscription checkout', { planType });
@@ -248,18 +326,18 @@ serve(async (req) => {
       });
     }
 
-    logStep('Checkout session created', { sessionId: session.id, url: session.url });
+    logStep('Checkout session created successfully', { sessionId: session.id, url: session.url });
 
-    return new Response(JSON.stringify({ url: session.url, session_id: session.id }), {
+    return new Response(JSON.stringify({ url: session.url, session_id: session.id, success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[CREATE-CHECKOUT] Error:', errorMessage);
+    logStep('ERROR: Unexpected error in create-checkout', { error: errorMessage, stack: error instanceof Error ? error.stack : undefined });
     
     return new Response(JSON.stringify({ 
-      error: errorMessage,
+      error: 'An unexpected error occurred. Please try again.',
       success: false
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
