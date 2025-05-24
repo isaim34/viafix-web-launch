@@ -7,16 +7,13 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
-import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 
 const customerFormSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required")
+  email: z.string().email("Please enter a valid email address")
 });
 
 type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -41,8 +38,7 @@ const CustomerSigninForm = () => {
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
-      email: '',
-      password: ''
+      email: ''
     },
   });
 
@@ -51,36 +47,34 @@ const CustomerSigninForm = () => {
       setIsLoading(true);
       console.log("Processing sign in for:", data.email);
       
-      // Attempt to sign in with Supabase
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
+      // For testing - sign in without password
+      const userName = data.email.split('@')[0];
+      
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'customer');
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('userId', `customer-${Date.now()}`);
+      
+      // Create customer profile
+      const profileData = {
+        firstName: userName,
+        lastName: '',
+        profileImage: ''
+      };
+      
+      localStorage.setItem('customerProfile', JSON.stringify(profileData));
+      
+      // Notify application of auth change
+      window.dispatchEvent(new Event('storage-event'));
+      
+      toast({
+        title: `Welcome back!`,
+        description: "You have successfully signed in.",
       });
       
-      if (error) {
-        console.error("Sign in error:", error);
-        toast({
-          title: "Sign in failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      if (authData.user) {
-        // Get user name from metadata or generate from email
-        const userName = authData.user.user_metadata?.full_name || 
-                       authData.user.user_metadata?.name || 
-                       data.email.split('@')[0];
-        
-        toast({
-          title: `Welcome back!`,
-          description: "You have successfully signed in.",
-        });
-        
-        // Navigate to customer profile
-        navigate('/customer-profile');
-      }
+      // Navigate to customer profile
+      navigate('/customer-profile');
     } catch (error) {
       console.error("Sign in error:", error);
       toast({
@@ -97,13 +91,12 @@ const CustomerSigninForm = () => {
     <div className="space-y-6">      
       <h3 className="text-lg font-medium">Customer Sign In</h3>
       <p className="text-sm text-gray-500">
-        Enter your credentials to sign in to your customer account.
+        Enter your email to sign in to your customer account.
       </p>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSignin)} className="space-y-6">
           <EmailField form={form} />
-          <PasswordField form={form} />
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             <div className="flex items-center justify-center">

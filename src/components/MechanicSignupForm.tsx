@@ -25,7 +25,6 @@ const MechanicSignupForm = () => {
       firstName: '',
       lastName: '',
       email: '',
-      password: '',
       zipCode: '',
       specialties: '',
       hourlyRate: '',
@@ -37,20 +36,15 @@ const MechanicSignupForm = () => {
     try {
       console.log('Mechanic signup data:', data);
       
-      // Prepare user metadata
-      const userData = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        full_name: `${data.firstName} ${data.lastName}`,
-        zip_code: data.zipCode,
-        specialties: data.specialties,
-        hourly_rate: data.hourlyRate,
-        user_type: 'mechanic',
-        role: 'mechanic'
-      };
+      // For testing - create account without password
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'mechanic');
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userName', `${data.firstName} ${data.lastName}`);
+      localStorage.setItem('userId', `mechanic-${Date.now()}`);
       
-      // Sign up with Supabase
-      await signUp(data.email, data.password, userData);
+      // Trigger storage event to notify components
+      window.dispatchEvent(new Event('storage-event'));
       
       toast({
         title: "Account created!",
@@ -63,7 +57,7 @@ const MechanicSignupForm = () => {
       console.error('Signup error:', error);
       toast({
         title: "Signup failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred during signup.",
+        description: "An error occurred during signup.",
         variant: "destructive"
       });
     }

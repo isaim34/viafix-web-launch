@@ -31,23 +31,6 @@ const LoginCredentialsFields: React.FC<LoginCredentialsFieldsProps> = ({ control
           </FormItem>
         )}
       />
-
-      <FormField
-        control={control}
-        name="password"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Password<span className="text-destructive ml-1">*</span></FormLabel>
-            <FormControl>
-              <Input type="password" placeholder="Create a password" {...field} />
-            </FormControl>
-            <FormDescription>
-              Must be at least 8 characters
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </>
   );
 };
