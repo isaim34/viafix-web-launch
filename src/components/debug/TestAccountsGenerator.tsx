@@ -70,7 +70,7 @@ export const TestAccountsGenerator = () => {
     localStorage.setItem('userId', mechanicData.userId);
     localStorage.setItem('vendorName', `${mechanicData.firstName} ${mechanicData.lastName}`);
 
-    // Create mechanic profile data
+    // Create mechanic profile data with Austin, TX zip code
     const mechanicProfile = {
       firstName: mechanicData.firstName,
       lastName: mechanicData.lastName,
@@ -78,7 +78,8 @@ export const TestAccountsGenerator = () => {
       hourlyRate: '85',
       yearsExperience: 8,
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
-      profileImage: ''
+      profileImage: '',
+      zipCode: '78730' // Austin, TX zip code
     };
     
     localStorage.setItem('mechanicProfile', JSON.stringify(mechanicProfile));
@@ -107,7 +108,8 @@ export const TestAccountsGenerator = () => {
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
       specialties: 'Engine Repair, Brake Service, Oil Changes',
       hourlyRate: 85,
-      location: 'Austin, TX'
+      location: 'Austin, TX',
+      zipCode: '78730' // Updated to Austin, TX zip code
     };
 
     // Store vendor data for search results
@@ -125,7 +127,8 @@ export const TestAccountsGenerator = () => {
       yearsExperience: 8,
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
       location: testVendorData.location,
-      profileImage: testVendorData.avatar
+      profileImage: testVendorData.avatar,
+      zipCode: testVendorData.zipCode
     };
 
     localStorage.setItem('mechanicProfile', JSON.stringify(vendorProfile));
@@ -136,7 +139,7 @@ export const TestAccountsGenerator = () => {
 
     toast({
       title: "Test Vendor Created",
-      description: "Test vendor Mike Rodriguez is now available in search results",
+      description: `Test vendor Mike Rodriguez is now available in Austin, TX (78730) search results`,
     });
   };
 
@@ -180,6 +183,7 @@ export const TestAccountsGenerator = () => {
               <p><strong>Email:</strong> test.mechanic@example.com</p>
               <p><strong>Role:</strong> Mechanic</p>
               <p><strong>Rate:</strong> $85/hour</p>
+              <p><strong>Location:</strong> Austin, TX (78730)</p>
             </div>
             <Button 
               onClick={createMechanicAccount}
@@ -199,7 +203,7 @@ export const TestAccountsGenerator = () => {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Create a test vendor that will appear in the mechanics search results without logging in.
+            Create a test vendor that will appear in the Austin, TX (78730) mechanics search results.
           </p>
           <Button 
             onClick={createTestVendorForSearch}
@@ -207,7 +211,7 @@ export const TestAccountsGenerator = () => {
             className="w-full"
           >
             <Wrench className="h-4 w-4 mr-2" />
-            Add Test Vendor to Search Results
+            Add Test Vendor to Austin Search Results
           </Button>
         </CardContent>
       </Card>
