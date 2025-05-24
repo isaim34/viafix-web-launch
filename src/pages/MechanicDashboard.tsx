@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,6 +33,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 // Lazy load the AdvertisingTab component
 const AdvertisingTab = lazy(() => import('@/components/advertising/AdvertisingTab'));
+
+import MaintenanceRecordsTab from '@/components/mechanic/MaintenanceRecordsTab';
 
 const MechanicDashboard = () => {
   const isMobile = useIsMobile();
@@ -72,6 +73,10 @@ const MechanicDashboard = () => {
                 <TabsTrigger value="custom-offers" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
                   <FileText className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   <span className={isMobile ? "hidden xs:inline" : ""}>Custom Offers</span>
+                </TabsTrigger>
+                <TabsTrigger value="maintenance" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
+                  <Database className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <span className={isMobile ? "hidden xs:inline" : ""}>Maintenance</span>
                 </TabsTrigger>
                 <TabsTrigger value="completed-jobs" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
                   <CheckSquare className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -130,6 +135,12 @@ const MechanicDashboard = () => {
             <TabsContent value="custom-offers">
               <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading custom offers</div>}>
                 <CustomOffersTab />
+              </ErrorBoundary>
+            </TabsContent>
+            
+            <TabsContent value="maintenance">
+              <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading maintenance records</div>}>
+                <MaintenanceRecordsTab />
               </ErrorBoundary>
             </TabsContent>
             

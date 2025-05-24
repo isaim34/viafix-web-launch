@@ -341,41 +341,54 @@ export type Database = {
       maintenance_records: {
         Row: {
           created_at: string
+          custom_offer_id: string | null
           customer_id: string
           date: string
           description: string
           id: string
           mechanic_id: string | null
           mechanic_signature: boolean | null
+          service_booking_id: string | null
           service_type: string
           updated_at: string
           vehicle_id: string
         }
         Insert: {
           created_at?: string
+          custom_offer_id?: string | null
           customer_id: string
           date?: string
           description: string
           id?: string
           mechanic_id?: string | null
           mechanic_signature?: boolean | null
+          service_booking_id?: string | null
           service_type: string
           updated_at?: string
           vehicle_id: string
         }
         Update: {
           created_at?: string
+          custom_offer_id?: string | null
           customer_id?: string
           date?: string
           description?: string
           id?: string
           mechanic_id?: string | null
           mechanic_signature?: boolean | null
+          service_booking_id?: string | null
           service_type?: string
           updated_at?: string
           vehicle_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "maintenance_records_custom_offer_id_fkey"
+            columns: ["custom_offer_id"]
+            isOneToOne: false
+            referencedRelation: "custom_offers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "maintenance_records_customer_id_fkey"
             columns: ["customer_id"]
@@ -388,6 +401,13 @@ export type Database = {
             columns: ["mechanic_id"]
             isOneToOne: false
             referencedRelation: "mechanic_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_records_service_booking_id_fkey"
+            columns: ["service_booking_id"]
+            isOneToOne: false
+            referencedRelation: "service_bookings"
             referencedColumns: ["id"]
           },
           {

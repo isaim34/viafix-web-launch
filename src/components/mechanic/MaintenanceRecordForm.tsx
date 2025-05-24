@@ -1,0 +1,225 @@
+
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import * as z from 'zod';
+
+const maintenanceRecordSchema = z.object({
+  service_type: z.string().min(2, "Service type is required"),
+  description: z.string().min(10, "Please provide a detailed description"),
+  vehicle_info: z.string().min(2, "Vehicle information is required"),
+  parts_used: z.string().optional(),
+  labor_hours: z.number().min(0).optional(),
+  completion_notes: z.string().optional(),
+});
+
+type MaintenanceRecordFormData = z.infer<typeof maintenanceRecordSchema>;
+
+interface MaintenanceRecordFormProps {
+  customerId: string;
+  serviceId?: string;
+  serviceName?: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+export const MaintenanceRecordForm = ({ 
+  customerId, 
+  serviceId, 
+  serviceName, 
+  onSuccess, 
+  onCancel 
+}: MaintenanceRecordFormProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  
+  const form = useForm<MaintenanceRecordFormData>({
+    resolver: zodResolver(maintenanceRecordSchema),
+    defaultValues: {
+      service_type: serviceName || '',
+      description: '',
+      vehicle_info: '',
+      parts_used: '',
+      labor_hours: 0,
+      completion_notes: '',
+    },
+  });
+
+  const onSubmit = async (data: MaintenanceRecordFormData) => {
+    setIsSubmitting(true);
+    
+    try {
+      const mechanicId = localStorage.getItem('userId');
+      
+      if (!mechanicId) {
+        throw new Error('Mechanic ID not found');
+      }
+
+      // Create maintenance record
+      const { error } = await supabase
+        .from('maintenance_records')
+        .insert({
+          customer_id: customerId,
+          mechanic_id: mechanicId,
+          service_type: data.service_type,
+          description: data.description,
+          mechanic_signature: true,
+          date: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      // If this is related to a service booking, update it to completed
+      if (serviceId) {
+        await supabase
+          .from('service_bookings')
+          .update({
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            completion_notes: data.completion_notes,
+            parts_used: data.parts_used,
+            labor_hours: data.labor_hours,
+          })
+          .eq('id', serviceId);
+      }
+
+      toast({
+        title: "Success",
+        description: "Maintenance record created successfully",
+      });
+
+      onSuccess();
+    } catch (error) {
+      console.error('Error creating maintenance record:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create maintenance record",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="service_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Service Type</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Oil Change, Brake Repair" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="vehicle_info"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Vehicle Information</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., 2018 Honda Civic" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Service Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Detailed description of work performed..."
+                  className="min-h-[100px]"
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="parts_used"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Parts Used (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="List of parts used in this service..."
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="labor_hours"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Labor Hours (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  step="0.5"
+                  placeholder="0"
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="completion_notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Completion Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Any additional notes or recommendations..."
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating...' : 'Create Maintenance Record'}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
