@@ -6,6 +6,18 @@ export const HeroImage = () => {
   // Use the user's preferred team of mechanics image
   const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error('Image failed to load:', mechanicImageUrl);
+    console.log('Error details:', e);
+    console.log('Current URL:', window.location.href);
+    console.log('Image src attempted:', e.currentTarget.src);
+  };
+
+  const handleImageLoad = () => {
+    console.log('Image loaded successfully:', mechanicImageUrl);
+    console.log('Current URL:', window.location.href);
+  };
+
   return (
     <motion.div 
       className="order-first lg:order-last mb-8 lg:mb-0"
@@ -20,13 +32,9 @@ export const HeroImage = () => {
           src={mechanicImageUrl}
           alt="Professional team of mechanics ready to serve" 
           className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
-          onError={(e) => {
-            console.error('Image failed to load:', mechanicImageUrl);
-            console.log('Error details:', e);
-          }}
-          onLoad={() => {
-            console.log('Image loaded successfully:', mechanicImageUrl);
-          }}
+          onError={handleImageError}
+          onLoad={handleImageLoad}
+          crossOrigin="anonymous"
         />
       </div>
     </motion.div>
