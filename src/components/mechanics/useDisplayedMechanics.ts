@@ -30,7 +30,7 @@ export function useDisplayedMechanics(
           const profile = JSON.parse(mechanicProfile);
           console.log('Found local mechanic profile:', profile);
           
-          const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+          const vendorName = localStorage.getItem('vendorName') || 'Mike Rodriguez';
           const vendorAvatar = localStorage.getItem('vendorAvatar') || 
                       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
           
@@ -46,7 +46,7 @@ export function useDisplayedMechanics(
             rating = totalRating / reviewCount;
           }
           
-          // Create the local mechanic object with explicit zipCode
+          // Create the local mechanic object with Austin zip code
           const localMechanic = {
             id: 'local-mechanic',
             name: vendorName,
@@ -56,13 +56,12 @@ export function useDisplayedMechanics(
               : Array.isArray(profile.specialties) ? profile.specialties : ['General Repairs'],
             rating: rating,
             reviewCount: reviewCount,
-            location: profile.location || 'Worcester, MA',
-            hourlyRate: profile.hourlyRate || 75,
-            zipCode: profile.zipCode || '01605'
+            location: profile.location || 'Austin, TX',
+            hourlyRate: profile.hourlyRate || 85,
+            zipCode: profile.zipCode || '78730' // Default to Austin if not set
           };
           
           console.log('Adding local mechanic to display list:', localMechanic);
-          // Add it to the display mechanics
           displayMechanics = [...displayMechanics, localMechanic];
         } catch (error) {
           console.error('Error parsing mechanic profile:', error);
@@ -72,10 +71,9 @@ export function useDisplayedMechanics(
 
     // Add dummy vendor profile for customer views if needed
     if (currentUserRole === 'customer' && !hasLocalMechanic && displayMechanics.length === 0) {
-      // Add a default vendor profile for customers to see
       try {
-        // Get vendor information from localStorage
-        const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+        // Get vendor information from localStorage or use defaults
+        const vendorName = localStorage.getItem('vendorName') || 'Mike Rodriguez';
         const vendorAvatar = localStorage.getItem('vendorAvatar') || 
                   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
         
@@ -91,7 +89,7 @@ export function useDisplayedMechanics(
           rating = totalRating / reviewCount;
         }
         
-        // Create a default vendor profile
+        // Create a default vendor profile with Austin zip code
         const defaultVendor = {
           id: 'default-vendor',
           name: vendorName,
@@ -99,9 +97,9 @@ export function useDisplayedMechanics(
           specialties: ['General Repairs', 'Diagnostics'],
           rating: rating,
           reviewCount: reviewCount,
-          location: 'Worcester, MA',
-          hourlyRate: 75,
-          zipCode: '01605' // Hard-coded for Worcester, MA
+          location: 'Austin, TX',
+          hourlyRate: 85,
+          zipCode: '78730' // Austin, TX zip code
         };
         
         console.log('Adding default vendor for customer view:', defaultVendor);
@@ -115,27 +113,26 @@ export function useDisplayedMechanics(
     let filteredMechanics = displayMechanics;
     
     if (zipCode) {
-      // When filtering by zip code, include all mechanics that match the zip prefix
+      // When filtering by zip code, include mechanics that match the zip prefix or exact zip
       filteredMechanics = displayMechanics.filter(mechanic => {
-        // Log each mechanic's zip code for debugging
         console.log(`Filtering mechanic: ${mechanic.name}, id: ${mechanic.id}, zip: ${mechanic.zipCode || 'NO_ZIP'}`);
         
-        // If mechanic has a zip code that matches the search, include it
+        // If mechanic has a zip code that matches the search exactly, include it
+        if (mechanic.zipCode === zipCode) {
+          console.log(`✓ EXACT MATCH: ${mechanic.name} - zip matches exactly`);
+          return true;
+        }
+        
+        // If mechanic has a zip code that starts with the first 3 digits, include it
         if (mechanic.zipCode && mechanic.zipCode.startsWith(zipCode.substring(0, 3))) {
-          console.log(`✓ MATCH: ${mechanic.name} - zip starts with ${zipCode.substring(0, 3)}`);
+          console.log(`✓ PREFIX MATCH: ${mechanic.name} - zip starts with ${zipCode.substring(0, 3)}`);
           return true;
         }
         
-        // Special case for vendors - ensure they're included when zip matches exactly
+        // Special case for vendors - ensure they're included when zip matches
         if ((mechanic.id === 'local-mechanic' || mechanic.id === 'default-vendor') && 
-            mechanic.zipCode === zipCode) {
-          console.log(`✓ VENDOR MATCH: ${mechanic.name} - exact zip match`);
-          return true;
-        }
-        
-        // Special case for Worcester, MA
-        if (zipCode === '01605' && mechanic.zipCode === '01605') {
-          console.log(`✓ WORCESTER MATCH: ${mechanic.name}`);
+            mechanic.zipCode && mechanic.zipCode.startsWith(zipCode.substring(0, 3))) {
+          console.log(`✓ VENDOR MATCH: ${mechanic.name} - vendor zip prefix match`);
           return true;
         }
         

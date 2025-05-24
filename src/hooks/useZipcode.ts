@@ -1,48 +1,47 @@
 
-import { useState } from 'react';
-import { getZipcodeInfo, ZipcodeResponse, ZipcodeError } from '@/services/zipcodeService';
+import { useState, useCallback, useMemo } from 'react';
+import { zipcodeService } from '@/services/zipcodeService';
 
-interface UseZipcodeResult {
-  locationData: ZipcodeResponse | null;
-  isLoading: boolean;
-  error: ZipcodeError | null;
-  fetchLocationData: (zipCode: string, countryCode?: string) => Promise<void>;
-  reset: () => void;
-}
+export const useZipcode = () => {
+  const [locationData, setLocationData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-export const useZipcode = (): UseZipcodeResult => {
-  const [locationData, setLocationData] = useState<ZipcodeResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<ZipcodeError | null>(null);
-  
-  const fetchLocationData = async (zipCode: string, countryCode: string = 'us') => {
-    if (!zipCode) return;
-    
-    setIsLoading(true);
+  const fetchLocationData = useCallback(async (zipCode: string) => {
+    if (!zipCode || zipCode.length !== 5) {
+      setLocationData(null);
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
     setError(null);
     
     try {
-      const data = await getZipcodeInfo(zipCode, countryCode);
+      const data = await zipcodeService.getLocationByZipCode(zipCode);
       setLocationData(data);
     } catch (err) {
-      setError(err as ZipcodeError);
+      console.error('Error fetching location data:', err);
+      setError('Failed to fetch location data');
       setLocationData(null);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
-  
-  const reset = () => {
+  }, []);
+
+  const reset = useCallback(() => {
     setLocationData(null);
     setError(null);
-    setIsLoading(false);
-  };
-  
-  return {
-    locationData,
-    isLoading,
-    error,
+    setLoading(false);
+  }, []);
+
+  const memoizedReturn = useMemo(() => ({
     fetchLocationData,
+    locationData,
+    error,
+    loading,
     reset
-  };
+  }), [fetchLocationData, locationData, error, loading, reset]);
+
+  return memoizedReturn;
 };

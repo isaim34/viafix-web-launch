@@ -54,7 +54,7 @@ export const TestAccountsGenerator = () => {
     // Clear any existing auth data first
     localStorage.clear();
     
-    // Create fake mechanic account
+    // Create fake mechanic account for Austin, TX
     const mechanicData = {
       email: 'test.mechanic@example.com',
       firstName: 'Mike',
@@ -79,7 +79,8 @@ export const TestAccountsGenerator = () => {
       yearsExperience: 8,
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
       profileImage: '',
-      zipCode: '78730' // Austin, TX zip code
+      zipCode: '78730', // Austin, TX zip code
+      location: 'Austin, TX'
     };
     
     localStorage.setItem('mechanicProfile', JSON.stringify(mechanicProfile));
@@ -102,14 +103,14 @@ export const TestAccountsGenerator = () => {
   };
 
   const createTestVendorForSearch = () => {
-    // Create a test vendor that will show up in the mechanics search without logging in
+    // Create a test vendor that will show up in the Austin, TX mechanics search
     const testVendorData = {
       name: 'Mike Rodriguez',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80',
       specialties: 'Engine Repair, Brake Service, Oil Changes',
       hourlyRate: 85,
       location: 'Austin, TX',
-      zipCode: '78730' // Updated to Austin, TX zip code
+      zipCode: '78730' // Austin, TX zip code
     };
 
     // Store vendor data for search results
@@ -118,7 +119,7 @@ export const TestAccountsGenerator = () => {
     localStorage.setItem('local-mechanic-name', testVendorData.name);
     localStorage.setItem('local-mechanic-avatar', testVendorData.avatar);
 
-    // Create a mechanic profile for the vendor
+    // Create a mechanic profile for the vendor with Austin zip code
     const vendorProfile = {
       firstName: 'Mike',
       lastName: 'Rodriguez',
@@ -128,7 +129,7 @@ export const TestAccountsGenerator = () => {
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
       location: testVendorData.location,
       profileImage: testVendorData.avatar,
-      zipCode: testVendorData.zipCode
+      zipCode: testVendorData.zipCode // Ensure Austin zip code is set
     };
 
     localStorage.setItem('mechanicProfile', JSON.stringify(vendorProfile));
