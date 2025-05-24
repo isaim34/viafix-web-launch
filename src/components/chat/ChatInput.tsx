@@ -7,9 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
   isLoading: boolean;
+  placeholder?: string;
 }
 
-export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, isLoading, placeholder = "Type a message..." }: ChatInputProps) => {
   const [messageText, setMessageText] = useState('');
   
   const handleSendMessage = () => {
@@ -33,7 +34,7 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder={placeholder}
           className="min-h-[80px] resize-none"
           disabled={isLoading}
         />
