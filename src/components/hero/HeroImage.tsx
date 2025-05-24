@@ -15,6 +15,9 @@ export const HeroImage = () => {
     const img = e.target as HTMLImageElement;
     console.log('Image natural dimensions:', img.naturalWidth, 'x', img.naturalHeight);
     console.log('Image display dimensions:', img.width, 'x', img.height);
+    console.log('Image visibility:', window.getComputedStyle(img).visibility);
+    console.log('Image display:', window.getComputedStyle(img).display);
+    console.log('Image opacity:', window.getComputedStyle(img).opacity);
   };
 
   return (
@@ -24,14 +27,18 @@ export const HeroImage = () => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5 }}
     >
-      <div className="relative bg-gray-100 min-h-[300px] rounded-xl overflow-hidden">
+      <div style={{ width: '100%', height: '400px', backgroundColor: '#f3f4f6', border: '2px solid red' }}>
         <img 
           src={mechanicImageUrl}
           alt="Professional team of mechanics ready to serve" 
-          className="w-full h-full object-cover rounded-xl shadow-xl"
           onError={handleImageError}
           onLoad={handleImageLoad}
-          style={{ minHeight: '300px' }}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover',
+            display: 'block'
+          }}
         />
       </div>
     </motion.div>
