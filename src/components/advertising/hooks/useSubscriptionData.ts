@@ -45,16 +45,28 @@ export const useSubscriptionData = () => {
         // Load subscription data first from localStorage
         loadSubscriptionData();
         
-        // Then try to check with the service
+        // Then try to check with the service - with better error handling
         try {
+          console.log("Calling checkSubscription with auth status:", { 
+            isAuthenticated, 
+            hasLocalAuth, 
+            userEmail 
+          });
+          
           const result = await checkSubscription();
-          if (result.error) {
-            console.error("Error checking subscription:", result.error);
+          console.log("checkSubscription result:", result);
+          
+          if (result.error && !result.authError) {
+            console.error("Subscription service error:", result.error);
             // Don't set this as a blocking error, just log it
             console.log("Using cached subscription data due to service error");
+          } else if (result.authError) {
+            console.error("Authentication error in subscription check:", result.error);
+            setError("Authentication required. Please sign in again.");
           } else {
-            // Refresh data from localStorage after successful check
+            // Success - refresh data from localStorage after successful check
             setTimeout(() => loadSubscriptionData(), 100);
+            setError(null);
           }
         } catch (serviceError) {
           console.error("Subscription service error:", serviceError);

@@ -10,9 +10,16 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     // Check if user is authenticated with Supabase
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     let userEmail;
+    let authToken = sessionData?.session?.access_token;
     
-    if (sessionError || !sessionData.session) {
-      console.log("No Supabase session found, checking local auth");
+    console.log("Auth check:", { 
+      hasSession: !!sessionData?.session, 
+      hasToken: !!authToken,
+      sessionError: sessionError?.message 
+    });
+    
+    if (sessionError || !sessionData.session || !authToken) {
+      console.log("No valid Supabase session found, checking local auth");
       
       const { isLoggedInLocally, userEmail: localEmail } = checkLocalAuth();
       userEmail = localEmail;
@@ -41,19 +48,20 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         };
       }
       
-      // Add timestamp to prevent caching
-      const timestamp = new Date().getTime();
-      
+      // For local auth (non-test accounts), call edge function with email in body
       try {
-        // Call the check-subscription function with email in the body
         const response = await supabase.functions.invoke('check-subscription', {
-          body: { email: userEmail, timestamp },
+          body: { 
+            email: userEmail, 
+            timestamp: new Date().getTime() 
+          },
           headers: { 'Cache-Control': 'no-cache' }
         });
         
+        console.log("Edge function response for local auth:", response);
+        
         if (response.error) {
           console.error("Subscription check error:", response.error);
-          // Return a fallback response instead of throwing
           return { 
             subscribed: false, 
             subscription_tier: null,
@@ -61,8 +69,6 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
             error: "Unable to verify subscription status. Please try again later."
           };
         }
-        
-        console.log("Received subscription data:", response.data);
         
         // Store subscription info in localStorage for easy access
         updateLocalSubscriptionData(response.data);
@@ -75,18 +81,6 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         };
       } catch (functionError) {
         console.error("Edge function call failed:", functionError);
-        // Return mock data for test accounts as fallback
-        if (isTestAccount(userEmail)) {
-          const mockData = getMockSubscriptionData(userEmail);
-          updateLocalSubscriptionData(mockData);
-          return { 
-            subscribed: mockData.subscribed,
-            subscription_tier: mockData.subscription_tier,
-            subscription_end: mockData.subscription_end,
-            error: null
-          };
-        }
-        // For real accounts, return unsubscribed status
         return { 
           subscribed: false,
           subscription_tier: null,
@@ -114,14 +108,17 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       };
     }
     
-    // Add timestamp to prevent caching
-    const timestamp = new Date().getTime();
-    
     try {
+      // Call with proper authorization header
       const response = await supabase.functions.invoke('check-subscription', {
-        body: { timestamp },
-        headers: { 'Cache-Control': 'no-cache' }
+        body: { timestamp: new Date().getTime() },
+        headers: { 
+          'Authorization': `Bearer ${authToken}`,
+          'Cache-Control': 'no-cache' 
+        }
       });
+      
+      console.log("Edge function response with auth:", response);
       
       if (response.error) {
         console.error("Subscription check error:", response.error);
@@ -132,8 +129,6 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           error: "Unable to verify subscription status. Please try again later."
         };
       }
-      
-      console.log("Received subscription data:", response.data);
       
       // Store subscription info in localStorage for easy access
       updateLocalSubscriptionData(response.data);
