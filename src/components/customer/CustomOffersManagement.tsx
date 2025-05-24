@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarDays, Clock, DollarSign, MessageCircle, Wrench, FileText } from 'lucide-react';
+import { useMechanicChat } from '@/hooks/useMechanicChat';
 
 interface CustomOffer {
   id: string;
@@ -106,6 +108,33 @@ const CustomOffersManagement = () => {
     }
   };
 
+  // Create a chat component for each offer
+  const OfferChatButton = ({ mechanicId }: { mechanicId: string }) => {
+    const {
+      openChat,
+      handleSendMessage,
+    } = useMechanicChat(mechanicId, 'Mechanic');
+
+    const handleMessageMechanic = () => {
+      openChat();
+      // Send a contextual message about the custom offer
+      setTimeout(() => {
+        handleSendMessage("Hi! I wanted to follow up on my custom service request. Do you have any questions about it?");
+      }, 500);
+    };
+
+    return (
+      <Button 
+        variant="outline"
+        className="flex items-center gap-2"
+        onClick={handleMessageMechanic}
+      >
+        <MessageCircle className="h-4 w-4" />
+        Message Mechanic
+      </Button>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -200,13 +229,7 @@ const CustomOffersManagement = () => {
                 </div>
                 
                 <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Message Mechanic
-                  </Button>
+                  <OfferChatButton mechanicId={offer.mechanic_id} />
                 </div>
               </CardContent>
             </Card>
