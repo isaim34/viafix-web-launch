@@ -24,7 +24,7 @@ import WeeklyPlannerTab from '@/components/WeeklyPlannerTab';
 import StatsOverview from '@/components/stats/StatsOverview';
 import CancelledGigsTab from '@/components/CancelledGigsTab';
 import ReviewsTab from '@/components/ReviewsTab';
-import { ClearDataButton } from '@/components/debug/ClearDataButton';
+import { DebugPanel } from '@/components/debug/DebugPanel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/ErrorBoundary';
@@ -203,7 +203,7 @@ const MechanicDashboard = () => {
             
             <TabsContent value="debug">
               <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading debug tools</div>}>
-                <ClearDataButton />
+                <DebugPanel />
               </ErrorBoundary>
             </TabsContent>
           </Tabs>
