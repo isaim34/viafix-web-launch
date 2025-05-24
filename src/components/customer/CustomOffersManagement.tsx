@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -109,7 +110,7 @@ const CustomOffersManagement = () => {
   };
 
   // Create a chat component for each offer
-  const OfferChatButton = ({ mechanicId }: { mechanicId: string }) => {
+  const OfferChatButton = ({ mechanicId, offer }: { mechanicId: string; offer: CustomOffer }) => {
     const {
       openChat,
       handleSendMessage,
@@ -117,9 +118,19 @@ const CustomOffersManagement = () => {
 
     const handleMessageMechanic = () => {
       openChat();
-      // Send a contextual message about the custom offer
+      // Send a well-formatted contextual message about the custom offer
       setTimeout(() => {
-        handleSendMessage("Hi! I wanted to follow up on my custom service request. Do you have any questions about it?");
+        const message = `Hi! I wanted to follow up on my custom service request.
+
+📋 **Service Details:**
+• Description: ${offer.description}
+${offer.budget ? `• Budget: ${offer.budget}` : ''}
+${offer.timeframe ? `• Timeframe: ${offer.timeframe}` : ''}
+${offer.preferred_date ? `• Preferred Date: ${offer.preferred_date}` : ''}
+
+Please let me know if you have any questions or need additional information.`;
+        
+        handleSendMessage(message);
       }, 500);
     };
 
@@ -229,7 +240,7 @@ const CustomOffersManagement = () => {
                 </div>
                 
                 <div className="flex gap-2 pt-2">
-                  <OfferChatButton mechanicId={offer.mechanic_id} />
+                  <OfferChatButton mechanicId={offer.mechanic_id} offer={offer} />
                 </div>
               </CardContent>
             </Card>
@@ -241,3 +252,4 @@ const CustomOffersManagement = () => {
 };
 
 export default CustomOffersManagement;
+
