@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
@@ -31,9 +32,9 @@ const isTestAccount = (email: string): boolean => {
   return testPatterns.some(pattern => pattern.test(email));
 };
 
-// Helper function to return mock subscription data for test accounts
+// Helper function to return mock subscription data for test accounts (only when no Stripe customer exists)
 const getMockSubscriptionData = (email: string) => {
-  logStep("Returning mock subscription data for test account", { email });
+  logStep("Returning mock subscription data for test account with no Stripe customer", { email });
   
   // Return different mock data based on email pattern
   if (email.includes('premium') || email.includes('subscribed')) {
@@ -92,21 +93,12 @@ serve(async (req) => {
         if (body && body.email) {
           logStep("Using email from request body", { email: body.email });
           
-          // Check if this is a test account
-          if (isTestAccount(body.email)) {
-            const mockData = getMockSubscriptionData(body.email);
-            logStep("Returning mock data for test account without Stripe call");
-            return new Response(JSON.stringify(mockData), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-              status: 200,
-            });
-          }
-
-          // If not a test account and we have a Stripe key, proceed with Stripe check
+          // If we have a Stripe key, always check Stripe first - even for test accounts
           if (stripeKey) {
             const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
             
             try {
+              logStep("Checking Stripe for customer", { email: body.email });
               const customers = await stripe.customers.list({ 
                 email: body.email, 
                 limit: 1,
@@ -114,7 +106,18 @@ serve(async (req) => {
               });
               
               if (customers.data.length === 0) {
-                logStep("No customer found for email", { email: body.email });
+                logStep("No Stripe customer found for email", { email: body.email });
+                
+                // Only return mock data for test accounts when no Stripe customer exists
+                if (isTestAccount(body.email)) {
+                  const mockData = getMockSubscriptionData(body.email);
+                  logStep("Returning mock data for test account with no Stripe customer");
+                  return new Response(JSON.stringify(mockData), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    status: 200,
+                  });
+                }
+                
                 return new Response(JSON.stringify({ 
                   subscribed: false,
                   subscription_tier: null,
@@ -127,7 +130,7 @@ serve(async (req) => {
               
               // Continue with subscription check using the found customer
               const customerId = customers.data[0].id;
-              logStep("Found customer", { customerId });
+              logStep("Found Stripe customer", { customerId });
               
               // Get all subscriptions for the customer
               const subscriptions = await stripe.subscriptions.list({
@@ -145,14 +148,14 @@ serve(async (req) => {
                 const subscription = subscriptions.data[0];
                 subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
                 subscriptionTier = subscription.metadata?.plan_type || 'monthly';
-                logStep("Active subscription found", { 
+                logStep("Active subscription found via body email", { 
                   subscriptionId: subscription.id, 
                   endDate: subscriptionEnd,
                   tier: subscriptionTier,
                   status: subscription.status 
                 });
               } else {
-                logStep("No active subscription found");
+                logStep("No active subscription found via body email");
               }
               
               return new Response(JSON.stringify({
@@ -205,63 +208,6 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if this is a test account
-    if (isTestAccount(user.email)) {
-      const mockData = getMockSubscriptionData(user.email);
-      
-      // Still update the database for test accounts
-      try {
-        const { data: existingSubscriber } = await supabaseClient
-          .from("subscribers")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-          
-        if (existingSubscriber) {
-          logStep("Updating existing test subscriber record", { userId: user.id });
-          
-          const { error: updateError } = await supabaseClient
-            .from("subscribers")
-            .update({
-              subscribed: mockData.subscribed,
-              subscription_tier: mockData.subscription_tier,
-              subscription_end: mockData.subscription_end,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("user_id", user.id);
-            
-          if (updateError) {
-            logStep("Error updating test subscription status", { error: updateError });
-          }
-        } else {
-          logStep("Creating new test subscriber record", { userId: user.id });
-          
-          const { error: insertError } = await supabaseClient
-            .from("subscribers")
-            .insert({
-              user_id: user.id,
-              email: user.email,
-              stripe_customer_id: null,
-              subscribed: mockData.subscribed,
-              subscription_tier: mockData.subscription_tier,
-              subscription_end: mockData.subscription_end,
-            });
-            
-          if (insertError) {
-            logStep("Error inserting test subscription status", { error: insertError });
-          }
-        }
-      } catch (dbError) {
-        logStep("Database error when updating test subscriber record", { error: dbError });
-      }
-      
-      logStep("Returning mock subscription data for authenticated test account");
-      return new Response(JSON.stringify(mockData), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
     // If no Stripe key is available, return unsubscribed for real accounts
     if (!stripeKey) {
       logStep("No Stripe key available - returning unsubscribed for real account");
@@ -277,10 +223,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
-    // Add cache-busting query param to prevent cached results
-    const timestamp = new Date().getTime();
-    
-    logStep("Finding Stripe customer for user", { email: user.email });
+    logStep("Finding Stripe customer for authenticated user", { email: user.email });
     
     try {
       const customers = await stripe.customers.list({ 
@@ -290,7 +233,64 @@ serve(async (req) => {
       });
       
       if (customers.data.length === 0) {
-        logStep("No customer found, updating unsubscribed state");
+        logStep("No Stripe customer found, updating unsubscribed state");
+        
+        // Only return mock data for test accounts when no Stripe customer exists
+        if (isTestAccount(user.email)) {
+          const mockData = getMockSubscriptionData(user.email);
+          
+          // Still update the database for test accounts
+          try {
+            const { data: existingSubscriber } = await supabaseClient
+              .from("subscribers")
+              .select("*")
+              .eq("user_id", user.id)
+              .single();
+              
+            if (existingSubscriber) {
+              logStep("Updating existing test subscriber record", { userId: user.id });
+              
+              const { error: updateError } = await supabaseClient
+                .from("subscribers")
+                .update({
+                  subscribed: mockData.subscribed,
+                  subscription_tier: mockData.subscription_tier,
+                  subscription_end: mockData.subscription_end,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("user_id", user.id);
+                
+              if (updateError) {
+                logStep("Error updating test subscription status", { error: updateError });
+              }
+            } else {
+              logStep("Creating new test subscriber record", { userId: user.id });
+              
+              const { error: insertError } = await supabaseClient
+                .from("subscribers")
+                .insert({
+                  user_id: user.id,
+                  email: user.email,
+                  stripe_customer_id: null,
+                  subscribed: mockData.subscribed,
+                  subscription_tier: mockData.subscription_tier,
+                  subscription_end: mockData.subscription_end,
+                });
+                
+              if (insertError) {
+                logStep("Error inserting test subscription status", { error: insertError });
+              }
+            }
+          } catch (dbError) {
+            logStep("Database error when updating test subscriber record", { error: dbError });
+          }
+          
+          logStep("Returning mock subscription data for authenticated test account with no Stripe customer");
+          return new Response(JSON.stringify(mockData), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
         
         // Check if user already exists in subscribers table
         const { data: existingSubscriber } = await supabaseClient
@@ -350,7 +350,7 @@ serve(async (req) => {
       }
 
       const customerId = customers.data[0].id;
-      logStep("Found Stripe customer", { customerId });
+      logStep("Found Stripe customer for authenticated user", { customerId });
 
       // Make sure to check for all subscription statuses that are "active"
       const subscriptions = await stripe.subscriptions.list({
@@ -389,14 +389,14 @@ serve(async (req) => {
         subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
         subscriptionTier = subscription.metadata?.plan_type || 'monthly';
         
-        logStep("Active subscription found", { 
+        logStep("Active subscription found for authenticated user", { 
           subscriptionId, 
           endDate: subscriptionEnd,
           status: subscription.status,
           metadata: subscription.metadata
         });
       } else {
-        logStep("No active subscription found");
+        logStep("No active subscription found for authenticated user");
       }
 
       // Check if user already exists in subscribers table
@@ -409,7 +409,7 @@ serve(async (req) => {
       // Store subscription status in Supabase subscribers table
       try {
         if (existingSubscriber) {
-          logStep("Updating existing subscriber record", { 
+          logStep("Updating existing subscriber record for authenticated user", { 
             userId: user.id,
             id: existingSubscriber.id 
           });
@@ -432,7 +432,7 @@ serve(async (req) => {
             logStep("Successfully updated subscriber record");
           }
         } else {
-          logStep("Creating new subscriber record", { userId: user.id });
+          logStep("Creating new subscriber record for authenticated user", { userId: user.id });
           
           const { error: insertError } = await supabaseClient
             .from("subscribers")
@@ -457,7 +457,7 @@ serve(async (req) => {
         // Continue despite DB error - we should still return the subscription status
       }
 
-      logStep("Returning subscription info", { 
+      logStep("Returning subscription info for authenticated user", { 
         subscribed: hasActiveSub, 
         subscriptionTier,
         subscriptionEnd 
