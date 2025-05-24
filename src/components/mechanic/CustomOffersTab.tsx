@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +51,14 @@ const CustomOffersTab = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOffers(data || []);
+      
+      // Type cast the data to ensure status field matches our interface
+      const typedOffers: CustomOffer[] = (data || []).map(offer => ({
+        ...offer,
+        status: offer.status as 'pending' | 'accepted' | 'declined'
+      }));
+      
+      setOffers(typedOffers);
     } catch (error) {
       console.error('Error fetching custom offers:', error);
       toast({
