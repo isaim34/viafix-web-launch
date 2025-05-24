@@ -23,7 +23,10 @@ export const MechanicCustomOffer = ({
   const { toast } = useToast();
   const { isLoggedIn, currentUserRole } = useAuth();
   const navigate = useNavigate();
-  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
+  
+  // Enhanced authentication check
+  const isCustomerLoggedIn = (isLoggedIn || localStorage.getItem('userLoggedIn') === 'true') && 
+                            (currentUserRole === 'customer' || localStorage.getItem('userRole') === 'customer');
 
   const handleCustomOffer = () => {
     console.log("Request custom offer button clicked");
@@ -89,7 +92,10 @@ export const useCustomOffer = ({
   const { toast } = useToast();
   const { isLoggedIn, currentUserRole } = useAuth();
   const navigate = useNavigate();
-  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
+  
+  // Enhanced authentication check
+  const isCustomerLoggedIn = (isLoggedIn || localStorage.getItem('userLoggedIn') === 'true') && 
+                            (currentUserRole === 'customer' || localStorage.getItem('userRole') === 'customer');
 
   const handleCustomOffer = () => {
     console.log("Request custom offer hook called");

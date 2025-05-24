@@ -45,7 +45,34 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
   const { toast } = useToast();
   const { user, isLoggedIn, currentUserRole } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isCustomerLoggedIn = isLoggedIn && currentUserRole === 'customer';
+  
+  // Enhanced authentication checking with debugging
+  const getCurrentUserId = () => {
+    const supabaseUserId = user?.id;
+    const localStorageUserId = localStorage.getItem('userId');
+    const isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    
+    console.log('CustomOfferDialog - Auth state:', {
+      isLoggedIn,
+      currentUserRole,
+      supabaseUserId,
+      localStorageUserId,
+      isUserLoggedIn,
+      user: !!user
+    });
+    
+    return localStorageUserId || supabaseUserId || null;
+  };
+  
+  const currentUserId = getCurrentUserId();
+  const isCustomerLoggedIn = (isLoggedIn || localStorage.getItem('userLoggedIn') === 'true') && 
+                            (currentUserRole === 'customer' || localStorage.getItem('userRole') === 'customer');
+  
+  console.log('CustomOfferDialog - Final auth check:', {
+    isCustomerLoggedIn,
+    currentUserId,
+    hasValidUserId: !!currentUserId
+  });
   
   const [formData, setFormData] = useState<CustomOfferDetails>({
     description: '',
@@ -72,7 +99,8 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
       return;
     }
     
-    if (!isCustomerLoggedIn || !user) {
+    if (!isCustomerLoggedIn || !currentUserId) {
+      console.log("Authentication failed:", { isCustomerLoggedIn, currentUserId });
       toast({
         title: "Authentication required",
         description: "You must be signed in to request a custom offer.",
@@ -87,7 +115,7 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
       console.log("Saving custom offer to Supabase");
       // Save to Supabase
       const { error } = await supabase.from('custom_offers').insert({
-        customer_id: user.id,
+        customer_id: currentUserId,
         mechanic_id: mechanicId,
         description: formData.description,
         budget: formData.budget,
@@ -127,6 +155,38 @@ export const CustomOfferDialog: React.FC<CustomOfferDialogProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  // Show authentication error state in the dialog
+  if (!isCustomerLoggedIn) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Authentication Required</DialogTitle>
+            <DialogDescription>
+              You must be signed in as a customer to request a custom offer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <p className="text-red-800 text-sm">
+                Please sign in to your customer account to continue.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
