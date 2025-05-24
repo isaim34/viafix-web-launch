@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarDays, Clock, DollarSign, MessageCircle, User, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { CalendarDays, Clock, DollarSign, MessageCircle, User, CheckCircle, XCircle, FileText, Check } from 'lucide-react';
+import { MaintenanceRecordForm } from './MaintenanceRecordForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface CustomOffer {
   id: string;
@@ -15,13 +18,16 @@ interface CustomOffer {
   budget: string;
   timeframe: string;
   preferred_date: string;
-  status: 'pending' | 'accepted' | 'declined';
+  status: 'pending' | 'accepted' | 'declined' | 'completed';
   created_at: string;
 }
 
 const CustomOffersTab = () => {
   const [offers, setOffers] = useState<CustomOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [completingOfferId, setCompletingOfferId] = useState<string | null>(null);
+  const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<CustomOffer | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -55,7 +61,7 @@ const CustomOffersTab = () => {
       // Type cast the data to ensure status field matches our interface
       const typedOffers: CustomOffer[] = (data || []).map(offer => ({
         ...offer,
-        status: offer.status as 'pending' | 'accepted' | 'declined'
+        status: offer.status as 'pending' | 'accepted' | 'declined' | 'completed'
       }));
       
       setOffers(typedOffers);
@@ -71,11 +77,18 @@ const CustomOffersTab = () => {
     }
   };
 
-  const updateOfferStatus = async (offerId: string, status: 'accepted' | 'declined') => {
+  const updateOfferStatus = async (offerId: string, status: 'accepted' | 'declined' | 'completed') => {
     try {
+      const updateData: any = { status };
+      
+      // If completing the offer, add completion timestamp
+      if (status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from('custom_offers')
-        .update({ status })
+        .update(updateData)
         .eq('id', offerId);
 
       if (error) throw error;
@@ -84,8 +97,9 @@ const CustomOffersTab = () => {
         offer.id === offerId ? { ...offer, status } : offer
       ));
 
+      const statusText = status === 'accepted' ? 'Accepted' : status === 'declined' ? 'Declined' : 'Completed';
       toast({
-        title: status === 'accepted' ? "Offer Accepted" : "Offer Declined",
+        title: `Offer ${statusText}`,
         description: `You have ${status} the custom service request.`,
       });
     } catch (error) {
@@ -96,6 +110,19 @@ const CustomOffersTab = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleCompleteOffer = (offer: CustomOffer) => {
+    setSelectedOffer(offer);
+    setShowMaintenanceForm(true);
+  };
+
+  const handleMaintenanceRecordSuccess = () => {
+    if (selectedOffer) {
+      updateOfferStatus(selectedOffer.id, 'completed');
+    }
+    setShowMaintenanceForm(false);
+    setSelectedOffer(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -116,6 +143,8 @@ const CustomOffersTab = () => {
         return 'bg-green-100 text-green-800 border-green-200';
       case 'declined':
         return 'bg-red-100 text-red-800 border-red-200';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -211,6 +240,25 @@ const CustomOffersTab = () => {
             </Button>
           </div>
         )}
+
+        {offer.status === 'accepted' && (
+          <div className="flex gap-2 pt-2">
+            <Button 
+              onClick={() => handleCompleteOffer(offer)}
+              className="flex items-center gap-2"
+            >
+              <Check className="h-4 w-4" />
+              Complete Service
+            </Button>
+            <Button 
+              variant="ghost"
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Message Customer
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -224,75 +272,107 @@ const CustomOffersTab = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Custom Service Requests</h2>
-        <p className="text-muted-foreground">
-          Manage custom service requests from customers
-        </p>
-      </div>
-      
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList>
-          <TabsTrigger value="all">
-            All ({offers.length})
-          </TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending ({filterOffersByStatus('pending').length})
-          </TabsTrigger>
-          <TabsTrigger value="accepted">
-            Accepted ({filterOffersByStatus('accepted').length})
-          </TabsTrigger>
-          <TabsTrigger value="declined">
-            Declined ({filterOffersByStatus('declined').length})
-          </TabsTrigger>
-        </TabsList>
+    <>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Custom Service Requests</h2>
+          <p className="text-muted-foreground">
+            Manage custom service requests from customers
+          </p>
+        </div>
         
-        <TabsContent value="all" className="mt-6">
-          {offers.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-20">
-                <FileText className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-muted-foreground">No custom service requests yet</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Custom requests from customers will appear here
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList>
+            <TabsTrigger value="all">
+              All ({offers.length})
+            </TabsTrigger>
+            <TabsTrigger value="pending">
+              Pending ({filterOffersByStatus('pending').length})
+            </TabsTrigger>
+            <TabsTrigger value="accepted">
+              Accepted ({filterOffersByStatus('accepted').length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed ({filterOffersByStatus('completed').length})
+            </TabsTrigger>
+            <TabsTrigger value="declined">
+              Declined ({filterOffersByStatus('declined').length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all" className="mt-6">
+            {offers.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-20">
+                  <FileText className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                  <p className="text-muted-foreground">No custom service requests yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Custom requests from customers will appear here
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div>
+                {offers.map(offer => (
+                  <OfferCard key={offer.id} offer={offer} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="pending" className="mt-6">
             <div>
-              {offers.map(offer => (
+              {filterOffersByStatus('pending').map(offer => (
                 <OfferCard key={offer.id} offer={offer} />
               ))}
             </div>
+          </TabsContent>
+          
+          <TabsContent value="accepted" className="mt-6">
+            <div>
+              {filterOffersByStatus('accepted').map(offer => (
+                <OfferCard key={offer.id} offer={offer} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="completed" className="mt-6">
+            <div>
+              {filterOffersByStatus('completed').map(offer => (
+                <OfferCard key={offer.id} offer={offer} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="declined" className="mt-6">
+            <div>
+              {filterOffersByStatus('declined').map(offer => (
+                <OfferCard key={offer.id} offer={offer} />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <Dialog open={showMaintenanceForm} onOpenChange={setShowMaintenanceForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Complete Service & Create Maintenance Record</DialogTitle>
+          </DialogHeader>
+          {selectedOffer && (
+            <MaintenanceRecordForm
+              customerId={selectedOffer.customer_id}
+              serviceName="Custom Service"
+              onSuccess={handleMaintenanceRecordSuccess}
+              onCancel={() => {
+                setShowMaintenanceForm(false);
+                setSelectedOffer(null);
+              }}
+            />
           )}
-        </TabsContent>
-        
-        <TabsContent value="pending" className="mt-6">
-          <div>
-            {filterOffersByStatus('pending').map(offer => (
-              <OfferCard key={offer.id} offer={offer} />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="accepted" className="mt-6">
-          <div>
-            {filterOffersByStatus('accepted').map(offer => (
-              <OfferCard key={offer.id} offer={offer} />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="declined" className="mt-6">
-          <div>
-            {filterOffersByStatus('declined').map(offer => (
-              <OfferCard key={offer.id} offer={offer} />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
