@@ -3,20 +3,18 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Use an uploaded image from the project
   const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error('Image failed to load:', mechanicImageUrl);
     console.log('Error details:', e);
-    console.log('Current URL:', window.location.href);
-    console.log('Image src attempted:', e.currentTarget.src);
   };
 
-  const handleImageLoad = () => {
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.log('Image loaded successfully:', mechanicImageUrl);
-    console.log('Current URL:', window.location.href);
-    console.log('Image dimensions:', document.querySelector('[data-hero-image]')?.getBoundingClientRect());
+    const img = e.target as HTMLImageElement;
+    console.log('Image natural dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+    console.log('Image display dimensions:', img.width, 'x', img.height);
   };
 
   return (
@@ -26,16 +24,14 @@ export const HeroImage = () => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.5 }}
     >
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-xl -z-10" />
-        
+      <div className="relative bg-gray-100 min-h-[300px] rounded-xl overflow-hidden">
         <img 
-          data-hero-image
           src={mechanicImageUrl}
           alt="Professional team of mechanics ready to serve" 
-          className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
+          className="w-full h-full object-cover rounded-xl shadow-xl"
           onError={handleImageError}
           onLoad={handleImageLoad}
+          style={{ minHeight: '300px' }}
         />
       </div>
     </motion.div>
