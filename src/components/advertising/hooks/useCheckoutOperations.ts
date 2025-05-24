@@ -11,16 +11,27 @@ export const useCheckoutOperations = () => {
   const { toast } = useToast();
 
   const handleProceedToCheckout = async (selectedPlan: string | null) => {
-    if (!selectedPlan) return;
+    if (!selectedPlan) {
+      console.error("No plan selected");
+      return;
+    }
     
     try {
       setIsLoading(true);
+      console.log("Starting checkout process for plan:", selectedPlan);
       
       const { data: { session } } = await supabase.auth.getSession();
       const isLoggedInLocally = localStorage.getItem('userLoggedIn') === 'true';
       const localUserEmail = localStorage.getItem('userEmail');
       
+      console.log("Auth status:", { 
+        hasSession: !!session, 
+        isLoggedInLocally, 
+        hasLocalEmail: !!localUserEmail 
+      });
+      
       if (!session && !isLoggedInLocally && !localUserEmail) {
+        console.error("No authentication found");
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",
@@ -30,13 +41,16 @@ export const useCheckoutOperations = () => {
         return;
       }
       
-      const { url, error, authError } = await createCheckoutSession({
+      console.log("Calling createCheckoutSession...");
+      const result = await createCheckoutSession({
         paymentType: 'subscription',
         planType: selectedPlan
       });
       
-      if (authError) {
-        console.error("Auth error from checkout:", authError);
+      console.log("Checkout session result:", result);
+      
+      if (result.authError) {
+        console.error("Auth error from checkout:", result.authError);
         toast({
           title: "Authentication Required",
           description: "Please sign in to purchase a subscription plan",
@@ -46,18 +60,25 @@ export const useCheckoutOperations = () => {
         return;
       }
       
-      if (error) {
-        throw new Error(error);
+      if (result.error) {
+        console.error("Checkout error:", result.error);
+        throw new Error(result.error);
       }
       
-      if (url) {
+      if (result.url) {
+        console.log("Redirecting to Stripe checkout:", result.url);
         toast({
           title: "Redirecting to checkout",
           description: "You'll be taken to our secure payment processor."
         });
-        window.location.href = url;
+        
+        // Add a small delay to ensure the toast is visible
+        setTimeout(() => {
+          window.location.href = result.url;
+        }, 1000);
       } else {
-        throw new Error("Failed to create checkout session");
+        console.error("No checkout URL received");
+        throw new Error("Failed to create checkout session - no URL returned");
       }
     } catch (err) {
       console.error('Subscription checkout error:', err);

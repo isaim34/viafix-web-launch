@@ -14,12 +14,20 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
     let authToken = sessionData?.session?.access_token;
     let userEmail = sessionData?.session?.user?.email;
     
+    console.log("Session check:", { 
+      hasSession: !!sessionData?.session, 
+      hasToken: !!authToken, 
+      userEmail: userEmail 
+    });
+    
     // If no Supabase session, check if we're authenticated locally
     if (sessionError || !sessionData.session) {
       console.warn("No Supabase session found, checking local auth");
       
       const { isLoggedInLocally, userEmail: localEmail } = checkLocalAuth();
       userEmail = localEmail;
+      
+      console.log("Local auth check:", { isLoggedInLocally, userEmail });
       
       if (!isLoggedInLocally || !userEmail) {
         console.error("No authentication found");
@@ -34,13 +42,24 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
       console.log("Proceeding with local authentication", { userEmail });
     }
     
+    console.log("Calling Supabase edge function...");
+    
     // Always include the email in the request body for consistent authentication fallback
+    const requestBody = {
+      ...options,
+      email: userEmail
+    };
+    
+    console.log("Request body:", requestBody);
+    
     const response = await supabase.functions.invoke('create-checkout', {
-      body: {
-        ...options,
-        email: userEmail
+      body: requestBody,
+      headers: {
+        'Content-Type': 'application/json'
       }
     });
+    
+    console.log("Edge function response:", response);
     
     if (response.error) {
       console.error("Checkout session error:", response.error);
@@ -50,18 +69,28 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
       };
     }
     
-    if (!response.data?.url) {
+    if (!response.data) {
+      console.error("No data in response:", response);
+      return {
+        url: null,
+        error: "No response data from checkout service"
+      };
+    }
+    
+    if (response.data.error) {
+      console.error("Error in response data:", response.data.error);
+      return {
+        url: null,
+        error: response.data.error
+      };
+    }
+    
+    if (!response.data.url) {
       console.error("No checkout URL in response:", response.data);
-      
-      // Check if there's an error message in the response
-      if (response.data?.error) {
-        return {
-          url: null,
-          error: response.data.error
-        };
-      }
-      
-      throw new Error("No checkout URL returned");
+      return {
+        url: null,
+        error: "No checkout URL returned from service"
+      };
     }
     
     console.log("Checkout session created successfully:", response.data.url);
