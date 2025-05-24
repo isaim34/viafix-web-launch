@@ -82,7 +82,7 @@ export const ChatView = ({
       {/* Chat Input */}
       <ChatInput
         onSendMessage={handleSendMessage}
-        disabled={isSending}
+        isLoading={isSending}
         placeholder={`Message ${otherParticipantName}...`}
       />
     </div>
