@@ -113,13 +113,13 @@ export const TestAccountsGenerator = () => {
       zipCode: '78730' // Austin, TX zip code
     };
 
-    // Store vendor data for search results
+    // Store vendor data for search results - ensure consistency
     localStorage.setItem('vendorName', testVendorData.name);
     localStorage.setItem('vendorAvatar', testVendorData.avatar);
     localStorage.setItem('local-mechanic-name', testVendorData.name);
     localStorage.setItem('local-mechanic-avatar', testVendorData.avatar);
 
-    // Create a mechanic profile for the vendor with Austin zip code
+    // Create a mechanic profile for the vendor with Austin zip code that matches the vendor name
     const vendorProfile = {
       firstName: 'Mike',
       lastName: 'Rodriguez',

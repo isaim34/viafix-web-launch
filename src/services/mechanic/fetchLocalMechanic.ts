@@ -8,7 +8,8 @@ import { createLocalMechanicProfile } from '@/utils/mechanic/formatMechanicData'
  */
 export const fetchLocalMechanic = async (id: string): Promise<MechanicDetail | null> => {
   try {
-    const vendorName = localStorage.getItem('vendorName') || 'Isai Mercado';
+    // Use consistent vendor name - prioritize what's set by test account generator
+    const vendorName = localStorage.getItem('vendorName') || 'Mike Rodriguez';
     const vendorAvatar = localStorage.getItem('vendorAvatar') || 
               'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
     
@@ -28,29 +29,15 @@ export const fetchLocalMechanic = async (id: string): Promise<MechanicDetail | n
     const specialReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
     const localReviews = specialReviews.filter((review: any) => review.mechanic_id === id);
     
-    // Try to fetch real reviews for the local mechanic or default vendor
-    const { data: supabaseReviews, error: reviewsError } = await supabase
-      .from('mechanic_reviews')
-      .select('id, author, rating, text, created_at')
-      .eq('mechanic_id', id === 'local-mechanic' ? localStorage.getItem('userId') : 'default-vendor');
-      
-    if (reviewsError) {
-      console.error('Error fetching reviews:', reviewsError);
-    }
+    // Don't try to fetch from Supabase with string IDs that aren't UUIDs
+    console.log('Skipping Supabase review fetch for local mechanic:', id);
     
-    // Combine both local and Supabase reviews
-    const reviews = [
-      ...(localReviews || []).map((r: any) => ({ 
-        author: r.author, 
-        rating: r.rating, 
-        text: r.text 
-      })),
-      ...(supabaseReviews || []).map((r: any) => ({ 
-        author: r.author, 
-        rating: r.rating, 
-        text: r.text 
-      }))
-    ];
+    // Use only local reviews for special mechanic IDs
+    const reviews = (localReviews || []).map((r: any) => ({ 
+      author: r.author, 
+      rating: r.rating, 
+      text: r.text 
+    }));
     
     return createLocalMechanicProfile(
       id,
