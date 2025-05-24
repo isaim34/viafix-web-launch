@@ -25,6 +25,24 @@ export const useMaintenanceSubmit = () => {
         throw new Error('Mechanic ID not found');
       }
 
+      console.log('Submitting maintenance record with:', {
+        customerId,
+        mechanicId,
+        serviceId,
+        existingMaintenanceRecord: existingMaintenanceRecord?.id,
+        customerVehicle: customerVehicle?.id,
+        customOfferId
+      });
+
+      // Validate customer ID format - if it's not a UUID, we need to handle it differently
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(customerId);
+      
+      if (!isValidUUID) {
+        console.warn('Customer ID is not a valid UUID:', customerId);
+        // For demo/test customers, we'll create a simple record without linking to customer
+        throw new Error('Invalid customer ID format. Please use a valid customer account.');
+      }
+
       let vehicleId = customerVehicle?.id;
       
       // Create vehicle record if it doesn't exist
@@ -33,6 +51,8 @@ export const useMaintenanceSubmit = () => {
         const year = parseInt(vehicleInfo[0]) || new Date().getFullYear();
         const make = vehicleInfo[1] || 'Unknown';
         const model = vehicleInfo.slice(2).join(' ') || 'Unknown';
+
+        console.log('Creating new vehicle:', { customerId, year, make, model });
 
         const { data: newVehicle, error: vehicleError } = await supabase
           .from('vehicles')
@@ -45,13 +65,19 @@ export const useMaintenanceSubmit = () => {
           .select()
           .single();
 
-        if (vehicleError) throw vehicleError;
+        if (vehicleError) {
+          console.error('Vehicle creation error:', vehicleError);
+          throw new Error(`Failed to create vehicle record: ${vehicleError.message}`);
+        }
         vehicleId = newVehicle.id;
+        console.log('Created vehicle with ID:', vehicleId);
       }
 
       if (existingMaintenanceRecord) {
         // Update existing maintenance record by adding to the description
         const updatedDescription = `${existingMaintenanceRecord.description}\n\n--- Additional Work by Mechanic ---\n${data.description}`;
+        
+        console.log('Updating existing maintenance record:', existingMaintenanceRecord.id);
         
         const { error } = await supabase
           .from('maintenance_records')
@@ -64,9 +90,14 @@ export const useMaintenanceSubmit = () => {
           })
           .eq('id', existingMaintenanceRecord.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Maintenance record update error:', error);
+          throw new Error(`Failed to update maintenance record: ${error.message}`);
+        }
       } else {
         // Create new maintenance record
+        console.log('Creating new maintenance record');
+        
         const { error } = await supabase
           .from('maintenance_records')
           .insert({
@@ -80,12 +111,17 @@ export const useMaintenanceSubmit = () => {
             custom_offer_id: customOfferId,
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Maintenance record creation error:', error);
+          throw new Error(`Failed to create maintenance record: ${error.message}`);
+        }
       }
 
       // If this is related to a service booking, update it to completed
       if (serviceId) {
-        await supabase
+        console.log('Updating service booking status:', serviceId);
+        
+        const { error: bookingError } = await supabase
           .from('service_bookings')
           .update({
             status: 'completed',
@@ -95,6 +131,11 @@ export const useMaintenanceSubmit = () => {
             labor_hours: data.labor_hours,
           })
           .eq('id', serviceId);
+
+        if (bookingError) {
+          console.error('Service booking update error:', bookingError);
+          // Don't throw here as the maintenance record was created successfully
+        }
       }
 
       toast({

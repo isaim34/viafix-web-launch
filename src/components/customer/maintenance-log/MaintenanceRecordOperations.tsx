@@ -20,10 +20,27 @@ export const useMaintenanceRecordOperations = () => {
         });
         return;
       }
+
+      console.log('Saving maintenance record for user:', userId);
+      
+      // Validate user ID format - if it's not a UUID, show appropriate error
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId);
+      
+      if (!isValidUUID) {
+        console.warn('User ID is not a valid UUID:', userId);
+        toast({
+          title: "Account Error",
+          description: "Please use a proper customer account to save maintenance records",
+          variant: "destructive"
+        });
+        return;
+      }
       
       // Find or create vehicle record first if we have a VIN
       let vehicleId = null;
       if (record.vin) {
+        console.log('Looking for existing vehicle with VIN:', record.vin);
+        
         // Check if vehicle exists
         const { data: existingVehicles } = await supabase
           .from('vehicles')
@@ -34,12 +51,15 @@ export const useMaintenanceRecordOperations = () => {
         
         if (existingVehicles?.id) {
           vehicleId = existingVehicles.id;
+          console.log('Found existing vehicle:', vehicleId);
         } else {
           // Extract vehicle info from the vehicle string (format: "YEAR MAKE MODEL")
           const vehicleParts = record.vehicle.split(' ');
           const year = parseInt(vehicleParts[0]) || new Date().getFullYear();
           const make = vehicleParts[1] || 'Unknown';
           const model = vehicleParts.slice(2).join(' ') || 'Unknown';
+          
+          console.log('Creating new vehicle:', { userId, make, model, year, vin: record.vin });
           
           // Create new vehicle
           const { data: newVehicle, error: vehicleError } = await supabase
@@ -55,15 +75,19 @@ export const useMaintenanceRecordOperations = () => {
             .single();
           
           if (vehicleError) {
+            console.error('Vehicle creation error:', vehicleError);
             throw new Error(`Failed to save vehicle: ${vehicleError.message}`);
           }
           
           vehicleId = newVehicle.id;
+          console.log('Created new vehicle:', vehicleId);
         }
       }
       
       if (record.id) {
         // Update existing record
+        console.log('Updating existing maintenance record:', record.id);
+        
         const { error } = await supabase
           .from('maintenance_records')
           .update({
@@ -76,6 +100,7 @@ export const useMaintenanceRecordOperations = () => {
           .eq('id', record.id);
         
         if (error) {
+          console.error('Maintenance record update error:', error);
           throw new Error(`Failed to update record: ${error.message}`);
         }
         
@@ -85,6 +110,8 @@ export const useMaintenanceRecordOperations = () => {
         });
       } else {
         // Add new record
+        console.log('Creating new maintenance record');
+        
         const { error } = await supabase
           .from('maintenance_records')
           .insert({
@@ -97,6 +124,7 @@ export const useMaintenanceRecordOperations = () => {
           });
         
         if (error) {
+          console.error('Maintenance record creation error:', error);
           throw new Error(`Failed to save record: ${error.message}`);
         }
         
@@ -117,12 +145,15 @@ export const useMaintenanceRecordOperations = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      console.log('Deleting maintenance record:', id);
+      
       const { error } = await supabase
         .from('maintenance_records')
         .delete()
         .eq('id', id);
       
       if (error) {
+        console.error('Maintenance record deletion error:', error);
         throw new Error(`Failed to delete record: ${error.message}`);
       }
       
