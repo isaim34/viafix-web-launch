@@ -54,7 +54,7 @@ export const TestAccountsGenerator = () => {
     // Clear any existing auth data first
     localStorage.clear();
     
-    // Create fake mechanic account for Austin, TX
+    // Create fake mechanic account for Austin, TX with consistent data
     const mechanicData = {
       email: 'test.mechanic@example.com',
       firstName: 'Mike',
@@ -63,6 +63,9 @@ export const TestAccountsGenerator = () => {
       role: 'mechanic'
     };
 
+    // Set consistent profile image
+    const profileImage = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
+
     localStorage.setItem('userLoggedIn', 'true');
     localStorage.setItem('userRole', mechanicData.role);
     localStorage.setItem('userEmail', mechanicData.email);
@@ -70,7 +73,7 @@ export const TestAccountsGenerator = () => {
     localStorage.setItem('userId', mechanicData.userId);
     localStorage.setItem('vendorName', `${mechanicData.firstName} ${mechanicData.lastName}`);
 
-    // Create mechanic profile data with Austin, TX location
+    // Create mechanic profile data with consistent info
     const mechanicProfile = {
       firstName: mechanicData.firstName,
       lastName: mechanicData.lastName,
@@ -78,18 +81,40 @@ export const TestAccountsGenerator = () => {
       hourlyRate: '85',
       yearsExperience: 8,
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
-      profileImage: '',
-      zipCode: '78730', // Austin, TX zip code
-      location: 'Austin, TX' // Ensure consistent location
+      profileImage: profileImage,
+      zipCode: '78730',
+      location: 'Austin, TX'
     };
     
     localStorage.setItem('mechanicProfile', JSON.stringify(mechanicProfile));
     localStorage.setItem(`mechanic_profile_${mechanicData.email}`, JSON.stringify(mechanicProfile));
     
-    // IMPORTANT: Also store the mechanic as vendor data so they appear in search results
-    localStorage.setItem('vendorAvatar', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80');
-    localStorage.setItem('local-mechanic-avatar', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80');
+    // Store consistent vendor data
+    localStorage.setItem('vendorAvatar', profileImage);
+    localStorage.setItem('local-mechanic-avatar', profileImage);
     localStorage.setItem('local-mechanic-name', `${mechanicData.firstName} ${mechanicData.lastName}`);
+    localStorage.setItem('mechanicAvatar', profileImage);
+    
+    // Store profile image with various keys for consistency
+    localStorage.setItem(`mechanic-${mechanicData.userId}-profileImage`, profileImage);
+    
+    // Create some sample messages for testing
+    const sampleMessages = [
+      {
+        mechanic_id: 'local-mechanic',
+        author: 'John Smith',
+        rating: 5,
+        text: 'Great service! Mike was very professional and fixed my brake issue quickly.'
+      },
+      {
+        mechanic_id: 'local-mechanic',
+        author: 'Sarah Johnson',
+        rating: 4,
+        text: 'Good work on my oil change. Will definitely use again.'
+      }
+    ];
+    
+    localStorage.setItem('special_mechanic_reviews', JSON.stringify(sampleMessages));
     
     // Trigger storage event to notify components
     window.dispatchEvent(new Event('storage-event'));
@@ -110,7 +135,7 @@ export const TestAccountsGenerator = () => {
       specialties: 'Engine Repair, Brake Service, Oil Changes',
       hourlyRate: 85,
       location: 'Austin, TX',
-      zipCode: '78730' // Austin, TX zip code
+      zipCode: '78730'
     };
 
     // Store vendor data for search results - ensure consistency
@@ -127,13 +152,31 @@ export const TestAccountsGenerator = () => {
       hourlyRate: testVendorData.hourlyRate.toString(),
       yearsExperience: 8,
       about: 'Experienced mobile mechanic specializing in engine diagnostics and general automotive repair.',
-      location: testVendorData.location, // Consistent Austin, TX location
+      location: testVendorData.location,
       profileImage: testVendorData.avatar,
-      zipCode: testVendorData.zipCode // Ensure Austin zip code is set
+      zipCode: testVendorData.zipCode
     };
 
     localStorage.setItem('mechanicProfile', JSON.stringify(vendorProfile));
     localStorage.setItem('test-vendor-profile', JSON.stringify(vendorProfile));
+
+    // Create sample reviews for the vendor
+    const vendorReviews = [
+      {
+        mechanic_id: 'default-vendor',
+        author: 'Emily Davis',
+        rating: 5,
+        text: 'Excellent work! Very knowledgeable and professional.'
+      },
+      {
+        mechanic_id: 'default-vendor', 
+        author: 'Mark Wilson',
+        rating: 4,
+        text: 'Fixed my engine problem quickly. Reasonable pricing.'
+      }
+    ];
+    
+    localStorage.setItem('special_mechanic_reviews', JSON.stringify(vendorReviews));
 
     // Trigger storage event to notify components
     window.dispatchEvent(new Event('storage-event'));

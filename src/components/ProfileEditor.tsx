@@ -28,6 +28,23 @@ const ProfileEditor = () => {
       try {
         const parsedData = JSON.parse(savedProfileData);
         console.log('Loading saved profile data:', parsedData);
+        
+        // For mechanics, ensure we use the correct vendor name and avatar
+        if (currentUserRole === 'mechanic') {
+          const vendorName = localStorage.getItem('vendorName');
+          const vendorAvatar = localStorage.getItem('vendorAvatar');
+          
+          if (vendorName && vendorName !== 'test.mechanic') {
+            const nameParts = vendorName.split(' ');
+            parsedData.firstName = nameParts[0] || parsedData.firstName;
+            parsedData.lastName = nameParts.slice(1).join(' ') || parsedData.lastName;
+          }
+          
+          if (vendorAvatar && !parsedData.profileImage) {
+            parsedData.profileImage = vendorAvatar;
+          }
+        }
+        
         setProfileData(parsedData);
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
@@ -38,7 +55,7 @@ const ProfileEditor = () => {
     }
     
     setIsLoading(false);
-  }, [storageKey, currentUserName]);
+  }, [storageKey, currentUserName, currentUserRole]);
   
   // Helper function to create initial profile
   const createInitialProfile = () => {
@@ -67,6 +84,17 @@ const ProfileEditor = () => {
         const nameParts = vendorName.split(' ');
         firstName = nameParts[0] || firstName;
         lastName = nameParts.slice(1).join(' ') || lastName;
+      }
+      
+      // Use vendor avatar if available
+      const vendorAvatar = localStorage.getItem('vendorAvatar');
+      if (vendorAvatar) {
+        return {
+          ...sampleMechanicProfile,
+          firstName,
+          lastName,
+          profileImage: vendorAvatar,
+        };
       }
     }
     
@@ -113,6 +141,7 @@ const ProfileEditor = () => {
       // For mechanics, also save as vendor data
       if (currentUserRole === 'mechanic') {
         localStorage.setItem('vendorAvatar', data.profileImage);
+        localStorage.setItem('local-mechanic-avatar', data.profileImage);
         
         // For consistency, update the profileImage in their mechanic profile too
         try {
@@ -142,6 +171,7 @@ const ProfileEditor = () => {
         // For mechanics, also save as vendor name
         if (currentUserRole === 'mechanic') {
           localStorage.setItem('vendorName', fullName);
+          localStorage.setItem('local-mechanic-name', fullName);
           
           // For consistency, update the name in their mechanic profile too
           try {
