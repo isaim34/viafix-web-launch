@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Use the newly uploaded team of mechanics image
-  const mechanicImageUrl = "/lovable-uploads/a81f85fa-2070-4354-94d0-d1c824fa98f1.png";
+  // Use the user's preferred team of mechanics image
+  const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
 
   return (
     <motion.div 
