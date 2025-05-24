@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import * as z from 'zod';
@@ -62,12 +61,47 @@ export const MaintenanceRecordForm = ({
         throw new Error('Mechanic ID not found');
       }
 
+      // First, create or get a vehicle record for the customer
+      let vehicleId;
+      
+      // Try to find existing vehicle for this customer
+      const { data: existingVehicle } = await supabase
+        .from('vehicles')
+        .select('id')
+        .eq('owner_id', customerId)
+        .maybeSingle();
+
+      if (existingVehicle) {
+        vehicleId = existingVehicle.id;
+      } else {
+        // Create a new vehicle record with the provided vehicle info
+        const vehicleInfo = data.vehicle_info.split(' ');
+        const year = parseInt(vehicleInfo[0]) || new Date().getFullYear();
+        const make = vehicleInfo[1] || 'Unknown';
+        const model = vehicleInfo.slice(2).join(' ') || 'Unknown';
+
+        const { data: newVehicle, error: vehicleError } = await supabase
+          .from('vehicles')
+          .insert({
+            owner_id: customerId,
+            year: year,
+            make: make,
+            model: model,
+          })
+          .select()
+          .single();
+
+        if (vehicleError) throw vehicleError;
+        vehicleId = newVehicle.id;
+      }
+
       // Create maintenance record
       const { error } = await supabase
         .from('maintenance_records')
         .insert({
           customer_id: customerId,
           mechanic_id: mechanicId,
+          vehicle_id: vehicleId,
           service_type: data.service_type,
           description: data.description,
           mechanic_signature: true,
