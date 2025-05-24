@@ -7,7 +7,7 @@ import { Form } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import ZipCodeInput from './ZipCodeInput';
-import { baseUserSchema, BaseUserFormValues } from '@/schemas/signupSchema';
+import { customerFormSchema, CustomerFormValues } from '@/schemas/signupSchema';
 import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
@@ -18,34 +18,39 @@ const CustomerSignupForm = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   
-  const form = useForm<BaseUserFormValues>({
-    resolver: zodResolver(baseUserSchema),
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerFormSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
       email: '',
-      password: '',
       zipCode: '',
       termsAccepted: false,
     },
   });
 
-  const onSubmit = async (data: BaseUserFormValues) => {
+  const onSubmit = async (data: CustomerFormValues) => {
     try {
       console.log('Customer signup data:', data);
       
-      // Prepare user metadata
-      const userData = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        full_name: `${data.firstName} ${data.lastName}`,
-        zip_code: data.zipCode,
-        user_type: 'customer',
-        role: 'customer'
+      // For testing - create account without password
+      localStorage.setItem('userLoggedIn', 'true');
+      localStorage.setItem('userRole', 'customer');
+      localStorage.setItem('userEmail', data.email);
+      localStorage.setItem('userName', `${data.firstName} ${data.lastName}`);
+      localStorage.setItem('userId', `customer-${Date.now()}`);
+      
+      // Create customer profile
+      const profileData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        profileImage: ''
       };
       
-      // Sign up with Supabase
-      await signUp(data.email, data.password, userData);
+      localStorage.setItem('customerProfile', JSON.stringify(profileData));
+      
+      // Trigger storage event to notify components
+      window.dispatchEvent(new Event('storage-event'));
       
       toast({
         title: "Account created!",
