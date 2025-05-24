@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,8 +26,11 @@ interface ExistingMaintenanceRecord {
   id: string;
   service_type: string;
   description: string;
-  vehicle_info: string;
   date: string;
+  vehicle_id?: string;
+  customer_id: string;
+  mechanic_id?: string;
+  mechanic_signature?: boolean;
 }
 
 const CustomOffersTab = () => {
@@ -91,7 +95,7 @@ const CustomOffersTab = () => {
       
       // If completing the offer, add completion timestamp
       if (status === 'completed') {
-        updateData.updated_at = new Date().toISOString();
+        updateData.completed_at = new Date().toISOString();
       }
 
       const { error } = await supabase
@@ -161,7 +165,22 @@ const CustomOffersTab = () => {
     // Check if customer has existing maintenance records and vehicle info
     const { maintenanceRecord, vehicle } = await fetchCustomerMaintenanceAndVehicle(offer.customer_id);
     
-    setExistingMaintenanceRecord(maintenanceRecord);
+    // Transform the maintenance record to match our interface if it exists
+    if (maintenanceRecord) {
+      setExistingMaintenanceRecord({
+        id: maintenanceRecord.id,
+        service_type: maintenanceRecord.service_type,
+        description: maintenanceRecord.description,
+        date: maintenanceRecord.date,
+        vehicle_id: maintenanceRecord.vehicle_id,
+        customer_id: maintenanceRecord.customer_id,
+        mechanic_id: maintenanceRecord.mechanic_id,
+        mechanic_signature: maintenanceRecord.mechanic_signature
+      });
+    } else {
+      setExistingMaintenanceRecord(null);
+    }
+    
     setCustomerVehicle(vehicle);
     setShowMaintenanceForm(true);
   };
