@@ -13,7 +13,26 @@ export function useMechanicChatState(initialThreadId?: string) {
   const [error, setError] = useState<string | null>(null);
   
   const { user, currentUserRole, currentUserName } = useAuth();
-  const currentUserId = user?.id || 'anonymous';
+  
+  // Enhanced user ID retrieval with debugging
+  const getCurrentUserId = () => {
+    const supabaseUserId = user?.id;
+    const localStorageUserId = localStorage.getItem('userId');
+    
+    console.log('useMechanicChatState - User ID sources:', {
+      supabaseUserId,
+      localStorageUserId,
+      currentUserRole
+    });
+    
+    // For test accounts, prefer localStorage ID, otherwise use Supabase user ID
+    const finalUserId = localStorageUserId || supabaseUserId || 'anonymous';
+    
+    console.log('useMechanicChatState - Final user ID selected:', finalUserId);
+    return finalUserId;
+  };
+
+  const currentUserId = getCurrentUserId();
   const userName = currentUserName || 'User';
   
   console.log('useMechanicChatState hook initialized with user:', { 
@@ -25,7 +44,7 @@ export function useMechanicChatState(initialThreadId?: string) {
   
   const loadThreads = useCallback(async () => {
     if (!currentUserId || currentUserId === 'anonymous') {
-      console.warn('User ID is not available, skipping thread loading');
+      console.warn('useMechanicChatState - User ID is not available, skipping thread loading');
       setThreads([]);
       setIsLoading(false);
       return;
@@ -35,12 +54,12 @@ export function useMechanicChatState(initialThreadId?: string) {
     setError(null);
     
     try {
-      console.log('Loading chat threads for user:', currentUserId);
+      console.log('useMechanicChatState - Loading chat threads for user:', currentUserId);
       const userThreads = await getChatThreads(currentUserId);
-      console.log('Loaded threads:', userThreads);
+      console.log('useMechanicChatState - Loaded threads:', userThreads);
       setThreads(userThreads);
     } catch (error) {
-      console.error("Error loading threads:", error);
+      console.error("useMechanicChatState - Error loading threads:", error);
       setError("Failed to load chat threads. Please try again later.");
       toast.error("Error loading messages. Please try again.");
     } finally {
@@ -50,14 +69,14 @@ export function useMechanicChatState(initialThreadId?: string) {
   
   useEffect(() => {
     // Only load threads if we have a valid user ID
-    if (user?.id) {
-      console.log('User detected, loading threads');
+    if (currentUserId && currentUserId !== 'anonymous') {
+      console.log('useMechanicChatState - Valid user detected, loading threads');
       loadThreads();
     } else {
-      console.log('No user detected, not loading threads');
+      console.log('useMechanicChatState - No valid user detected, not loading threads');
       setIsLoading(false);
     }
-  }, [user, loadThreads]);
+  }, [currentUserId, loadThreads]);
   
   useEffect(() => {
     // Set initial thread if provided and threads are loaded
@@ -67,13 +86,13 @@ export function useMechanicChatState(initialThreadId?: string) {
         setSelectedThreadId(initialThreadId);
         setShowChatOnMobile(true);
       } else {
-        console.warn(`Thread with ID ${initialThreadId} not found in loaded threads`);
+        console.warn(`useMechanicChatState - Thread with ID ${initialThreadId} not found in loaded threads`);
       }
     }
   }, [initialThreadId, threads]);
   
   const handleSelectThread = (threadId: string) => {
-    console.log('Thread selected:', threadId);
+    console.log('useMechanicChatState - Thread selected:', threadId);
     setSelectedThreadId(threadId);
     setShowChatOnMobile(true);
   };
@@ -84,6 +103,7 @@ export function useMechanicChatState(initialThreadId?: string) {
   
   const handleNewMessage = useCallback(() => {
     // Reload threads to update last message and unread count
+    console.log('useMechanicChatState - New message received, reloading threads');
     loadThreads();
   }, [loadThreads]);
   

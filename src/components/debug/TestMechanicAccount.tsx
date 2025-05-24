@@ -15,11 +15,12 @@ export const TestMechanicAccount = () => {
     localStorage.clear();
     
     // Create fake mechanic account for Austin, TX with consistent data
+    // Use 'default-vendor' as the standardized mechanic ID for messaging consistency
     const mechanicData = {
       email: 'test.mechanic@example.com',
       firstName: 'Mike',
       lastName: 'Rodriguez',
-      userId: `mechanic-${Date.now()}`,
+      userId: 'default-vendor', // Standardized ID for messaging
       role: 'mechanic'
     };
 
@@ -61,13 +62,13 @@ export const TestMechanicAccount = () => {
     // Create some sample messages for testing
     const sampleMessages = [
       {
-        mechanic_id: 'local-mechanic',
+        mechanic_id: 'default-vendor',
         author: 'John Smith',
         rating: 5,
         text: 'Great service! Mike was very professional and fixed my brake issue quickly.'
       },
       {
-        mechanic_id: 'local-mechanic',
+        mechanic_id: 'default-vendor',
         author: 'Sarah Johnson',
         rating: 4,
         text: 'Good work on my oil change. Will definitely use again.'
@@ -78,6 +79,8 @@ export const TestMechanicAccount = () => {
     
     // Trigger storage event to notify components
     window.dispatchEvent(new Event('storage-event'));
+
+    console.log('Created test mechanic account with standardized ID:', mechanicData.userId);
 
     toast({
       title: "Mechanic Account Created",
@@ -102,6 +105,7 @@ export const TestMechanicAccount = () => {
           <p><strong>Role:</strong> Mechanic</p>
           <p><strong>Rate:</strong> $85/hour</p>
           <p><strong>Location:</strong> Austin, TX (78730)</p>
+          <p><strong>User ID:</strong> default-vendor</p>
         </div>
         <Button 
           onClick={createMechanicAccount}

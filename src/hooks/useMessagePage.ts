@@ -15,40 +15,72 @@ export function useMessagePage() {
   const [showChatView, setShowChatView] = useState(false);
   const navigate = useNavigate();
 
-  const currentUserId = user?.id || localStorage.getItem('userId') || 'anonymous';
+  // Enhanced user ID retrieval with debugging
+  const getCurrentUserId = () => {
+    const supabaseUserId = user?.id;
+    const localStorageUserId = localStorage.getItem('userId');
+    
+    console.log('useMessagePage - User ID sources:', {
+      supabaseUserId,
+      localStorageUserId,
+      currentUserRole,
+      isLoggedIn
+    });
+    
+    // For test accounts, prefer localStorage ID, otherwise use Supabase user ID
+    const finalUserId = localStorageUserId || supabaseUserId || 'anonymous';
+    
+    console.log('useMessagePage - Final user ID selected:', finalUserId);
+    return finalUserId;
+  };
+
+  const currentUserId = getCurrentUserId();
 
   // Fetch chat threads when component mounts
   useEffect(() => {
     const fetchThreads = async () => {
-      if (!isLoggedIn) return;
+      if (!isLoggedIn) {
+        console.log('useMessagePage - User not logged in, skipping thread fetch');
+        return;
+      }
       
       setIsLoading(true);
       setError(null);
       
       try {
         // For debugging
-        console.log("Fetching threads for user:", currentUserId);
+        console.log("useMessagePage - Fetching threads for user:", {
+          userId: currentUserId,
+          role: currentUserRole,
+          isLoggedIn
+        });
         
         const userThreads = await getChatThreads(currentUserId);
-        console.log("Fetched threads:", userThreads);
+        console.log("useMessagePage - Fetched threads:", userThreads);
         
         setThreads(userThreads);
       } catch (error) {
-        console.error("Error fetching chat threads:", error);
+        console.error("useMessagePage - Error fetching chat threads:", error);
         setError("Failed to load messages. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (isLoggedIn) {
+    if (isLoggedIn && currentUserId && currentUserId !== 'anonymous') {
       fetchThreads();
     } else {
+      console.log('useMessagePage - Conditions not met for fetching threads:', {
+        isLoggedIn,
+        currentUserId,
+        hasValidUserId: currentUserId !== 'anonymous'
+      });
       setIsLoading(false);
     }
-  }, [isLoggedIn, currentUserId]);
+  }, [isLoggedIn, currentUserId, currentUserRole]);
 
   const handleSelectThread = (threadId: string) => {
+    console.log('useMessagePage - Thread selected:', threadId);
     setSelectedThreadId(threadId);
     setShowChatView(true);
   };

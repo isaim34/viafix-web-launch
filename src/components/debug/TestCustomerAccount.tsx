@@ -14,12 +14,12 @@ export const TestCustomerAccount = () => {
     // Clear any existing auth data first
     localStorage.clear();
     
-    // Create fake customer account
+    // Create fake customer account with consistent ID for messaging
     const customerData = {
       email: 'test.customer@example.com',
       firstName: 'John',
       lastName: 'Smith',
-      userId: `customer-${Date.now()}`,
+      userId: 'test-customer', // Standardized customer ID
       role: 'customer'
     };
 
@@ -42,6 +42,8 @@ export const TestCustomerAccount = () => {
     // Trigger storage event to notify components
     window.dispatchEvent(new Event('storage-event'));
 
+    console.log('Created test customer account with standardized ID:', customerData.userId);
+
     toast({
       title: "Customer Account Created",
       description: `Logged in as ${customerData.firstName} ${customerData.lastName} (Customer)`,
@@ -63,6 +65,7 @@ export const TestCustomerAccount = () => {
           <p><strong>Name:</strong> John Smith</p>
           <p><strong>Email:</strong> test.customer@example.com</p>
           <p><strong>Role:</strong> Customer</p>
+          <p><strong>User ID:</strong> test-customer</p>
         </div>
         <Button 
           onClick={createCustomerAccount}

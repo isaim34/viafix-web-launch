@@ -16,6 +16,7 @@ export function useAuth() {
     const localStorageRole = localStorage.getItem('userRole');
     const isLoggedInStorage = localStorage.getItem('userLoggedIn') === 'true';
     const userName = localStorage.getItem('userName');
+    const userId = localStorage.getItem('userId');
     
     // Log authentication state for debugging
     console.debug('useAuth hook state:', {
@@ -24,7 +25,8 @@ export function useAuth() {
       currentUserRole: authContext.currentUserRole || 'undefined',
       localStorageRole,
       localStorageLoggedIn: isLoggedInStorage,
-      userName
+      userName,
+      userId: userId || 'not set'
     });
     
     // If we're logged in but missing role in context, try to use the localStorage role
