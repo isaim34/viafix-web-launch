@@ -62,20 +62,26 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
             console.log('New chat message received:', payload);
             const newMessage = payload.new as any;
             
-            // Only add the message if it's not from the current user or not already in the list
-            if (newMessage.sender_id !== currentUserId || 
-                !chatMessages.some(msg => msg.id === newMessage.id)) {
-              const formattedMessage: ChatMessage = {
-                id: newMessage.id,
-                senderId: newMessage.sender_id,
-                senderName: newMessage.sender_name,
-                receiverId: newMessage.receiver_id,
-                content: newMessage.content,
-                timestamp: newMessage.timestamp,
-                isRead: newMessage.is_read
-              };
-              setChatMessages(prev => [...prev, formattedMessage]);
-            }
+            const formattedMessage: ChatMessage = {
+              id: newMessage.id,
+              senderId: newMessage.sender_id,
+              senderName: newMessage.sender_name,
+              receiverId: newMessage.receiver_id,
+              content: newMessage.content,
+              timestamp: newMessage.timestamp,
+              isRead: newMessage.is_read
+            };
+            
+            // Only add the message if it's not already in the list
+            setChatMessages(prev => {
+              const messageExists = prev.some(msg => msg.id === formattedMessage.id);
+              if (messageExists) {
+                console.log('Message already exists, skipping duplicate:', formattedMessage.id);
+                return prev;
+              }
+              console.log('Adding new message to chat:', formattedMessage.id);
+              return [...prev, formattedMessage];
+            });
           }
         )
         .subscribe();
@@ -87,7 +93,7 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
         supabase.removeChannel(channel);
       };
     }
-  }, [threadId, currentUserId, chatMessages]);
+  }, [threadId]); // Removed currentUserId and chatMessages from dependency array
   
   const openChat = async () => {
     // Check if user is logged in and is a customer
@@ -176,8 +182,8 @@ export function useMechanicChat(mechanicId: string, mechanicName: string) {
       
       console.log('Message sent successfully:', newMessage);
       
-      // Update local state
-      setChatMessages(prev => [...prev, newMessage]);
+      // Don't update local state here - let the real-time subscription handle it
+      // This prevents duplicates when the subscription receives the same message
       
       // Show toast for demo purposes
       toast({

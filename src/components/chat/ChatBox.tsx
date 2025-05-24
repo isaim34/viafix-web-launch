@@ -72,10 +72,16 @@ export const ChatBox = ({
               isRead: newMessage.is_read
             };
             
-            // Only add if not already in our list and not from current user
-            if (!localMessages.some(msg => msg.id === formattedMessage.id)) {
-              setLocalMessages(prev => [...prev, formattedMessage]);
-            }
+            // Only add if not already in our list
+            setLocalMessages(prev => {
+              const messageExists = prev.some(msg => msg.id === formattedMessage.id);
+              if (messageExists) {
+                console.log('Message already exists in ChatBox, skipping duplicate:', formattedMessage.id);
+                return prev;
+              }
+              console.log('Adding new message to ChatBox:', formattedMessage.id);
+              return [...prev, formattedMessage];
+            });
           }
         )
         .subscribe();
@@ -84,7 +90,7 @@ export const ChatBox = ({
         supabase.removeChannel(channel);
       };
     }
-  }, [isOpen, threadId, localMessages]);
+  }, [isOpen, threadId]); // Removed localMessages from dependency array
 
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
@@ -128,8 +134,8 @@ export const ChatBox = ({
         
         console.log('Message sent successfully via ChatBox:', newMessage);
         
-        // Add to local messages
-        setLocalMessages(prev => [...prev, newMessage]);
+        // Don't add to local messages here - let the real-time subscription handle it
+        // This prevents duplicates when the subscription receives the same message
         
         // Clear input
         setMessageText('');

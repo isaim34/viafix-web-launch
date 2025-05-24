@@ -99,9 +99,12 @@ export const ChatView = ({
           
           // Only add the message if it's not already in our list
           setMessages(prev => {
-            if (prev.some(msg => msg.id === formattedMessage.id)) {
+            const messageExists = prev.some(msg => msg.id === formattedMessage.id);
+            if (messageExists) {
+              console.log('Message already exists in ChatView, skipping duplicate:', formattedMessage.id);
               return prev;
             }
+            console.log('Adding new message to ChatView:', formattedMessage.id);
             return [...prev, formattedMessage];
           });
           
@@ -126,7 +129,7 @@ export const ChatView = ({
         channelRef.current = null;
       }
     };
-  }, [thread.id, currentUserId]); // Removed messages from dependency array
+  }, [thread.id, currentUserId]);
   
   const handleSendMessage = async (messageText: string) => {
     if (!messageText.trim()) {
@@ -156,8 +159,8 @@ export const ChatView = ({
       const newMessage = await sendChatMessage(thread.id, newMessageData);
       console.log('Message sent successfully:', newMessage);
       
-      // Update local state with the returned message that has an ID
-      setMessages(prev => [...prev, newMessage]);
+      // Don't update local state here - let the real-time subscription handle it
+      // This prevents duplicates when the subscription receives the same message
       
       // Notify parent
       onNewMessage(thread.id);
