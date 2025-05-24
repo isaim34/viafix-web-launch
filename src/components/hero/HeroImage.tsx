@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Use the user's preferred team of mechanics image
-  const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
+  // Use the full absolute URL for the image to work in new windows
+  const mechanicImageUrl = "https://fb9a69b4-68ac-44ab-886d-235ee8fa0c8c.lovableproject.com/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error('Image failed to load:', mechanicImageUrl);
