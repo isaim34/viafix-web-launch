@@ -1,10 +1,10 @@
 
 import { useState, useCallback, useMemo } from 'react';
-import { zipcodeService } from '@/services/zipcodeService';
+import { getZipcodeInfo, ZipcodeResponse, ZipcodeError } from '@/services/zipcodeService';
 
 export const useZipcode = () => {
-  const [locationData, setLocationData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [locationData, setLocationData] = useState<ZipcodeResponse | null>(null);
+  const [error, setError] = useState<ZipcodeError | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchLocationData = useCallback(async (zipCode: string) => {
@@ -18,11 +18,11 @@ export const useZipcode = () => {
     setError(null);
     
     try {
-      const data = await zipcodeService.getLocationByZipCode(zipCode);
+      const data = await getZipcodeInfo(zipCode);
       setLocationData(data);
     } catch (err) {
       console.error('Error fetching location data:', err);
-      setError('Failed to fetch location data');
+      setError(err as ZipcodeError);
       setLocationData(null);
     } finally {
       setLoading(false);

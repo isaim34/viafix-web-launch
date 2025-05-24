@@ -10,11 +10,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 export const ZipcodeTest = () => {
   const [zipCode, setZipCode] = useState('');
   const [countryCode, setCountryCode] = useState('us');
-  const { locationData, isLoading, error, fetchLocationData, reset } = useZipcode();
+  const { locationData, loading, error, fetchLocationData, reset } = useZipcode();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchLocationData(zipCode, countryCode);
+    fetchLocationData(zipCode);
   };
 
   return (
@@ -46,10 +46,10 @@ export const ZipcodeTest = () => {
           </div>
           <Button 
             type="submit" 
-            disabled={isLoading || !zipCode.trim()} 
+            disabled={loading || !zipCode.trim()} 
             className="whitespace-nowrap"
           >
-            {isLoading ? (
+            {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading...
