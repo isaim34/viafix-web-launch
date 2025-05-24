@@ -34,7 +34,7 @@ const CompletedJobsTab = () => {
         .select('*')
         .eq('mechanic_id', mechanicId)
         .eq('status', 'completed')
-        .order('completed_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       
@@ -44,7 +44,7 @@ const CompletedJobsTab = () => {
         title: 'Custom Service',
         description: offer.description,
         vehicleType: 'Custom Vehicle', // This could be enhanced with actual vehicle data
-        completionDate: offer.completed_at ? new Date(offer.completed_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        completionDate: offer.updated_at ? new Date(offer.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         imageUrls: [], // Custom offers don't have images yet, but could be added
         customerName: 'Customer', // This could be enhanced with actual customer name
         customerMaintenanceRecord: null // This could be linked to actual maintenance records
