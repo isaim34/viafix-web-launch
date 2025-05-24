@@ -12,7 +12,8 @@ import {
   BarChart3, 
   Settings, 
   X,
-  Star
+  Star,
+  Database
 } from 'lucide-react';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
@@ -23,6 +24,7 @@ import WeeklyPlannerTab from '@/components/WeeklyPlannerTab';
 import StatsOverview from '@/components/stats/StatsOverview';
 import CancelledGigsTab from '@/components/CancelledGigsTab';
 import ReviewsTab from '@/components/ReviewsTab';
+import { ClearDataButton } from '@/components/debug/ClearDataButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
 import ErrorBoundary from '@/ErrorBoundary';
@@ -111,6 +113,10 @@ const MechanicDashboard = () => {
                   <Settings className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   <span className={isMobile ? "hidden xs:inline" : ""}>Profile</span>
                 </TabsTrigger>
+                <TabsTrigger value="debug" className="flex items-center gap-2 text-xs md:text-sm min-w-[100px]">
+                  <Database className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <span className={isMobile ? "hidden xs:inline" : ""}>Debug</span>
+                </TabsTrigger>
               </div>
             </TabsList>
             
@@ -192,6 +198,12 @@ const MechanicDashboard = () => {
             <TabsContent value="reviews">
               <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading reviews</div>}>
                 <ReviewsTab />
+              </ErrorBoundary>
+            </TabsContent>
+            
+            <TabsContent value="debug">
+              <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading debug tools</div>}>
+                <ClearDataButton />
               </ErrorBoundary>
             </TabsContent>
           </Tabs>
