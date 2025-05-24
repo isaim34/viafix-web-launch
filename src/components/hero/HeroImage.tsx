@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const HeroImage = () => {
-  // Use a mechanic working on a car image from the project uploads
-  const mechanicImageUrl = "/lovable-uploads/489f7032-b400-43c3-a86b-2f163b4ca524.png";
+  // Use the uploaded team of mechanics image
+  const mechanicImageUrl = "/lovable-uploads/a823f63d-8305-41a3-9dff-2fb3349d5dbe.png";
 
   return (
     <motion.div 
@@ -18,7 +18,7 @@ export const HeroImage = () => {
         
         <img 
           src={mechanicImageUrl}
-          alt="Professional mechanic working on a vehicle" 
+          alt="Professional team of mechanics ready to serve" 
           className="rounded-xl shadow-xl w-full h-auto object-cover aspect-[4/3]"
         />
       </div>
