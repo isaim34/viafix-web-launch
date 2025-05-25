@@ -54,8 +54,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           body: { 
             email: userEmail, 
             timestamp: new Date().getTime() 
-          },
-          headers: { 'Cache-Control': 'no-cache' }
+          }
         });
         
         console.log("Edge function response for local auth:", response);
@@ -114,8 +113,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         supabase.functions.invoke('check-subscription', {
           body: { timestamp: new Date().getTime() },
           headers: { 
-            'Authorization': `Bearer ${authToken}`,
-            'Cache-Control': 'no-cache' 
+            'Authorization': `Bearer ${authToken}`
           }
         }),
         new Promise((_, reject) => 
