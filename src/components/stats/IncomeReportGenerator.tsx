@@ -49,20 +49,97 @@ const IncomeReportGenerator: React.FC = () => {
           <head>
             <title>${reportTitle}</title>
             <style>
-              body { font-family: sans-serif; padding: 20px; }
-              h1 { text-align: center; margin-bottom: 20px; }
-              table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f8f9fa; }
-              .total { font-weight: bold; text-align: right; margin-top: 20px; }
-              .footer { text-align: center; font-size: 12px; margin-top: 40px; color: #666; }
+              body { 
+                font-family: sans-serif; 
+                padding: 20px; 
+                margin: 0;
+              }
+              .header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 30px;
+                border-bottom: 2px solid #2563eb;
+                padding-bottom: 20px;
+              }
+              .logo-section {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+              }
+              .logo {
+                height: 50px;
+                width: auto;
+              }
+              .company-info {
+                text-align: left;
+              }
+              .company-name {
+                font-size: 24px;
+                font-weight: bold;
+                color: #2563eb;
+                margin: 0;
+              }
+              .tagline {
+                font-size: 14px;
+                color: #666;
+                margin: 5px 0 0 0;
+              }
+              .report-title {
+                text-align: right;
+                color: #333;
+              }
+              h1 { 
+                text-align: center; 
+                margin: 20px 0; 
+                color: #333;
+              }
+              table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-bottom: 20px; 
+              }
+              th, td { 
+                border: 1px solid #ddd; 
+                padding: 8px; 
+                text-align: left; 
+              }
+              th { 
+                background-color: #f8f9fa; 
+              }
+              .total { 
+                font-weight: bold; 
+                text-align: right; 
+                margin-top: 20px; 
+                font-size: 18px;
+                color: #2563eb;
+              }
+              .footer { 
+                text-align: center; 
+                font-size: 12px; 
+                margin-top: 40px; 
+                color: #666; 
+                border-top: 1px solid #ddd;
+                padding-top: 20px;
+              }
             </style>
           </head>
           <body>
-            <h1>${reportTitle}</h1>
+            <div class="header">
+              <div class="logo-section">
+                <img src="/lovable-uploads/e3e5d8f9-ed10-4030-8f80-f4d6d309c6e4.png" alt="ViaFix Logo" class="logo" />
+                <div class="company-info">
+                  <h2 class="company-name">ViaFix</h2>
+                  <p class="tagline">Professional Mobile Mechanic Services</p>
+                </div>
+              </div>
+              <div class="report-title">
+                <h1>${reportTitle}</h1>
+              </div>
+            </div>
             ${content.innerHTML}
             <div class="footer">
-              Generated on ${new Date().toLocaleDateString()} by Mobex
+              Generated on ${new Date().toLocaleDateString()} by ViaFix
             </div>
           </body>
         </html>
