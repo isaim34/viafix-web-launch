@@ -57,9 +57,9 @@ const IncomeChart: React.FC = () => {
         </Select>
       </div>
       
-      <div className="h-[180px] w-full">
+      <div className="h-[300px] w-full">
         <ChartContainer config={config}>
-          <BarChart data={data} margin={{ top: 5, right: 15, left: 15, bottom: 5 }}>
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis 
