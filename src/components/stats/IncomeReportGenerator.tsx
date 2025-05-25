@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -60,21 +59,11 @@ const IncomeReportGenerator: React.FC = () => {
                 border-bottom: 2px solid #2563eb;
                 padding-bottom: 20px;
               }
-              .company-name {
+              .report-title {
                 font-size: 24px;
                 font-weight: bold;
                 color: #2563eb;
-                margin: 0 0 5px 0;
-              }
-              .tagline {
-                font-size: 14px;
-                color: #666;
-                margin: 5px 0 15px 0;
-              }
-              .report-title {
-                font-size: 20px;
-                color: #333;
-                margin: 10px 0 0 0;
+                margin: 0;
               }
               h1 { 
                 text-align: center; 
@@ -113,13 +102,11 @@ const IncomeReportGenerator: React.FC = () => {
           </head>
           <body>
             <div class="header">
-              <h2 class="company-name">ViaFix</h2>
-              <p class="tagline">Professional Mobile Mechanic Services</p>
               <h1 class="report-title">${reportTitle}</h1>
             </div>
             ${content.innerHTML}
             <div class="footer">
-              Generated on ${new Date().toLocaleDateString()} by ViaFix
+              Generated on ${new Date().toLocaleDateString()}
             </div>
           </body>
         </html>
