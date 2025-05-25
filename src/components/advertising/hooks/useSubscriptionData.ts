@@ -58,8 +58,7 @@ export const useSubscriptionData = () => {
           
           if (result.error && !result.authError) {
             console.error("Subscription service error:", result.error);
-            // Don't set this as a blocking error, just log it
-            console.log("Using cached subscription data due to service error");
+            setError(result.error);
           } else if (result.authError) {
             console.error("Authentication error in subscription check:", result.error);
             setError("Authentication required. Please sign in again.");
@@ -70,7 +69,7 @@ export const useSubscriptionData = () => {
           }
         } catch (serviceError) {
           console.error("Subscription service error:", serviceError);
-          // Don't fail completely, just use cached data
+          setError("Unable to verify subscription status. Please try again later.");
         }
         
       } catch (error) {

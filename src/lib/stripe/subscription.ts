@@ -109,14 +109,19 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     }
     
     try {
-      // Call with proper authorization header
-      const response = await supabase.functions.invoke('check-subscription', {
-        body: { timestamp: new Date().getTime() },
-        headers: { 
-          'Authorization': `Bearer ${authToken}`,
-          'Cache-Control': 'no-cache' 
-        }
-      });
+      // Call with proper authorization header and timeout
+      const response = await Promise.race([
+        supabase.functions.invoke('check-subscription', {
+          body: { timestamp: new Date().getTime() },
+          headers: { 
+            'Authorization': `Bearer ${authToken}`,
+            'Cache-Control': 'no-cache' 
+          }
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 30000)
+        )
+      ]) as any;
       
       console.log("Edge function response with auth:", response);
       
