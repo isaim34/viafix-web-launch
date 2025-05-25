@@ -39,12 +39,16 @@ const AdvertisingLoadingFallback = () => (
   </div>
 );
 
-export const DashboardTabsContent = () => {
+interface DashboardTabsContentProps {
+  onTabChange: (tabValue: string) => void;
+}
+
+export const DashboardTabsContent = ({ onTabChange }: DashboardTabsContentProps) => {
   return (
     <>
       <TabsContent value="overview">
         <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading overview</div>}>
-          <OverviewTab />
+          <OverviewTab onTabChange={onTabChange} />
         </ErrorBoundary>
       </TabsContent>
       

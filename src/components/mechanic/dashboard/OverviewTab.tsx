@@ -7,37 +7,17 @@ import { QuickActions } from './overview/QuickActions';
 import { getTodaysSchedule, getRecentActivity, getQuickActions } from './overview/overviewData';
 
 interface OverviewTabProps {
-  onTabChange?: (tabValue: string) => void;
+  onTabChange: (tabValue: string) => void;
 }
 
 export const OverviewTab = ({ onTabChange }: OverviewTabProps) => {
   const todaysSchedule = getTodaysSchedule();
   const recentActivity = getRecentActivity();
 
-  // Function to handle tab changes
+  // Simplified tab change handler that uses the prop directly
   const handleTabChange = (tabValue: string) => {
-    console.log('Quick action clicked, switching to tab:', tabValue);
-    
-    if (onTabChange) {
-      onTabChange(tabValue);
-    } else {
-      // Fallback to DOM manipulation if no callback provided
-      const tabTrigger = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement;
-      console.log('Tab trigger found:', tabTrigger);
-      if (tabTrigger) {
-        tabTrigger.click();
-        console.log('Tab trigger clicked');
-      } else {
-        console.warn('Tab trigger not found for value:', tabValue);
-        // Try alternative selector
-        const altTrigger = document.querySelector(`[value="${tabValue}"]`) as HTMLElement;
-        console.log('Alternative tab trigger found:', altTrigger);
-        if (altTrigger) {
-          altTrigger.click();
-          console.log('Alternative tab trigger clicked');
-        }
-      }
-    }
+    console.log('OverviewTab: Switching to tab:', tabValue);
+    onTabChange(tabValue);
   };
 
   const quickActions = getQuickActions(handleTabChange);
