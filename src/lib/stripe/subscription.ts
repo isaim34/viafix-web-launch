@@ -35,20 +35,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       
       console.log("Using local authentication with email:", userEmail);
       
-      // For test accounts, return mock data without calling the edge function
-      if (isTestAccount(userEmail)) {
-        console.log("Test account detected, returning mock subscription data");
-        const mockData = getMockSubscriptionData(userEmail);
-        updateLocalSubscriptionData(mockData);
-        return { 
-          subscribed: mockData.subscribed,
-          subscription_tier: mockData.subscription_tier,
-          subscription_end: mockData.subscription_end,
-          error: null
-        };
-      }
-      
-      // For local auth (non-test accounts), call edge function with email in body
+      // Call edge function with email in body for all accounts (removed test account bypass)
       try {
         const response = await supabase.functions.invoke('check-subscription', {
           body: { 
@@ -94,19 +81,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     
     const userSessionEmail = sessionData.session.user.email;
     
-    // For test accounts with Supabase session, return mock data
-    if (userSessionEmail && isTestAccount(userSessionEmail)) {
-      console.log("Test account detected with session, returning mock subscription data");
-      const mockData = getMockSubscriptionData(userSessionEmail);
-      updateLocalSubscriptionData(mockData);
-      return { 
-        subscribed: mockData.subscribed,
-        subscription_tier: mockData.subscription_tier,
-        subscription_end: mockData.subscription_end,
-        error: null
-      };
-    }
-    
+    // Call Stripe API for all accounts (removed test account bypass)
     try {
       // Call with proper authorization header and timeout
       const response = await Promise.race([
@@ -156,48 +131,6 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     return { 
       subscribed: false,
       error: err instanceof Error ? err.message : String(err)
-    };
-  }
-};
-
-// Helper function to detect test accounts
-const isTestAccount = (email: string): boolean => {
-  const testPatterns = [
-    /test\./i,
-    /demo\./i,
-    /@example\.com$/i,
-    /@test\.com$/i,
-    /testmechanic/i,
-    /testcustomer/i,
-    /test_/i,
-    /demo_/i
-  ];
-  
-  return testPatterns.some(pattern => pattern.test(email));
-};
-
-// Helper function to return mock subscription data for test accounts
-const getMockSubscriptionData = (email: string) => {
-  console.log("Generating mock subscription data for:", email);
-  
-  // Return different mock data based on email pattern
-  if (email.includes('premium') || email.includes('subscribed')) {
-    return {
-      subscribed: true,
-      subscription_tier: 'monthly',
-      subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    };
-  } else if (email.includes('annual')) {
-    return {
-      subscribed: true,
-      subscription_tier: 'annual',
-      subscription_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-    };
-  } else {
-    return {
-      subscribed: false,
-      subscription_tier: null,
-      subscription_end: null
     };
   }
 };
