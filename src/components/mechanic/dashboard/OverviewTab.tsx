@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,18 +74,64 @@ const getRecentActivity = () => [
   }
 ];
 
-const getQuickActions = () => [
-  { title: 'Add New Gig', description: 'Create a new service offering', icon: '🔧' },
-  { title: 'Update Schedule', description: 'Manage your availability', icon: '📅' },
-  { title: 'View Messages', description: 'Check customer messages', icon: '💬' },
-  { title: 'Add Maintenance Record', description: 'Log completed work', icon: '📝' },
-  { title: 'Generate Report', description: 'Create income report', icon: '📊' },
-  { title: 'Manage Profile', description: 'Update your information', icon: '👤' }
-];
+interface QuickAction {
+  title: string;
+  description: string;
+  icon: string;
+  action: () => void;
+}
 
 export const OverviewTab = () => {
   const todaysSchedule = getTodaysSchedule();
   const recentActivity = getRecentActivity();
+
+  // Function to trigger tab changes - we'll use DOM manipulation to click the appropriate tab
+  const switchToTab = (tabValue: string) => {
+    const tabTrigger = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement;
+    if (tabTrigger) {
+      tabTrigger.click();
+    }
+  };
+
+  const getQuickActions = (): QuickAction[] => [
+    { 
+      title: 'Add New Gig', 
+      description: 'Create a new service offering', 
+      icon: '🔧',
+      action: () => switchToTab('gigs')
+    },
+    { 
+      title: 'Update Schedule', 
+      description: 'Manage your availability', 
+      icon: '📅',
+      action: () => switchToTab('planner')
+    },
+    { 
+      title: 'View Messages', 
+      description: 'Check customer messages', 
+      icon: '💬',
+      action: () => switchToTab('messages')
+    },
+    { 
+      title: 'Add Maintenance Record', 
+      description: 'Log completed work', 
+      icon: '📝',
+      action: () => switchToTab('maintenance')
+    },
+    { 
+      title: 'Generate Report', 
+      description: 'Create income report', 
+      icon: '📊',
+      action: () => switchToTab('stats')
+    },
+    { 
+      title: 'Manage Profile', 
+      description: 'Update your information', 
+      icon: '👤',
+      action: () => switchToTab('profile')
+    }
+  ];
+
   const quickActions = getQuickActions();
 
   return (
@@ -123,7 +170,7 @@ export const OverviewTab = () => {
               </div>
             ))}
           </div>
-          <Button variant="outline" className="w-full mt-4">
+          <Button variant="outline" className="w-full mt-4" onClick={() => switchToTab('planner')}>
             View Full Schedule
           </Button>
         </CardContent>
@@ -150,7 +197,7 @@ export const OverviewTab = () => {
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-4">
+            <Button variant="outline" className="w-full mt-4" onClick={() => switchToTab('reviews')}>
               View All Activity
             </Button>
           </CardContent>
@@ -203,6 +250,7 @@ export const OverviewTab = () => {
                 key={index}
                 variant="outline"
                 className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-gray-50"
+                onClick={action.action}
               >
                 <span className="text-2xl">{action.icon}</span>
                 <div className="text-center">
