@@ -81,15 +81,37 @@ interface QuickAction {
   action: () => void;
 }
 
-export const OverviewTab = () => {
+interface OverviewTabProps {
+  onTabChange?: (tabValue: string) => void;
+}
+
+export const OverviewTab = ({ onTabChange }: OverviewTabProps) => {
   const todaysSchedule = getTodaysSchedule();
   const recentActivity = getRecentActivity();
 
-  // Function to trigger tab changes - we'll use DOM manipulation to click the appropriate tab
-  const switchToTab = (tabValue: string) => {
-    const tabTrigger = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement;
-    if (tabTrigger) {
-      tabTrigger.click();
+  // Function to handle tab changes
+  const handleTabChange = (tabValue: string) => {
+    console.log('Quick action clicked, switching to tab:', tabValue);
+    
+    if (onTabChange) {
+      onTabChange(tabValue);
+    } else {
+      // Fallback to DOM manipulation if no callback provided
+      const tabTrigger = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement;
+      console.log('Tab trigger found:', tabTrigger);
+      if (tabTrigger) {
+        tabTrigger.click();
+        console.log('Tab trigger clicked');
+      } else {
+        console.warn('Tab trigger not found for value:', tabValue);
+        // Try alternative selector
+        const altTrigger = document.querySelector(`[value="${tabValue}"]`) as HTMLElement;
+        console.log('Alternative tab trigger found:', altTrigger);
+        if (altTrigger) {
+          altTrigger.click();
+          console.log('Alternative tab trigger clicked');
+        }
+      }
     }
   };
 
@@ -98,37 +120,37 @@ export const OverviewTab = () => {
       title: 'Add New Gig', 
       description: 'Create a new service offering', 
       icon: '🔧',
-      action: () => switchToTab('gigs')
+      action: () => handleTabChange('gigs')
     },
     { 
       title: 'Update Schedule', 
       description: 'Manage your availability', 
       icon: '📅',
-      action: () => switchToTab('planner')
+      action: () => handleTabChange('planner')
     },
     { 
       title: 'View Messages', 
       description: 'Check customer messages', 
       icon: '💬',
-      action: () => switchToTab('messages')
+      action: () => handleTabChange('messages')
     },
     { 
       title: 'Add Maintenance Record', 
       description: 'Log completed work', 
       icon: '📝',
-      action: () => switchToTab('maintenance')
+      action: () => handleTabChange('maintenance')
     },
     { 
       title: 'Generate Report', 
       description: 'Create income report', 
       icon: '📊',
-      action: () => switchToTab('stats')
+      action: () => handleTabChange('stats')
     },
     { 
       title: 'Manage Profile', 
       description: 'Update your information', 
       icon: '👤',
-      action: () => switchToTab('profile')
+      action: () => handleTabChange('profile')
     }
   ];
 
@@ -170,7 +192,7 @@ export const OverviewTab = () => {
               </div>
             ))}
           </div>
-          <Button variant="outline" className="w-full mt-4" onClick={() => switchToTab('planner')}>
+          <Button variant="outline" className="w-full mt-4" onClick={() => handleTabChange('planner')}>
             View Full Schedule
           </Button>
         </CardContent>
@@ -197,7 +219,7 @@ export const OverviewTab = () => {
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-4" onClick={() => switchToTab('reviews')}>
+            <Button variant="outline" className="w-full mt-4" onClick={() => handleTabChange('reviews')}>
               View All Activity
             </Button>
           </CardContent>
@@ -250,7 +272,10 @@ export const OverviewTab = () => {
                 key={index}
                 variant="outline"
                 className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-gray-50"
-                onClick={action.action}
+                onClick={() => {
+                  console.log('Quick action button clicked:', action.title);
+                  action.action();
+                }}
               >
                 <span className="text-2xl">{action.icon}</span>
                 <div className="text-center">
