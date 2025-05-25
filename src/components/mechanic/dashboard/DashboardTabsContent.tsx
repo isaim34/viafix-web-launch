@@ -2,6 +2,7 @@
 import React, { lazy, Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import ErrorBoundary from '@/ErrorBoundary';
+import { OverviewTab } from './OverviewTab';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
 import MechanicChat from '@/components/MechanicChat';
@@ -41,6 +42,12 @@ const AdvertisingLoadingFallback = () => (
 export const DashboardTabsContent = () => {
   return (
     <>
+      <TabsContent value="overview">
+        <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading overview</div>}>
+          <OverviewTab />
+        </ErrorBoundary>
+      </TabsContent>
+      
       <TabsContent value="gigs">
         <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading gigs section</div>}>
           <GigManagement />

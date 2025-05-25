@@ -2,6 +2,7 @@
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+  Home,
   Wrench, 
   CheckSquare, 
   Calendar, 
@@ -18,6 +19,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const tabGroups = [
   [
+    { value: "overview", icon: Home, label: "Overview" },
     { value: "gigs", icon: Wrench, label: "My Gigs" },
     { value: "custom-offers", icon: FileText, label: "Custom Offers" },
     { value: "maintenance", icon: Database, label: "Maintenance" },

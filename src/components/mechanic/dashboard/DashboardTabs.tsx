@@ -6,7 +6,7 @@ import { DashboardTabsContent } from './DashboardTabsContent';
 
 export const DashboardTabs = () => {
   return (
-    <Tabs defaultValue="gigs" className="w-full">
+    <Tabs defaultValue="overview" className="w-full">
       <DashboardTabsList />
       <DashboardTabsContent />
     </Tabs>
