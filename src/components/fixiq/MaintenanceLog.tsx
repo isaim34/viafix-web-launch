@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ const MaintenanceLog = ({ vehicleInfo, maintenanceRecords = [] }: MaintenanceLog
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Vehicle Maintenance Log - ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}</title>
+          <title>Vehicle Maintenance Log - ${vehicleInfo.modelYear} ${vehicleInfo.make} ${vehicleInfo.model}</title>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -144,11 +143,11 @@ const MaintenanceLog = ({ vehicleInfo, maintenanceRecords = [] }: MaintenanceLog
           
           <div class="vehicle-info">
             <h3>Vehicle Information</h3>
-            <p><strong>Year:</strong> ${vehicleInfo.year}</p>
+            <p><strong>Year:</strong> ${vehicleInfo.modelYear}</p>
             <p><strong>Make:</strong> ${vehicleInfo.make}</p>
             <p><strong>Model:</strong> ${vehicleInfo.model}</p>
             ${vehicleInfo.trim ? `<p><strong>Trim:</strong> ${vehicleInfo.trim}</p>` : ''}
-            ${vehicleInfo.engine ? `<p><strong>Engine:</strong> ${vehicleInfo.engine}</p>` : ''}
+            ${vehicleInfo.engineCylinders ? `<p><strong>Engine:</strong> ${vehicleInfo.engineCylinders}</p>` : ''}
           </div>
           
           ${sortedRecords.length > 0 ? `
