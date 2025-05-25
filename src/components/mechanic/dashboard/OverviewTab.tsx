@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -180,7 +181,7 @@ export const OverviewTab = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Response Time</span>
-                <span className="font-semibold">< 30 min</span>
+                <span className="font-semibold">{"< 30 min"}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Revenue</span>
