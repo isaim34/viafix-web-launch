@@ -29,16 +29,41 @@ export const printSchedule = (entries: PlannerEntry[], weekTitle: string) => {
             color: #333;
           }
           .header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 30px;
             border-bottom: 2px solid #2563eb;
             padding-bottom: 20px;
           }
-          .report-title {
+          .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+          }
+          .logo {
+            height: 50px;
+            width: auto;
+          }
+          .company-info {
+            text-align: left;
+          }
+          .company-name {
             font-size: 24px;
             font-weight: bold;
             color: #2563eb;
             margin: 0;
+          }
+          .tagline {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0 0 0;
+          }
+          .report-title {
+            text-align: right;
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
           }
           h1 {
             color: #2563eb;
@@ -89,7 +114,16 @@ export const printSchedule = (entries: PlannerEntry[], weekTitle: string) => {
       </head>
       <body>
         <div class="header">
-          <h1 class="report-title">${weekTitle}</h1>
+          <div class="logo-section">
+            <img src="/lovable-uploads/e3e5d8f9-ed10-4030-8f80-f4d6d309c6e4.png" alt="ViaFix Logo" class="logo" />
+            <div class="company-info">
+              <h2 class="company-name">ViaFix</h2>
+              <p class="tagline">Professional Mobile Mechanic Services</p>
+            </div>
+          </div>
+          <div class="report-title">
+            <h1>${weekTitle}</h1>
+          </div>
         </div>
         
         <div class="print-date">Printed on: ${format(new Date(), 'MMMM d, yyyy')}</div>
@@ -122,7 +156,7 @@ export const printSchedule = (entries: PlannerEntry[], weekTitle: string) => {
         `}
         
         <div class="footer">
-          Generated on ${format(new Date(), 'MMMM d, yyyy')}
+          Generated on ${format(new Date(), 'MMMM d, yyyy')} by ViaFix
         </div>
         
         <button onclick="window.print();return false;">Print Schedule</button>
