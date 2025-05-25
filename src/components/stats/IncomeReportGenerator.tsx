@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -54,41 +55,16 @@ const IncomeReportGenerator: React.FC = () => {
                 margin: 0;
               }
               .header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+                text-align: center;
                 margin-bottom: 30px;
                 border-bottom: 2px solid #2563eb;
                 padding-bottom: 20px;
               }
-              .logo-section {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-              }
-              .logo {
-                height: 50px;
-                width: auto;
-              }
-              .company-info {
-                text-align: left;
-              }
-              .company-name {
+              .report-title {
                 font-size: 24px;
                 font-weight: bold;
                 color: #2563eb;
                 margin: 0;
-              }
-              .tagline {
-                font-size: 14px;
-                color: #666;
-                margin: 5px 0 0 0;
-              }
-              .report-title {
-                text-align: right;
-                color: #333;
-                font-size: 20px;
-                font-weight: bold;
               }
               h1 { 
                 text-align: center; 
@@ -127,20 +103,11 @@ const IncomeReportGenerator: React.FC = () => {
           </head>
           <body>
             <div class="header">
-              <div class="logo-section">
-                <img src="/lovable-uploads/e3e5d8f9-ed10-4030-8f80-f4d6d309c6e4.png" alt="ViaFix Logo" class="logo" />
-                <div class="company-info">
-                  <h2 class="company-name">ViaFix</h2>
-                  <p class="tagline">Professional Mobile Mechanic Services</p>
-                </div>
-              </div>
-              <div class="report-title">
-                <h1>${reportTitle}</h1>
-              </div>
+              <h1 class="report-title">${reportTitle}</h1>
             </div>
             ${content.innerHTML}
             <div class="footer">
-              Generated on ${new Date().toLocaleDateString()} by ViaFix
+              Generated on ${new Date().toLocaleDateString()}
             </div>
           </body>
         </html>
