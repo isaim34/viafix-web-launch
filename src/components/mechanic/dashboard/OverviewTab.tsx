@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +13,6 @@ import {
   Mail,
   CheckCircle
 } from 'lucide-react';
-import IncomeChart from '@/components/stats/IncomeChart';
 
 // Mock data - in a real app this would come from API
 const getTodaysSchedule = () => [
@@ -191,17 +189,6 @@ export const OverviewTab = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Revenue Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue Overview</CardTitle>
-          <CardDescription>Monthly income trends</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <IncomeChart />
-        </CardContent>
-      </Card>
 
       {/* Quick Actions */}
       <Card>
