@@ -35,7 +35,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       
       console.log("✅ Using local authentication with email:", userEmail);
       
-      // Call edge function with email in body for local auth
+      // Call edge function with email in body for local auth (no authorization header)
       try {
         console.log("🚀 Calling check-subscription edge function with local auth...");
         const response = await supabase.functions.invoke('check-subscription', {
