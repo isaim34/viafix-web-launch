@@ -27,6 +27,9 @@ export const AdvertisingContent = () => {
               <TabsTrigger value="payment">Payment Methods</TabsTrigger>
             </TabsList>
             
+            <TabsContent>
+              <FeaturedPlansSection/>
+            </TabsContent>
             
           </Tabs>
         </CardContent>
