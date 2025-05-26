@@ -146,11 +146,30 @@ export const useAdvertisingAccess = () => {
     // Trigger storage event to reload data
     window.dispatchEvent(new Event('storage-event'));
     
-    // Force a re-check without reload
-    setTimeout(() => {
-      window.location.hash = '#advertising';
-      window.location.reload();
-    }, 1000);
+    // Re-check access without reloading the page
+    try {
+      const subscriptionResult = await checkSubscription();
+      console.log("🔄 Manual refresh subscription result:", subscriptionResult);
+      
+      if (subscriptionResult.error) {
+        setError("Unable to verify subscription status. Please try again later.");
+        setHasAccess(false);
+      } else if (subscriptionResult.subscribed) {
+        console.log("✅ User has active subscription after manual refresh");
+        setHasAccess(true);
+        setError(null);
+      } else {
+        console.log("⚠️ User does not have active subscription after manual refresh");
+        setError("An active subscription is required to access advertising features");
+        setHasAccess(false);
+      }
+    } catch (refreshError) {
+      console.error("❌ Error during manual refresh:", refreshError);
+      setError("Unable to verify subscription status. Please try again later.");
+      setHasAccess(false);
+    }
+    
+    setIsLoading(false);
   };
 
   return {
