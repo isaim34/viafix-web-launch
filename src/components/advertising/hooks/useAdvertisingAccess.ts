@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useAdvertisingAccess = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
+  const [hasAccess, setHasAccess] = useState(true);
   
   const { isLoggedIn, authChecked, currentUserRole } = useAuth();
 /*
