@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,14 +39,33 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
   React.useEffect(() => {
     const loadProfile = async () => {
       try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('phone, zip_code')
-          .single();
+        // Get the current user session first
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (sessionData?.session?.user?.id) {
+          // User has a Supabase session, fetch from profiles table
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('phone, zip_code')
+            .eq('id', sessionData.session.user.id)
+            .single();
 
-        if (profile) {
-          form.setValue('phone', profile.phone || '');
-          form.setValue('zipCode', profile.zip_code || '');
+          if (profile) {
+            form.setValue('phone', profile.phone || '');
+            form.setValue('zipCode', profile.zip_code || '');
+          }
+        } else {
+          // User is using local auth, load from localStorage
+          const userId = localStorage.getItem('userId');
+          const storedPhone = localStorage.getItem('userPhone');
+          const storedZipCode = localStorage.getItem('userZipCode');
+          
+          if (storedPhone) {
+            form.setValue('phone', storedPhone);
+          }
+          if (storedZipCode) {
+            form.setValue('zipCode', storedZipCode);
+          }
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -57,23 +77,45 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
 
   const onSubmit = async (data: SettingsFormValues) => {
     try {
-      if (data.email !== userEmail) {
-        const { error: updateError } = await supabase.auth.updateUser({
-          email: data.email,
-        });
+      // Check if user has a Supabase session
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (sessionData?.session?.user?.id) {
+        // User has Supabase auth, update email and profile
+        if (data.email !== userEmail) {
+          const { error: updateError } = await supabase.auth.updateUser({
+            email: data.email,
+          });
 
-        if (updateError) throw updateError;
+          if (updateError) throw updateError;
+        }
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            phone: data.phone,
+            zip_code: data.zipCode,
+          })
+          .eq('id', sessionData.session.user.id);
+
+        if (profileError) throw profileError;
+      } else {
+        // User is using local auth, save to localStorage
+        if (data.email !== userEmail) {
+          localStorage.setItem('userEmail', data.email);
+        }
+        
+        if (data.phone) {
+          localStorage.setItem('userPhone', data.phone);
+        }
+        
+        if (data.zipCode) {
+          localStorage.setItem('userZipCode', data.zipCode);
+        }
+        
+        // Trigger storage event to update other components
+        window.dispatchEvent(new Event('storage-event'));
       }
-
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          phone: data.phone,
-          zip_code: data.zipCode,
-        })
-        .eq('id', (await supabase.auth.getUser()).data.user?.id);
-
-      if (profileError) throw profileError;
 
       toast({
         title: "Settings updated",
