@@ -10,7 +10,7 @@ export const useAdvertisingAccess = () => {
   const [hasAccess, setHasAccess] = useState(false);
   
   const { isLoggedIn, authChecked, currentUserRole } = useAuth();
-
+/*
   useEffect(() => {
     const checkAccess = async () => {
       console.log("🔍 Checking advertising access...");
@@ -124,7 +124,7 @@ export const useAdvertisingAccess = () => {
     };
     
     checkAccess();
-  }, [isLoggedIn, authChecked, currentUserRole]);
+  }, [isLoggedIn, authChecked, currentUserRole]);*/
 
   const handleRefresh = async () => {
     console.log("🔄 Manual refresh triggered by user");
