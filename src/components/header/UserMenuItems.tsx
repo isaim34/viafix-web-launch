@@ -58,7 +58,7 @@ export const UserMenuItems = () => {
         <span>Messages</span>
       </DropdownMenuItem>
       
-      <DropdownMenuItem onSelect={() => navigate('/settings')}>
+      <DropdownMenuItem onSelect={() => navigate('/account-settings')}>
         <Settings className="mr-2 h-4 w-4" />
         <span>Settings</span>
       </DropdownMenuItem>
