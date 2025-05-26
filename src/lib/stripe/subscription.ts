@@ -5,27 +5,27 @@ import { checkLocalAuth, updateLocalSubscriptionData } from "./utils";
 
 export const checkSubscription = async (): Promise<SubscriptionResult> => {
   try {
-    console.log("Checking subscription status...");
+    console.log("🔍 Starting subscription check...");
     
     // Check if user is authenticated with Supabase
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     let userEmail;
     let authToken = sessionData?.session?.access_token;
     
-    console.log("Auth check:", { 
+    console.log("🔐 Auth check:", { 
       hasSession: !!sessionData?.session, 
       hasToken: !!authToken,
       sessionError: sessionError?.message 
     });
     
     if (sessionError || !sessionData.session || !authToken) {
-      console.log("No valid Supabase session found, checking local auth");
+      console.log("📱 No valid Supabase session found, checking local auth");
       
       const { isLoggedInLocally, userEmail: localEmail } = checkLocalAuth();
       userEmail = localEmail;
       
       if (!isLoggedInLocally || !userEmail) {
-        console.error("No authentication found");
+        console.error("❌ No authentication found");
         return { 
           subscribed: false, 
           error: "Authentication error. Please try signing in again.",
@@ -33,10 +33,11 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         };
       }
       
-      console.log("Using local authentication with email:", userEmail);
+      console.log("✅ Using local authentication with email:", userEmail);
       
-      // Call edge function with email in body for all accounts (removed test account bypass)
+      // Call edge function with email in body for local auth
       try {
+        console.log("🚀 Calling check-subscription edge function with local auth...");
         const response = await supabase.functions.invoke('check-subscription', {
           body: { 
             email: userEmail, 
@@ -44,10 +45,10 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           }
         });
         
-        console.log("Edge function response for local auth:", response);
+        console.log("📦 Edge function response for local auth:", response);
         
         if (response.error) {
-          console.error("Subscription check error:", response.error);
+          console.error("❌ Subscription check error:", response.error);
           return { 
             subscribed: false, 
             subscription_tier: null,
@@ -59,6 +60,12 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         // Store subscription info in localStorage for easy access
         updateLocalSubscriptionData(response.data);
         
+        console.log("✅ Subscription check completed successfully:", {
+          subscribed: response.data?.subscribed,
+          tier: response.data?.subscription_tier,
+          end: response.data?.subscription_end
+        });
+        
         return { 
           subscribed: response.data?.subscribed || false,
           subscription_tier: response.data?.subscription_tier || null,
@@ -66,7 +73,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           error: null
         };
       } catch (functionError) {
-        console.error("Edge function call failed:", functionError);
+        console.error("❌ Edge function call failed:", functionError);
         return { 
           subscribed: false,
           subscription_tier: null,
@@ -77,13 +84,14 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     }
     
     // Use Supabase session authentication
-    console.log("Using Supabase authentication");
+    console.log("✅ Using Supabase authentication");
     
     const userSessionEmail = sessionData.session.user.email;
+    console.log("📧 User session email:", userSessionEmail);
     
-    // Call Stripe API for all accounts (removed test account bypass)
+    // Call Stripe API with proper authorization
     try {
-      // Call with proper authorization header and timeout
+      console.log("🚀 Calling check-subscription edge function with Supabase auth...");
       const response = await Promise.race([
         supabase.functions.invoke('check-subscription', {
           body: { timestamp: new Date().getTime() },
@@ -96,10 +104,10 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         )
       ]) as any;
       
-      console.log("Edge function response with auth:", response);
+      console.log("📦 Edge function response with auth:", response);
       
       if (response.error) {
-        console.error("Subscription check error:", response.error);
+        console.error("❌ Subscription check error:", response.error);
         return { 
           subscribed: false, 
           subscription_tier: null,
@@ -111,6 +119,12 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       // Store subscription info in localStorage for easy access
       updateLocalSubscriptionData(response.data);
       
+      console.log("✅ Subscription check completed successfully:", {
+        subscribed: response.data?.subscribed,
+        tier: response.data?.subscription_tier,
+        end: response.data?.subscription_end
+      });
+      
       return { 
         subscribed: response.data?.subscribed || false,
         subscription_tier: response.data?.subscription_tier || null,
@@ -118,7 +132,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
         error: null
       };
     } catch (functionError) {
-      console.error("Edge function call failed:", functionError);
+      console.error("❌ Edge function call failed:", functionError);
       return { 
         subscribed: false,
         subscription_tier: null,
@@ -127,7 +141,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       };
     }
   } catch (err) {
-    console.error("Error in checkSubscription:", err);
+    console.error("❌ Error in checkSubscription:", err);
     return { 
       subscribed: false,
       error: err instanceof Error ? err.message : String(err)

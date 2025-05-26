@@ -2,7 +2,7 @@
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, RefreshCcw, AlertCircle } from 'lucide-react';
+import { ShieldCheck, RefreshCcw, AlertCircle, Bug } from 'lucide-react';
 
 interface SubscriptionStatusDisplayProps {
   isSubscribed: boolean;
@@ -31,6 +31,23 @@ export const SubscriptionStatusDisplay: React.FC<SubscriptionStatusDisplayProps>
   refreshing,
   onRefresh
 }) => {
+  // Debug info for troubleshooting
+  const debugInfo = {
+    localStorage: {
+      subscription_status: localStorage.getItem('subscription_status'),
+      subscription_plan: localStorage.getItem('subscription_plan'),
+      subscription_end: localStorage.getItem('subscription_end'),
+      userEmail: localStorage.getItem('userEmail'),
+      userLoggedIn: localStorage.getItem('userLoggedIn')
+    },
+    props: {
+      isSubscribed,
+      currentPlan,
+      subscriptionEnd,
+      error
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -39,16 +56,33 @@ export const SubscriptionStatusDisplay: React.FC<SubscriptionStatusDisplayProps>
           <p className="text-muted-foreground">Choose a subscription plan to unlock premium features</p>
         </div>
         
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={onRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-1"
-        >
-          <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Refreshing...' : 'Refresh Status'}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1"
+          >
+            <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh Status'}
+          </Button>
+          
+          {/* Debug button for troubleshooting */}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => {
+              console.log("🐛 Debug Info:", debugInfo);
+              alert(`Debug Info (check console for full details):\n\nEmail: ${debugInfo.localStorage.userEmail}\nSubscription Status: ${debugInfo.localStorage.subscription_status}\nPlan: ${debugInfo.localStorage.subscription_plan}\nIs Subscribed: ${debugInfo.props.isSubscribed}`);
+            }}
+            className="flex items-center gap-1"
+            title="Show debug information"
+          >
+            <Bug className="h-4 w-4" />
+            Debug
+          </Button>
+        </div>
       </div>
       
       {isSubscribed && (
@@ -70,6 +104,14 @@ export const SubscriptionStatusDisplay: React.FC<SubscriptionStatusDisplayProps>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      )}
+      
+      {/* Debug info display for troubleshooting */}
+      {process.env.NODE_ENV === 'development' && (
+        <details className="bg-gray-50 p-3 rounded text-xs">
+          <summary className="cursor-pointer font-medium">Debug Information</summary>
+          <pre className="mt-2 overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+        </details>
       )}
     </div>
   );
