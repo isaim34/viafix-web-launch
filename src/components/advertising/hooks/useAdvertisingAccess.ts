@@ -202,7 +202,7 @@ export const useAdvertisingAccess = () => {
           setHasAccess(false);
         }*/
       }
-      
+      setLoading(false)
       // Trigger storage event to reload data
       window.dispatchEvent(new Event('storage-event'));
       
