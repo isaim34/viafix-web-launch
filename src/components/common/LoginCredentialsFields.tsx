@@ -25,7 +25,12 @@ const LoginCredentialsFields: React.FC<LoginCredentialsFieldsProps> = ({ control
           <FormItem>
             <FormLabel>Email<span className="text-destructive ml-1">*</span></FormLabel>
             <FormControl>
-              <Input type="email" placeholder="Enter your email" {...field} />
+              <Input 
+                type="email" 
+                placeholder="Enter your email" 
+                autoComplete="email"
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

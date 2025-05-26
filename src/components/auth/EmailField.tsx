@@ -30,6 +30,7 @@ const EmailField = ({ form }: EmailFieldProps) => {
                 type="email" 
                 placeholder="Enter your email" 
                 className="pl-10" 
+                autoComplete="email"
                 {...field} 
               />
             </div>

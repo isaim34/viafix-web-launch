@@ -140,7 +140,7 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input {...field} type="email" placeholder="Email" />
+                <Input {...field} type="email" placeholder="Email" autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -154,7 +154,7 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input {...field} type="tel" placeholder="Phone number" />
+                <Input {...field} type="tel" placeholder="Phone number" autoComplete="tel" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -168,7 +168,7 @@ const AccountSettingsForm = ({ userRole }: AccountSettingsFormProps) => {
             <FormItem>
               <FormLabel>ZIP Code</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="ZIP code" />
+                <Input {...field} placeholder="ZIP code" autoComplete="postal-code" />
               </FormControl>
               <FormMessage />
             </FormItem>

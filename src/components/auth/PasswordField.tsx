@@ -34,6 +34,7 @@ const PasswordField = ({ form, hideResetLink = false }: PasswordFieldProps) => {
                 type={showPassword ? "text" : "password"} 
                 placeholder="Enter your password" 
                 className="pl-10" 
+                autoComplete="current-password"
                 {...field} 
               />
               <button 

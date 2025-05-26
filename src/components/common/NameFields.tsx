@@ -32,6 +32,7 @@ const NameFields: React.FC<NameFieldsProps> = ({
             <FormControl>
               <Input 
                 placeholder="Enter your first name" 
+                autoComplete="given-name"
                 {...field} 
                 value={field.value || ''}
                 onChange={(e) => {
@@ -54,6 +55,7 @@ const NameFields: React.FC<NameFieldsProps> = ({
             <FormControl>
               <Input 
                 placeholder="Enter your last name" 
+                autoComplete="family-name"
                 {...field} 
                 value={field.value || ''}
               />

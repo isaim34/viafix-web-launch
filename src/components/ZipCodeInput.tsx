@@ -47,6 +47,7 @@ const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
                 pattern="[0-9]*"
                 inputMode="numeric"
                 maxLength={5}
+                autoComplete="postal-code"
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '').slice(0, 5);
                   field.onChange(value);
