@@ -14,9 +14,7 @@ import ReviewsTab from '@/components/ReviewsTab';
 import CustomOffersTab from '@/components/mechanic/CustomOffersTab';
 import { DebugPanel } from '@/components/debug/DebugPanel';
 import MaintenanceRecordsTab from '@/components/mechanic/MaintenanceRecordsTab';
-
-// Lazy load the AdvertisingTab component
-const AdvertisingTab = lazy(() => import('@/components/advertising/AdvertisingTab'));
+import AdvertisingTab from '@/components/advertising/AdvertisingTab';
 
 const AdvertisingLoadingFallback = () => (
   <div className="p-6 border rounded-lg bg-card text-card-foreground shadow-sm">
