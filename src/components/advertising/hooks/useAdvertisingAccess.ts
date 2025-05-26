@@ -139,7 +139,7 @@ export const useAdvertisingAccess = () => {
       if (isLocalAuth && userEmail) {
         console.log("📱 Using local authentication for refresh");
         // For local auth, directly check subscription with email
-        const subscriptionResult = await checkSubscription();
+        /*const subscriptionResult = await checkSubscription();
         console.log("📦 Local auth subscription result:", subscriptionResult);
         
         if (subscriptionResult.error) {
@@ -154,7 +154,7 @@ export const useAdvertisingAccess = () => {
           console.log("⚠️ User does not have active subscription");
           setError("An active subscription is required to access advertising features");
           setHasAccess(false);
-        }
+        }*/
       } else {
         // Check for Supabase session
         const { data: sessionData } = await supabase.auth.getSession();
@@ -180,7 +180,7 @@ export const useAdvertisingAccess = () => {
         console.log("✅ Session refreshed successfully");
         
         // Re-check subscription with fresh session
-        console.log("🔄 Re-checking subscription with fresh session...");
+        /*console.log("🔄 Re-checking subscription with fresh session...");
         const subscriptionResult = await checkSubscription();
         console.log("📦 Manual refresh subscription result:", subscriptionResult);
         
@@ -200,7 +200,7 @@ export const useAdvertisingAccess = () => {
           console.log("⚠️ User does not have active subscription after manual refresh");
           setError("An active subscription is required to access advertising features");
           setHasAccess(false);
-        }
+        }*/
       }
       
       // Trigger storage event to reload data
