@@ -22,8 +22,8 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       sessionError: sessionError?.message 
     });
     
-    // Prefer Supabase session over local auth if available
-    if (sessionData?.session && authToken) {
+    // Prefer Supabase session over local auth if available AND valid
+    if (sessionData?.session && authToken && !sessionError) {
       console.log("✅ Using Supabase authentication");
       
       const userSessionEmail = sessionData.session.user.email;
@@ -82,18 +82,19 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       }
     }
     
-    // Fall back to local auth if no Supabase session
+    // Fall back to local auth if no valid Supabase session
     if (isLoggedInLocally && userEmail) {
       console.log("✅ Using local authentication with email:", userEmail);
       
-      // Call edge function with email in body for local auth (no authorization header)
+      // Call edge function with email in body for local auth (NO authorization header)
       try {
-        console.log("🚀 Calling check-subscription edge function with local auth...");
+        console.log("🚀 Calling check-subscription edge function with local auth (no auth header)...");
         const response = await supabase.functions.invoke('check-subscription', {
           body: { 
             email: userEmail, 
             timestamp: new Date().getTime() 
           }
+          // Deliberately NOT including any Authorization header
         });
         
         console.log("📦 Edge function response for local auth:", response);

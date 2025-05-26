@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
@@ -49,11 +48,13 @@ serve(async (req) => {
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
     logStep("Supabase client initialized");
 
-    // First check for auth header
+    // Check for auth header - but don't require it
     const authHeader = req.headers.get("Authorization");
+    logStep("Authorization header check", { hasAuthHeader: !!authHeader });
+    
     if (!authHeader) {
-      logStep("No authorization header provided - checking body for email");
-      // If no auth header, try to get email from request body (fallback)
+      logStep("No authorization header - checking body for email");
+      // If no auth header, try to get email from request body (local auth)
       try {
         const body = await req.json();
         if (body && body.email) {
@@ -136,19 +137,51 @@ serve(async (req) => {
         logStep("Error parsing request body", { error: e });
       }
       
-      throw new Error("No authorization header provided");
+      logStep("No email found in body, returning auth error");
+      return new Response(JSON.stringify({ 
+        error: "No authorization header or email provided",
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    logStep("Authorization header found");
+    logStep("Authorization header found, processing with Supabase auth");
 
     const token = authHeader.replace("Bearer ", "");
     logStep("Authenticating user with token");
     
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      logStep("Authentication error", { error: userError.message });
+      return new Response(JSON.stringify({ 
+        error: `Authentication error: ${userError.message}`,
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
     
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.email) {
+      logStep("User not authenticated or email not available");
+      return new Response(JSON.stringify({ 
+        error: "User not authenticated or email not available",
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+    
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
