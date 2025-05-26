@@ -132,54 +132,80 @@ export const useAdvertisingAccess = () => {
     setError(null);
     
     try {
-      // Check if we have a valid Supabase session first
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log("🔐 Current session status:", { hasSession: !!sessionData?.session });
+      // Check authentication type first
+      const isLocalAuth = localStorage.getItem('userLoggedIn') === 'true';
+      const userEmail = localStorage.getItem('userEmail');
       
-      if (!sessionData?.session) {
-        console.log("❌ No valid session found - user needs to sign in again");
-        setError("Your session has expired. Please sign in again to access advertising features.");
-        setHasAccess(false);
-        return;
+      if (isLocalAuth && userEmail) {
+        console.log("📱 Using local authentication for refresh");
+        // For local auth, directly check subscription with email
+        const subscriptionResult = await checkSubscription();
+        console.log("📦 Local auth subscription result:", subscriptionResult);
+        
+        if (subscriptionResult.error) {
+          console.error("❌ Subscription check failed:", subscriptionResult.error);
+          setError("Unable to verify subscription status. Please try again later.");
+          setHasAccess(false);
+        } else if (subscriptionResult.subscribed) {
+          console.log("✅ User has active subscription");
+          setHasAccess(true);
+          setError(null);
+        } else {
+          console.log("⚠️ User does not have active subscription");
+          setError("An active subscription is required to access advertising features");
+          setHasAccess(false);
+        }
+      } else {
+        // Check for Supabase session
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log("🔐 Current session status:", { hasSession: !!sessionData?.session });
+        
+        if (!sessionData?.session) {
+          console.log("❌ No valid session found - user needs to sign in again");
+          setError("Your session has expired. Please sign in again to access advertising features.");
+          setHasAccess(false);
+          return;
+        }
+        
+        // If we have a session, try to refresh it
+        console.log("🔄 Refreshing Supabase session...");
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error("❌ Session refresh error:", refreshError);
+          setError("Unable to refresh your session. Please try signing in again.");
+          setHasAccess(false);
+          return;
+        }
+        
+        console.log("✅ Session refreshed successfully");
+        
+        // Re-check subscription with fresh session
+        console.log("🔄 Re-checking subscription with fresh session...");
+        const subscriptionResult = await checkSubscription();
+        console.log("📦 Manual refresh subscription result:", subscriptionResult);
+        
+        if (subscriptionResult.error) {
+          console.error("❌ Subscription check failed after refresh:", subscriptionResult.error);
+          if (subscriptionResult.authError) {
+            setError("Authentication failed. Please sign in again.");
+          } else {
+            setError("Unable to verify subscription status. Please try again later.");
+          }
+          setHasAccess(false);
+        } else if (subscriptionResult.subscribed) {
+          console.log("✅ User has active subscription after manual refresh");
+          setHasAccess(true);
+          setError(null);
+        } else {
+          console.log("⚠️ User does not have active subscription after manual refresh");
+          setError("An active subscription is required to access advertising features");
+          setHasAccess(false);
+        }
       }
-      
-      // If we have a session, try to refresh it
-      console.log("🔄 Refreshing Supabase session...");
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) {
-        console.error("❌ Session refresh error:", refreshError);
-        setError("Unable to refresh your session. Please try signing in again.");
-        setHasAccess(false);
-        return;
-      }
-      
-      console.log("✅ Session refreshed successfully");
       
       // Trigger storage event to reload data
       window.dispatchEvent(new Event('storage-event'));
       
-      // Re-check subscription with fresh session
-      console.log("🔄 Re-checking subscription with fresh session...");
-      const subscriptionResult = await checkSubscription();
-      console.log("📦 Manual refresh subscription result:", subscriptionResult);
-      
-      if (subscriptionResult.error) {
-        console.error("❌ Subscription check failed after refresh:", subscriptionResult.error);
-        if (subscriptionResult.authError) {
-          setError("Authentication failed. Please sign in again.");
-        } else {
-          setError("Unable to verify subscription status. Please try again later.");
-        }
-        setHasAccess(false);
-      } else if (subscriptionResult.subscribed) {
-        console.log("✅ User has active subscription after manual refresh");
-        setHasAccess(true);
-        setError(null);
-      } else {
-        console.log("⚠️ User does not have active subscription after manual refresh");
-        setError("An active subscription is required to access advertising features");
-        setHasAccess(false);
-      }
     } catch (refreshError) {
       console.error("❌ Error during manual refresh:", refreshError);
       setError("Unable to verify subscription status. Please try again later.");
