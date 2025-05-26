@@ -9,6 +9,19 @@ import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
 
 export const AdvertisingContent = () => {
+  // Mock pricing data - in a real app this would come from your backend/config
+  const featuredDailyPrice = 9.99;
+  const messageCost = 0.50;
+  const messagesRemaining = 25;
+
+  const handlePurchaseFeatured = (days: number) => {
+    console.log(`Purchasing featured listing for ${days} days`);
+  };
+
+  const handleBuyMessages = (quantity: number) => {
+    console.log(`Buying ${quantity} messages`);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -27,10 +40,28 @@ export const AdvertisingContent = () => {
               <TabsTrigger value="payment">Payment Methods</TabsTrigger>
             </TabsList>
             
-            <TabsContent>
-              <FeaturedPlansSection/>
+            <TabsContent value="subscription">
+              <SubscriptionPlansSection />
             </TabsContent>
             
+            <TabsContent value="featured">
+              <FeaturedPlansSection 
+                featuredDailyPrice={featuredDailyPrice}
+                onPurchaseFeatured={handlePurchaseFeatured}
+              />
+            </TabsContent>
+            
+            <TabsContent value="messages">
+              <MessagePackagesSection 
+                messageCost={messageCost}
+                messagesRemaining={messagesRemaining}
+                onBuyMessages={handleBuyMessages}
+              />
+            </TabsContent>
+            
+            <TabsContent value="payment">
+              <PaymentMethodsTab />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
