@@ -28,25 +28,6 @@ export const AdvertisingContent = () => {
             </TabsList>
             
             
-            
-            <TabsContent value="featured">
-              <FeaturedPlansSection 
-                featuredDailyPrice={9.99}
-                onPurchaseFeatured={(days) => console.log(`Purchased ${days} days of featuring`)}
-              />
-            </TabsContent>
-            
-            <TabsContent value="messages">
-              <MessagePackagesSection 
-                messageCost={0.99}
-                messagesRemaining={10}
-                onBuyMessages={(quantity) => console.log(`Purchased ${quantity} messages`)}
-              />
-            </TabsContent>
-            
-            <TabsContent value="payment">
-              <PaymentMethodsTab />
-            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
