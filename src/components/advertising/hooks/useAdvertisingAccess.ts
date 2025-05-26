@@ -67,14 +67,59 @@ export const useAdvertisingAccess = () => {
       
       console.log("✅ User is a mechanic, checking subscription...");
       
-      // For mechanics, check subscription status
+      // For mechanics, check subscription status with better error handling
       try {
+        // First check if we have a valid session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log("🔐 Session check:", { hasSession: !!session, sessionError });
+        
+        // If no valid session, fall back to localStorage email for subscription check
+        const userEmail = session?.user?.email || localStorage.getItem('userEmail');
+        console.log("📧 Using email for subscription check:", userEmail);
+        
+        if (!userEmail) {
+          setError("Unable to verify email for subscription check");
+          setHasAccess(false);
+          setIsLoading(false);
+          return;
+        }
+        
         const subscriptionResult = await checkSubscription();
         console.log("📦 Subscription check result:", subscriptionResult);
         
-        if (subscriptionResult.error && subscriptionResult.authError) {
-          setError("Authentication required. Please sign in again.");
-          setHasAccess(false);
+        if (subscriptionResult.error) {
+          if (subscriptionResult.authError) {
+            console.log("🔄 Auth error - attempting to refresh session...");
+            try {
+              await supabase.auth.refreshSession();
+              console.log("✅ Session refreshed, retrying subscription check...");
+              
+              // Retry subscription check after refresh
+              const retryResult = await checkSubscription();
+              console.log("🔄 Retry subscription result:", retryResult);
+              
+              if (retryResult.error) {
+                setError("Authentication required. Please sign in again.");
+                setHasAccess(false);
+              } else if (retryResult.subscribed) {
+                console.log("✅ User has active subscription after retry");
+                setHasAccess(true);
+                setError(null);
+              } else {
+                console.log("⚠️ User does not have active subscription after retry");
+                setError("An active subscription is required to access advertising features");
+                setHasAccess(false);
+              }
+            } catch (refreshError) {
+              console.error("❌ Session refresh failed:", refreshError);
+              setError("Session expired. Please sign in again.");
+              setHasAccess(false);
+            }
+          } else {
+            console.error("❌ Subscription check error:", subscriptionResult.error);
+            setError("Unable to verify subscription status. Please try again later.");
+            setHasAccess(false);
+          }
         } else if (subscriptionResult.subscribed) {
           console.log("✅ User has active subscription, granting access");
           setHasAccess(true);
@@ -96,11 +141,30 @@ export const useAdvertisingAccess = () => {
     checkAccess();
   }, [isLoggedIn, authChecked, currentUserRole]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     console.log("🔄 Refreshing advertising access...");
     setError(null);
     setIsLoading(true);
+    
+    // Try to refresh the session first
+    try {
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error("❌ Session refresh error:", refreshError);
+      } else {
+        console.log("✅ Session refreshed successfully");
+      }
+    } catch (error) {
+      console.error("❌ Session refresh failed:", error);
+    }
+    
+    // Trigger storage event to reload data
     window.dispatchEvent(new Event('storage-event'));
+    
+    // Give a small delay for the refresh to take effect
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   return {

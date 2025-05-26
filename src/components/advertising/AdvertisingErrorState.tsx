@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Tags, AlertCircle, RefreshCw } from 'lucide-react';
+import { Tags, AlertCircle, RefreshCw, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +18,20 @@ export const AdvertisingErrorState: React.FC<AdvertisingErrorStateProps> = ({
   onRefresh
 }) => {
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.clear();
+      toast({
+        title: "Signed out",
+        description: "You have been signed out. Please sign in again.",
+      });
+      navigate('/signin?role=mechanic');
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   const handleQuickFix = () => {
     localStorage.setItem('userRole', 'mechanic');
@@ -45,6 +59,9 @@ export const AdvertisingErrorState: React.FC<AdvertisingErrorStateProps> = ({
     onRefresh();
   };
 
+  const isAuthError = error.includes("Authentication") || error.includes("sign in") || error.includes("Session expired");
+  const isRoleError = error.includes("only available for mechanics");
+
   return (
     <div className="space-y-6">
       <Card>
@@ -57,34 +74,79 @@ export const AdvertisingErrorState: React.FC<AdvertisingErrorStateProps> = ({
         <CardContent>
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error accessing advertising options</AlertTitle>
+            <AlertTitle>Access Issue</AlertTitle>
             <AlertDescription className="flex flex-col gap-4">
               <p>{error}</p>
+              
+              {isAuthError && (
+                <div className="bg-red-50 p-3 rounded border border-red-200">
+                  <p className="text-sm font-medium text-red-800 mb-2">Authentication Problem</p>
+                  <p className="text-sm text-red-700">
+                    Your session may have expired or there's an authentication issue. Try signing out and back in.
+                  </p>
+                </div>
+              )}
+              
+              {isRoleError && (
+                <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                  <p className="text-sm font-medium text-yellow-800 mb-2">Role Issue</p>
+                  <p className="text-sm text-yellow-700">
+                    You need to be signed in as a mechanic to access advertising features.
+                  </p>
+                </div>
+              )}
+              
               <div className="flex flex-wrap gap-3 mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-fit" 
-                  onClick={() => navigate('/signin?role=mechanic')}
-                >
-                  Sign In as Mechanic
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={onRefresh}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Retry Detection
-                </Button>
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={handleQuickFix}
-                >
-                  Quick Fix (Set as Mechanic)
-                </Button>
+                {isAuthError ? (
+                  <>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="flex items-center gap-2"
+                      onClick={handleSignOut}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      Sign Out & Back In
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex items-center gap-2"
+                      onClick={onRefresh}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Try Again
+                    </Button>
+                  </>
+                ) : isRoleError ? (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-fit" 
+                      onClick={() => navigate('/signin?role=mechanic')}
+                    >
+                      Sign In as Mechanic
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={handleQuickFix}
+                    >
+                      Set Role to Mechanic
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={onRefresh}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Retry Detection
+                  </Button>
+                )}
               </div>
             </AlertDescription>
           </Alert>
