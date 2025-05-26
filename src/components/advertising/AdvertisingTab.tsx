@@ -8,6 +8,10 @@ import { AdvertisingContent } from './AdvertisingContent';
 export default function AdvertisingTab() {
   const { error, isLoading, hasAccess, handleRefresh } = useAdvertisingAccess();
 
+  useEffect(()=>{
+    console.log(error, isLoading, hasAccess)
+  },[error, isLoading, hasAccess])
+
   if (isLoading) {
     return <AdvertisingLoadingState />;
   }
