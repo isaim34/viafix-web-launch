@@ -128,30 +128,29 @@ export const useAdvertisingAccess = () => {
 
   const handleRefresh = async () => {
     console.log("🔄 Refreshing advertising access...");
-    setError(null);
     setIsLoading(true);
+    setError(null);
     
-    // Try to refresh the session first
     try {
+      // Try to refresh the session first
+      console.log("🔄 Refreshing Supabase session...");
       const { error: refreshError } = await supabase.auth.refreshSession();
       if (refreshError) {
         console.error("❌ Session refresh error:", refreshError);
       } else {
         console.log("✅ Session refreshed successfully");
       }
-    } catch (error) {
-      console.error("❌ Session refresh failed:", error);
-    }
-    
-    // Trigger storage event to reload data
-    window.dispatchEvent(new Event('storage-event'));
-    
-    // Re-check access without reloading the page
-    try {
+      
+      // Trigger storage event to reload data
+      window.dispatchEvent(new Event('storage-event'));
+      
+      // Re-check access without reloading the page
+      console.log("🔄 Re-checking subscription status...");
       const subscriptionResult = await checkSubscription();
       console.log("🔄 Manual refresh subscription result:", subscriptionResult);
       
       if (subscriptionResult.error) {
+        console.error("❌ Subscription check failed:", subscriptionResult.error);
         setError("Unable to verify subscription status. Please try again later.");
         setHasAccess(false);
       } else if (subscriptionResult.subscribed) {
@@ -167,9 +166,11 @@ export const useAdvertisingAccess = () => {
       console.error("❌ Error during manual refresh:", refreshError);
       setError("Unable to verify subscription status. Please try again later.");
       setHasAccess(false);
+    } finally {
+      // Ensure loading state is always cleared
+      console.log("🔄 Clearing loading state");
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return {
