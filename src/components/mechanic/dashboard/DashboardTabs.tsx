@@ -13,7 +13,7 @@ export const DashboardTabs = () => {
   };
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <DashboardTabsList />
       <DashboardTabsContent onTabChange={handleTabChange} />
     </Tabs>

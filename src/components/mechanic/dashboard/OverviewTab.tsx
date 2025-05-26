@@ -14,9 +14,9 @@ export const OverviewTab = ({ onTabChange }: OverviewTabProps) => {
   const todaysSchedule = getTodaysSchedule();
   const recentActivity = getRecentActivity();
 
-  // Simplified tab change handler that uses the prop directly
+  // Ensure tab change handler only responds to explicit user actions
   const handleTabChange = (tabValue: string) => {
-    console.log('OverviewTab: Switching to tab:', tabValue);
+    console.log('OverviewTab: User requested tab change to:', tabValue);
     onTabChange(tabValue);
   };
 

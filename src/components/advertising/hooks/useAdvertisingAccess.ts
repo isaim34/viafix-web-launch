@@ -69,21 +69,6 @@ export const useAdvertisingAccess = () => {
       
       // For mechanics, check subscription status with better error handling
       try {
-        // First check if we have a valid session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log("🔐 Session check:", { hasSession: !!session, sessionError });
-        
-        // If no valid session, fall back to localStorage email for subscription check
-        const userEmail = session?.user?.email || localStorage.getItem('userEmail');
-        console.log("📧 Using email for subscription check:", userEmail);
-        
-        if (!userEmail) {
-          setError("Unable to verify email for subscription check");
-          setHasAccess(false);
-          setIsLoading(false);
-          return;
-        }
-        
         const subscriptionResult = await checkSubscription();
         console.log("📦 Subscription check result:", subscriptionResult);
         
@@ -161,8 +146,9 @@ export const useAdvertisingAccess = () => {
     // Trigger storage event to reload data
     window.dispatchEvent(new Event('storage-event'));
     
-    // Give a small delay for the refresh to take effect
+    // Force a re-check without reload
     setTimeout(() => {
+      window.location.hash = '#advertising';
       window.location.reload();
     }, 1000);
   };
