@@ -1,10 +1,13 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star, MessageSquare, Trash2 } from 'lucide-react';
 import { Review } from '@/types/mechanic';
 import { Button } from '@/components/ui/button';
 import ReviewDialog from './ReviewDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MechanicReviewsProps {
   reviews: Review[];
@@ -28,6 +31,9 @@ export const MechanicReviews = ({
   delay = 0.3 
 }: MechanicReviewsProps) => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   // Ensure we have valid data with better fallbacks
   const safeReviews = Array.isArray(reviews) ? reviews : [];
@@ -44,6 +50,54 @@ export const MechanicReviews = ({
     originalRating: rating,
     originalReviewCount: reviewCount
   });
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to delete reviews.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setDeletingReviewId(reviewId);
+
+    try {
+      const { error } = await supabase
+        .from('mechanic_reviews')
+        .delete()
+        .eq('id', reviewId)
+        .eq('user_id', user.id); // Ensure user can only delete their own reviews
+
+      if (error) {
+        console.error('Error deleting review:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete review. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Review Deleted",
+        description: "Your review has been successfully deleted.",
+      });
+
+      // Refresh the reviews
+      onReviewAdded();
+    } catch (error) {
+      console.error('Unexpected error deleting review:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
 
   return (
     <motion.div 
@@ -92,20 +146,34 @@ export const MechanicReviews = ({
             <div key={`review-${index}`} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-medium text-gray-900">{review.author || 'Anonymous'}</h3>
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star 
-                      key={star} 
-                      className={`w-4 h-4 ${
-                        star <= (review.rating || 0) 
-                          ? 'text-yellow-400 fill-yellow-400' 
-                          : 'text-gray-200'
-                      }`} 
-                    />
-                  ))}
-                  <span className="ml-2 text-sm text-gray-600">
-                    {review.rating || 0}/5
-                  </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star 
+                        key={star} 
+                        className={`w-4 h-4 ${
+                          star <= (review.rating || 0) 
+                            ? 'text-yellow-400 fill-yellow-400' 
+                            : 'text-gray-200'
+                        }`} 
+                      />
+                    ))}
+                    <span className="ml-2 text-sm text-gray-600">
+                      {review.rating || 0}/5
+                    </span>
+                  </div>
+                  {/* Show delete button only for the review author */}
+                  {user?.id && review.user_id === user.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteReview(review.id)}
+                      disabled={deletingReviewId === review.id}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
               <p className="text-gray-700 leading-relaxed">

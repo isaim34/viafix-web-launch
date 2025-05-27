@@ -92,6 +92,7 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
       console.log('Submitting review data:', {
         mechanic_id: mechanicId,
         customer_id: user.user.id,
+        user_id: user.user.id,
         author: authorName,
         rating: values.rating,
         text: values.text
@@ -103,6 +104,7 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         .insert({
           mechanic_id: mechanicId, // Store as text, even for special IDs like 'default-vendor'
           customer_id: user.user.id,
+          user_id: user.user.id, // Include user_id for ownership tracking
           author: authorName,
           rating: values.rating,
           text: values.text

@@ -504,6 +504,7 @@ export type Database = {
           mechanic_id: string
           rating: number
           text: string | null
+          user_id: string | null
         }
         Insert: {
           author: string
@@ -513,6 +514,7 @@ export type Database = {
           mechanic_id: string
           rating: number
           text?: string | null
+          user_id?: string | null
         }
         Update: {
           author?: string
@@ -522,6 +524,7 @@ export type Database = {
           mechanic_id?: string
           rating?: number
           text?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {

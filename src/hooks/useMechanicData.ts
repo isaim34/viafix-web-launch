@@ -63,7 +63,7 @@ export const useMechanicData = () => {
             
             const { data: reviews, error: reviewsError } = await supabase
               .from('mechanic_reviews')
-              .select('id, author, rating, text, created_at')
+              .select('id, author, rating, text, created_at, user_id')
               .eq('mechanic_id', id)
               .order('created_at', { ascending: false });
             
@@ -82,9 +82,11 @@ export const useMechanicData = () => {
               if (reviews && reviews.length > 0) {
                 // Map reviews to the expected format
                 mechanicData.reviews = reviews.map(review => ({
+                  id: review.id,
                   author: review.author || 'Anonymous',
                   rating: review.rating || 0,
-                  text: review.text || ''
+                  text: review.text || '',
+                  user_id: review.user_id
                 }));
                 
                 // Update review count

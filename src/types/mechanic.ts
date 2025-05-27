@@ -43,9 +43,11 @@ export type Service = {
 };
 
 export type Review = {
+  id: string;
   author: string;
   rating: number;
   text: string;
+  user_id?: string;
 };
 
 export type PaymentMethod = {
