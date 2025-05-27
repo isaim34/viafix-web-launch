@@ -19,6 +19,12 @@ export const useMechanicData = () => {
     setRefreshTrigger(prev => prev + 1);
   }, []);
   
+  // Helper function to check if a string is a valid UUID
+  const isValidUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+  
   useEffect(() => {
     // Check if user is logged in as a mechanic
     const userRole = localStorage.getItem('userRole');
@@ -45,8 +51,9 @@ export const useMechanicData = () => {
           mechanicData = await fetchMechanicProfile(id || '');
         }
         
-        // For all mechanics, fetch reviews from Supabase
-        if (mechanicData && id) {
+        // For mechanics with valid UUID IDs, fetch reviews from Supabase
+        // For special IDs like 'default-vendor', reviews are already handled in fetchLocalMechanic
+        if (mechanicData && id && isValidUUID(id)) {
           try {
             const { data: reviews } = await import('@/integrations/supabase/client').then(module => 
               module.supabase

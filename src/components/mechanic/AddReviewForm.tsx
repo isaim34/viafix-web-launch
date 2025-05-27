@@ -36,6 +36,12 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
     },
   });
 
+  // Helper function to check if a string is a valid UUID
+  const isValidUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
   const onSubmit = async (values: ReviewFormValues) => {
     try {
       const { data: user } = await supabase.auth.getUser();
@@ -60,7 +66,33 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         ? `${profiles.first_name || ''} ${profiles.last_name || ''}`.trim() 
         : user.user.email?.split('@')[0] || 'Anonymous';
       
-      // Always use Supabase to store reviews
+      // Handle special mechanic IDs (like 'default-vendor') differently
+      if (!isValidUUID(mechanicId)) {
+        // For special IDs, store in localStorage
+        const specialReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
+        const newReview = {
+          id: Date.now().toString(),
+          mechanic_id: mechanicId,
+          customer_id: user.user.id,
+          author: authorName,
+          rating: values.rating,
+          text: values.text,
+          created_at: new Date().toISOString()
+        };
+        
+        specialReviews.push(newReview);
+        localStorage.setItem('special_mechanic_reviews', JSON.stringify(specialReviews));
+        
+        toast({
+          title: "Review Submitted",
+          description: `Thank you for reviewing ${mechanicName}!`,
+        });
+        
+        onSuccess();
+        return;
+      }
+      
+      // For real mechanic UUIDs, use Supabase
       const { error } = await supabase
         .from('mechanic_reviews')
         .insert({
