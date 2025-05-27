@@ -89,10 +89,12 @@ export const fetchMechanicProfile = async (id: string): Promise<MechanicDetail |
     
     // Fallback to mock data if available
     if (id && mechanicsDetailedData[id]) {
-      // Remove mock reviews from fallback data
+      // Return fallback data without mock reviews - reviews will be loaded separately
       const fallbackData = {
         ...mechanicsDetailedData[id],
-        reviews: [] // Set reviews to empty array instead of using mock data
+        reviews: [], // Will be populated by useMechanicData
+        reviewCount: 0, // Will be updated by useMechanicData
+        rating: 0 // Will be updated by useMechanicData
       };
       return fallbackData;
     }
