@@ -17,30 +17,15 @@ export const FavoritesList = () => {
 
   useEffect(() => {
     loadFavorites();
-    
-    // Listen for favorites updates from other components
-    const handleFavoritesUpdate = (event: CustomEvent) => {
-      console.log('Favorites updated event received:', event.detail);
-      setFavorites(event.detail || []);
-    };
-    
-    window.addEventListener('favoritesUpdated', handleFavoritesUpdate as EventListener);
-    
-    return () => {
-      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate as EventListener);
-    };
   }, []);
 
   const loadFavorites = () => {
-    console.log('Loading favorites...');
     const favoriteMechanics = getFavoriteMechanics();
-    console.log('Loaded favorites:', favoriteMechanics);
     setFavorites(favoriteMechanics);
     setIsLoading(false);
   };
 
   const handleRemoveFavorite = (mechanicId: string, mechanicName: string) => {
-    console.log('Removing favorite:', mechanicId, mechanicName);
     removeMechanicFromFavorites(mechanicId);
     setFavorites(favorites.filter(fav => fav.id !== mechanicId));
     
@@ -75,11 +60,6 @@ export const FavoritesList = () => {
 
   return (
     <div className="space-y-6">
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground">
-          {favorites.length} {favorites.length === 1 ? 'favorite' : 'favorites'} saved
-        </p>
-      </div>
       {favorites.map((mechanic, index) => (
         <motion.div
           key={mechanic.id}
@@ -108,7 +88,7 @@ export const FavoritesList = () => {
                       </Link>
                       <div className="flex items-center mt-1 mb-2">
                         <Star className="w-4 h-4 mr-1 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm">{(mechanic.rating || 0).toFixed(1)}</span>
+                        <span className="text-sm">{mechanic.rating.toFixed(1)}</span>
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground mb-1">
                         <MapPin className="w-4 h-4 mr-1" />
@@ -120,7 +100,7 @@ export const FavoritesList = () => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-2">
-                      <div className="text-lg font-semibold">${mechanic.hourlyRate || 0}/hr</div>
+                      <div className="text-lg font-semibold">${mechanic.hourlyRate}/hr</div>
                       <Button 
                         variant="outline" 
                         size="sm" 

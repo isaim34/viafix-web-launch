@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MechanicDetail } from '@/types/mechanic';
@@ -60,37 +61,22 @@ export const useMechanicData = () => {
                 .eq('mechanic_id', id) // Query by exact mechanic_id, works for both UUIDs and special IDs
             );
             
-            console.log(`Fetched ${reviews?.length || 0} reviews for mechanic ${id}`);
-            
-            if (reviews && reviews.length > 0) {
-              // Map reviews to the expected format
+            if (reviews) {
               mechanicData.reviews = reviews.map(review => ({
                 author: review.author,
                 rating: review.rating,
                 text: review.text || ''
               }));
-              
-              // Calculate review count and average rating
               mechanicData.reviewCount = reviews.length;
-              const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-              mechanicData.rating = totalRating / reviews.length;
               
-              console.log(`Updated mechanic data: ${reviews.length} reviews, average rating: ${mechanicData.rating.toFixed(1)}`);
-            } else {
-              // No reviews found
-              mechanicData.reviews = [];
-              mechanicData.reviewCount = 0;
-              mechanicData.rating = 0;
-              console.log(`No reviews found for mechanic ${id}`);
+              // Calculate average rating if there are reviews
+              if (reviews.length > 0) {
+                const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+                mechanicData.rating = totalRating / reviews.length;
+              }
             }
           } catch (error) {
             console.error('Error fetching reviews:', error);
-            // Keep existing review data if fetch fails
-            if (!mechanicData.reviews) {
-              mechanicData.reviews = [];
-              mechanicData.reviewCount = 0;
-              mechanicData.rating = 0;
-            }
           }
         }
         
@@ -112,9 +98,6 @@ export const useMechanicData = () => {
       id: id,
       mechanicId: mechanic?.id,
       mechanicName: mechanic?.name,
-      reviewCount: mechanic?.reviewCount,
-      rating: mechanic?.rating,
-      reviewsLength: mechanic?.reviews?.length,
       isNull: mechanic === null
     });
   }, [id, mechanic]);

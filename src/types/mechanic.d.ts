@@ -27,32 +27,11 @@ export interface Service {
   price: number;
 }
 
-export interface Review {
-  author: string;
-  rating: number;
-  text: string;
-}
-
 export interface MechanicDetail {
   id: string;
   name: string;
   hourlyRate: number;
   responseTime: string;
   services: Service[];
-  avatar: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  reviews: Review[];
   // Add other properties as needed
-}
-
-export interface FavoriteMechanic {
-  id: string;
-  name: string;
-  avatar: string;
-  location: string;
-  rating: number;
-  hourlyRate: number;
-  addedAt: string;
 }
