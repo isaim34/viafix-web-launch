@@ -25,26 +25,16 @@ export const fetchLocalMechanic = async (id: string): Promise<MechanicDetail | n
       }
     }
     
-    // Get reviews from localStorage for the special mechanic ids
-    const specialReviews = JSON.parse(localStorage.getItem('special_mechanic_reviews') || '[]');
-    const localReviews = specialReviews.filter((review: any) => review.mechanic_id === id);
-    
-    // Don't try to fetch from Supabase with string IDs that aren't UUIDs
-    console.log('Skipping Supabase review fetch for local mechanic:', id);
-    
-    // Use only local reviews for special mechanic IDs
-    const reviews = (localReviews || []).map((r: any) => ({ 
-      author: r.author, 
-      rating: r.rating, 
-      text: r.text 
-    }));
+    // Reviews will be fetched separately in useMechanicData from Supabase
+    // Don't fetch reviews here to avoid duplication
+    console.log('Creating local mechanic profile for:', id);
     
     return createLocalMechanicProfile(
       id,
       vendorName,
       vendorAvatar,
       mechanicProfile,
-      reviews
+      [] // Empty reviews array - will be populated from Supabase
     );
   } catch (error) {
     console.error('Error in fetchLocalMechanic:', error);

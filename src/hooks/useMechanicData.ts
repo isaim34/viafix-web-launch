@@ -51,15 +51,14 @@ export const useMechanicData = () => {
           mechanicData = await fetchMechanicProfile(id || '');
         }
         
-        // For mechanics with valid UUID IDs, fetch reviews from Supabase
-        // For special IDs like 'default-vendor', reviews are already handled in fetchLocalMechanic
-        if (mechanicData && id && isValidUUID(id)) {
+        // Always fetch reviews from Supabase for all mechanics
+        if (mechanicData && id) {
           try {
             const { data: reviews } = await import('@/integrations/supabase/client').then(module => 
               module.supabase
                 .from('mechanic_reviews')
                 .select('id, author, rating, text, created_at')
-                .eq('mechanic_id', id)
+                .eq('mechanic_id', id) // Query by exact mechanic_id, works for both UUIDs and special IDs
             );
             
             if (reviews) {
