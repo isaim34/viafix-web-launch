@@ -29,17 +29,20 @@ export const MechanicReviews = ({
 }: MechanicReviewsProps) => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
 
-  // Ensure we have valid data
+  // Ensure we have valid data with better fallbacks
   const safeReviews = Array.isArray(reviews) ? reviews : [];
-  const displayRating = typeof rating === 'number' && !isNaN(rating) ? rating : 0;
-  const displayReviewCount = typeof reviewCount === 'number' && !isNaN(reviewCount) ? reviewCount : 0;
+  const displayRating = typeof rating === 'number' && !isNaN(rating) && rating > 0 ? rating : 0;
+  const displayReviewCount = typeof reviewCount === 'number' && !isNaN(reviewCount) ? reviewCount : safeReviews.length;
   
-  console.log('MechanicReviews component data:', {
+  console.log('MechanicReviews - Review display data:', {
+    reviewsArray: safeReviews,
     reviewsLength: safeReviews.length,
     rating: displayRating,
     reviewCount: displayReviewCount,
     mechanicId,
-    mechanicName
+    mechanicName,
+    originalRating: rating,
+    originalReviewCount: reviewCount
   });
 
   return (
@@ -53,7 +56,9 @@ export const MechanicReviews = ({
         <h2 className="text-xl font-bold">Reviews</h2>
         <div className="flex items-center">
           <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-          <span className="ml-1 font-bold text-lg">{displayRating.toFixed(1)}</span>
+          <span className="ml-1 font-bold text-lg">
+            {displayRating > 0 ? displayRating.toFixed(1) : '0.0'}
+          </span>
           <span className="ml-1 text-gray-500">({displayReviewCount})</span>
         </div>
       </div>
@@ -80,26 +85,47 @@ export const MechanicReviews = ({
       
       {safeReviews.length > 0 ? (
         <div className="space-y-6">
+          <div className="text-sm text-gray-600 mb-4">
+            Showing {safeReviews.length} review{safeReviews.length !== 1 ? 's' : ''}
+          </div>
           {safeReviews.map((review, index) => (
-            <div key={index} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
+            <div key={`review-${index}`} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium">{review.author}</h3>
+                <h3 className="font-medium text-gray-900">{review.author || 'Anonymous'}</h3>
                 <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star 
+                      key={star} 
+                      className={`w-4 h-4 ${
+                        star <= (review.rating || 0) 
+                          ? 'text-yellow-400 fill-yellow-400' 
+                          : 'text-gray-200'
+                      }`} 
+                    />
                   ))}
+                  <span className="ml-2 text-sm text-gray-600">
+                    {review.rating || 0}/5
+                  </span>
                 </div>
               </div>
-              <p className="text-gray-600">{review.text}</p>
+              <p className="text-gray-700 leading-relaxed">
+                {review.text || 'No review text provided.'}
+              </p>
             </div>
           ))}
         </div>
       ) : (
         <div className="text-center py-8 text-gray-500">
-          <p>No reviews yet</p>
-          {isCustomerLoggedIn && (
-            <p className="text-sm mt-2">Be the first to leave a review!</p>
-          )}
+          <div className="mb-4">
+            <Star className="w-12 h-12 mx-auto text-gray-300" />
+          </div>
+          <p className="text-lg font-medium mb-2">No reviews yet</p>
+          <p className="text-sm">
+            {isCustomerLoggedIn 
+              ? "Be the first to leave a review for this mechanic!" 
+              : "Sign in as a customer to leave the first review!"
+            }
+          </p>
         </div>
       )}
     </motion.div>

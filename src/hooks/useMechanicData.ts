@@ -17,6 +17,7 @@ export const useMechanicData = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   const refreshData = useCallback(() => {
+    console.log('Refreshing mechanic data...');
     setRefreshTrigger(prev => prev + 1);
   }, []);
   
@@ -39,6 +40,7 @@ export const useMechanicData = () => {
     }
     
     const fetchMechanicData = async () => {
+      console.log('Starting to fetch mechanic data for ID:', id);
       setLoading(true);
       
       try {
@@ -46,32 +48,42 @@ export const useMechanicData = () => {
         
         // Handle special cases: default-vendor or local-mechanic
         if ((id === 'default-vendor' || id === 'local-mechanic')) {
+          console.log('Fetching local mechanic data for:', id);
           mechanicData = await fetchLocalMechanic(id || '');
         } else {
           // For other mechanics, fetch from the database
+          console.log('Fetching database mechanic data for:', id);
           mechanicData = await fetchMechanicProfile(id || '');
         }
         
         // Always fetch reviews from Supabase for all mechanics
         if (mechanicData && id) {
           try {
-            console.log('Fetching reviews for mechanic:', id);
+            console.log('Fetching reviews for mechanic ID:', id);
             
             const { data: reviews, error: reviewsError } = await supabase
               .from('mechanic_reviews')
               .select('id, author, rating, text, created_at')
-              .eq('mechanic_id', id); // Query by exact mechanic_id, works for both UUIDs and special IDs
+              .eq('mechanic_id', id)
+              .order('created_at', { ascending: false });
             
             if (reviewsError) {
               console.error('Error fetching reviews:', reviewsError);
+              // Set default values on error
+              mechanicData.reviews = [];
+              mechanicData.reviewCount = 0;
+              mechanicData.rating = 0;
             } else {
-              console.log('Fetched reviews:', reviews?.length || 0, 'reviews');
+              console.log('Successfully fetched reviews:', {
+                reviewsFound: reviews?.length || 0,
+                reviews: reviews
+              });
               
               if (reviews && reviews.length > 0) {
                 // Map reviews to the expected format
                 mechanicData.reviews = reviews.map(review => ({
-                  author: review.author,
-                  rating: review.rating,
+                  author: review.author || 'Anonymous',
+                  rating: review.rating || 0,
                   text: review.text || ''
                 }));
                 
@@ -79,12 +91,18 @@ export const useMechanicData = () => {
                 mechanicData.reviewCount = reviews.length;
                 
                 // Calculate average rating
-                const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-                mechanicData.rating = totalRating / reviews.length;
+                const validRatings = reviews.filter(r => r.rating && r.rating > 0);
+                if (validRatings.length > 0) {
+                  const totalRating = validRatings.reduce((sum, review) => sum + (review.rating || 0), 0);
+                  mechanicData.rating = totalRating / validRatings.length;
+                } else {
+                  mechanicData.rating = 0;
+                }
                 
-                console.log('Updated mechanic data with reviews:', {
+                console.log('Updated mechanic with review data:', {
                   reviewCount: mechanicData.reviewCount,
-                  rating: mechanicData.rating
+                  rating: mechanicData.rating,
+                  reviewsArray: mechanicData.reviews
                 });
               } else {
                 // No reviews found
@@ -103,6 +121,7 @@ export const useMechanicData = () => {
           }
         }
         
+        console.log('Final mechanic data:', mechanicData);
         setMechanic(mechanicData);
       } catch (error) {
         console.error('Error fetching mechanic data:', error);
@@ -117,16 +136,18 @@ export const useMechanicData = () => {
 
   // Log the selected mechanic for debugging
   useEffect(() => {
-    console.log('Selected mechanic profile:', {
+    console.log('useMechanicData - Final mechanic state:', {
       id: id,
       mechanicId: mechanic?.id,
       mechanicName: mechanic?.name,
       rating: mechanic?.rating,
       reviewCount: mechanic?.reviewCount,
       reviewsLength: mechanic?.reviews?.length,
-      isNull: mechanic === null
+      reviewsData: mechanic?.reviews,
+      isNull: mechanic === null,
+      loading
     });
-  }, [id, mechanic]);
+  }, [id, mechanic, loading]);
   
   return { mechanic, id, loading, refreshData };
 };
