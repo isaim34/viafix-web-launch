@@ -10,7 +10,6 @@ import ZipCodeInput from './ZipCodeInput';
 import { customerFormSchema, CustomerFormValues } from '@/schemas/signupSchema';
 import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
-import PasswordField from './auth/PasswordField';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -69,7 +68,6 @@ const CustomerSignupForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <NameFields control={form.control} />
         <LoginCredentialsFields form={form} />
-        <PasswordField form={form} />
         <ZipCodeInput 
           control={form.control}
           description="Enter your zip code to find mechanics in your area"
