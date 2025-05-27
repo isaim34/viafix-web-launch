@@ -37,7 +37,7 @@ const CompletedJobsTab = () => {
     
     setIsLoading(true);
     try {
-      // Fetch completed service bookings
+      // Fetch completed service bookings with customer names
       const { data: completedBookings, error: bookingsError } = await supabase
         .from('service_bookings')
         .select(`
@@ -46,8 +46,7 @@ const CompletedJobsTab = () => {
           completed_at,
           completion_notes,
           vehicle_info,
-          customer_id,
-          profiles!inner(first_name, last_name)
+          customer_id
         `)
         .eq('mechanic_id', mechanicId)
         .eq('status', 'completed')
@@ -55,6 +54,21 @@ const CompletedJobsTab = () => {
         .order('completed_at', { ascending: false });
 
       if (bookingsError) throw bookingsError;
+
+      // Fetch customer profiles separately
+      const customerIds = completedBookings?.map(booking => booking.customer_id).filter(Boolean) || [];
+      let customerProfiles: any[] = [];
+      
+      if (customerIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', customerIds);
+        
+        if (!profilesError) {
+          customerProfiles = profiles || [];
+        }
+      }
 
       // Fetch completed custom offers
       const { data: completedOffers, error: offersError } = await supabase
@@ -74,16 +88,19 @@ const CompletedJobsTab = () => {
       if (offersError) throw offersError;
 
       // Convert bookings to completed jobs format
-      const bookingJobs: CompletedJob[] = (completedBookings || []).map(booking => ({
-        id: booking.id,
-        title: booking.service_name,
-        description: booking.completion_notes || `Completed ${booking.service_name} service`,
-        vehicleType: booking.vehicle_info || 'Customer Vehicle',
-        completionDate: new Date(booking.completed_at).toISOString().split('T')[0],
-        imageUrls: [], // Could be enhanced with actual job photos
-        customerName: `${booking.profiles?.first_name || 'Customer'} ${booking.profiles?.last_name || ''}`.trim(),
-        customerMaintenanceRecord: null
-      }));
+      const bookingJobs: CompletedJob[] = (completedBookings || []).map(booking => {
+        const customerProfile = customerProfiles.find(p => p.id === booking.customer_id);
+        return {
+          id: booking.id,
+          title: booking.service_name,
+          description: booking.completion_notes || `Completed ${booking.service_name} service`,
+          vehicleType: booking.vehicle_info || 'Customer Vehicle',
+          completionDate: new Date(booking.completed_at).toISOString().split('T')[0],
+          imageUrls: [],
+          customerName: customerProfile ? `${customerProfile.first_name || 'Customer'} ${customerProfile.last_name || ''}`.trim() : 'Customer',
+          customerMaintenanceRecord: null
+        };
+      });
 
       // Convert offers to completed jobs format
       const offerJobs: CompletedJob[] = (completedOffers || []).map(offer => ({
@@ -93,7 +110,7 @@ const CompletedJobsTab = () => {
         vehicleType: 'Custom Vehicle',
         completionDate: new Date(offer.completed_at).toISOString().split('T')[0],
         imageUrls: [],
-        customerName: 'Customer', // Could be enhanced with actual customer name
+        customerName: 'Customer',
         customerMaintenanceRecord: null
       }));
 

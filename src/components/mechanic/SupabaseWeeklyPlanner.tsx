@@ -39,7 +39,16 @@ const SupabaseWeeklyPlanner = () => {
 
   const handleExportCSV = () => {
     try {
-      exportToCSV(entries, `planner-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      // Convert entries to the format expected by exportToCSV
+      const convertedEntries = entries.map(entry => ({
+        id: entry.id,
+        date: entry.date,
+        customerName: entry.customer_name,
+        serviceType: entry.service_type,
+        estimatedTime: entry.estimated_time,
+        notes: entry.notes
+      }));
+      exportToCSV(convertedEntries, `planner-export-${new Date().toISOString().slice(0, 10)}.csv`);
     } catch (error) {
       console.error("Error exporting CSV:", error);
     }
@@ -47,7 +56,16 @@ const SupabaseWeeklyPlanner = () => {
 
   const handlePrintSchedule = () => {
     try {
-      printSchedule(entries, 'Weekly Schedule');
+      // Convert entries to the format expected by printSchedule
+      const convertedEntries = entries.map(entry => ({
+        id: entry.id,
+        date: entry.date,
+        customerName: entry.customer_name,
+        serviceType: entry.service_type,
+        estimatedTime: entry.estimated_time,
+        notes: entry.notes
+      }));
+      printSchedule(convertedEntries, 'Weekly Schedule');
     } catch (error) {
       console.error("Error printing schedule:", error);
     }
@@ -70,12 +88,22 @@ const SupabaseWeeklyPlanner = () => {
     );
   }
 
+  // Convert entries to match PlannerTable expectations
+  const convertedEntries = entries.map(entry => ({
+    id: entry.id,
+    date: entry.date,
+    customerName: entry.customer_name,
+    serviceType: entry.service_type,
+    estimatedTime: entry.estimated_time,
+    notes: entry.notes
+  }));
+
   return (
     <div className="space-y-6">
       <ErrorBoundary fallback={<div className="p-4 text-red-500">Error loading planner header</div>}>
         <PlannerHeader 
           weekTitle="Weekly Schedule"
-          entries={entries}
+          entries={convertedEntries}
           onAddClick={() => setIsAddDialogOpen(true)}
           onExportCSV={handleExportCSV}
           onPrintSchedule={handlePrintSchedule}
@@ -98,11 +126,22 @@ const SupabaseWeeklyPlanner = () => {
           
           <ErrorBoundary fallback={<div className="p-4 text-red-500">Error loading planner table</div>}>
             <PlannerTable
-              entries={entries}
+              entries={convertedEntries}
               editingNoteId={null}
               editedNote=""
               formatDisplayDate={formatDisplayDate}
-              onEditClick={setEditingEntry}
+              onEditClick={(entry) => {
+                // Convert back to Supabase format
+                const supabaseEntry = {
+                  id: entry.id,
+                  date: entry.date,
+                  customer_name: entry.customerName,
+                  service_type: entry.serviceType,
+                  estimated_time: entry.estimatedTime,
+                  notes: entry.notes
+                };
+                setEditingEntry(supabaseEntry);
+              }}
               onDeleteClick={handleDeleteEntry}
               onStartEditingNote={() => {}}
               onSaveEditedNote={() => {}}

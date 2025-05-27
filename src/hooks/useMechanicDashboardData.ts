@@ -82,22 +82,39 @@ export const useMechanicDashboardData = () => {
           service_name,
           preferred_date,
           status,
-          customer_id,
-          profiles!inner(first_name, last_name)
+          customer_id
         `)
         .eq('mechanic_id', mechanicId)
         .eq('preferred_date', today)
         .order('created_at', { ascending: true });
 
-      if (appointmentsData) {
-        const appointments: TodayAppointment[] = appointmentsData.map((booking: any, index: number) => ({
-          id: booking.id,
-          time: `${9 + index * 2}:00 AM`, // Generate time slots
-          customer: `${booking.profiles?.first_name || 'Customer'} ${booking.profiles?.last_name || ''}`.trim(),
-          service: booking.service_name,
-          location: 'Customer Location', // This could be enhanced with actual addresses
-          status: booking.status === 'confirmed' ? 'confirmed' : 'pending'
-        }));
+      if (appointmentsData && appointmentsData.length > 0) {
+        // Fetch customer profiles separately
+        const customerIds = appointmentsData.map(booking => booking.customer_id).filter(Boolean);
+        let customerProfiles: any[] = [];
+        
+        if (customerIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', customerIds);
+          
+          customerProfiles = profiles || [];
+        }
+
+        const appointments: TodayAppointment[] = appointmentsData.map((booking: any, index: number) => {
+          const customerProfile = customerProfiles.find(p => p.id === booking.customer_id);
+          return {
+            id: booking.id,
+            time: `${9 + index * 2}:00 AM`, // Generate time slots
+            customer: customerProfile ? 
+              `${customerProfile.first_name || 'Customer'} ${customerProfile.last_name || ''}`.trim() : 
+              'Customer',
+            service: booking.service_name,
+            location: 'Customer Location',
+            status: booking.status === 'confirmed' ? 'confirmed' : 'pending'
+          };
+        });
         setTodayAppointments(appointments);
       }
 
@@ -126,19 +143,33 @@ export const useMechanicDashboardData = () => {
       // Recent completed jobs
       const { data: completedJobs } = await supabase
         .from('service_bookings')
-        .select('service_name, completed_at, profiles!inner(first_name)')
+        .select('service_name, completed_at, customer_id')
         .eq('mechanic_id', mechanicId)
         .eq('status', 'completed')
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false })
         .limit(3);
 
-      if (completedJobs) {
+      if (completedJobs && completedJobs.length > 0) {
+        // Fetch customer names for completed jobs
+        const customerIds = completedJobs.map(job => job.customer_id).filter(Boolean);
+        let customerProfiles: any[] = [];
+        
+        if (customerIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, first_name')
+            .in('id', customerIds);
+          
+          customerProfiles = profiles || [];
+        }
+
         completedJobs.forEach(job => {
+          const customerProfile = customerProfiles.find(p => p.id === job.customer_id);
           activities.push({
             id: `completed-${job.completed_at}`,
             type: 'completed',
-            message: `Completed ${job.service_name} for ${job.profiles?.first_name}`,
+            message: `Completed ${job.service_name} for ${customerProfile?.first_name || 'Customer'}`,
             time: formatTimeAgo(new Date(job.completed_at))
           });
         });

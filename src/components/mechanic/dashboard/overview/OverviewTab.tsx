@@ -31,16 +31,33 @@ export const OverviewTab = ({ onTabChange }: OverviewTabProps) => {
     );
   }
 
+  // Convert data to match expected interfaces
+  const formattedAppointments = todayAppointments.map((apt, index) => ({
+    id: index + 1, // Convert string to number
+    time: apt.time,
+    customer: apt.customer,
+    service: apt.service,
+    location: apt.location,
+    status: apt.status
+  }));
+
+  const formattedActivity = recentActivity.map((activity, index) => ({
+    id: (index + 1).toString(), // Ensure string ID
+    type: activity.type,
+    message: activity.message,
+    time: activity.time
+  }));
+
   return (
     <div className="space-y-6">
       <TodaysSchedule 
-        appointments={todayAppointments} 
+        appointments={formattedAppointments} 
         onViewFullSchedule={() => handleTabChange('planner')}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentActivity 
-          activities={recentActivity} 
+          activities={formattedActivity} 
           onViewAllActivity={() => handleTabChange('reviews')}
         />
         <PerformanceSummary stats={stats} />
