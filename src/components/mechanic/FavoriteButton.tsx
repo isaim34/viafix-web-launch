@@ -30,8 +30,27 @@ export const FavoriteButton = ({
   useEffect(() => {
     // Check if this mechanic is already a favorite
     if (isCustomerLoggedIn) {
-      setIsFavorite(isMechanicFavorite(mechanicId));
+      const favoriteStatus = isMechanicFavorite(mechanicId);
+      console.log(`Checking favorite status for ${mechanicId}:`, favoriteStatus);
+      setIsFavorite(favoriteStatus);
     }
+  }, [mechanicId, isCustomerLoggedIn]);
+
+  // Listen for favorites updates
+  useEffect(() => {
+    const handleFavoritesUpdate = () => {
+      if (isCustomerLoggedIn) {
+        const favoriteStatus = isMechanicFavorite(mechanicId);
+        console.log(`Favorite status updated for ${mechanicId}:`, favoriteStatus);
+        setIsFavorite(favoriteStatus);
+      }
+    };
+    
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+    
+    return () => {
+      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
+    };
   }, [mechanicId, isCustomerLoggedIn]);
   
   const handleToggleFavorite = () => {
@@ -45,8 +64,20 @@ export const FavoriteButton = ({
       return;
     }
     
+    console.log('Toggling favorite for mechanic:', mechanicData);
+    
+    // Ensure we have valid data before toggling
+    const validMechanicData = {
+      id: mechanicData.id,
+      name: mechanicData.name || 'Unknown Mechanic',
+      avatar: mechanicData.avatar || '',
+      location: mechanicData.location || '',
+      rating: mechanicData.rating || 0,
+      hourlyRate: mechanicData.hourlyRate || 0
+    };
+    
     // Toggle favorite status
-    const newFavoriteStatus = toggleMechanicFavorite(mechanicData);
+    const newFavoriteStatus = toggleMechanicFavorite(validMechanicData);
     
     setIsFavorite(newFavoriteStatus);
     

@@ -3,14 +3,23 @@ import { FavoriteMechanic } from '@/types/mechanic';
 
 // Get all favorite mechanics for the current user
 export const getFavoriteMechanics = (): FavoriteMechanic[] => {
-  const favorites = localStorage.getItem('favoriteMechanics');
-  return favorites ? JSON.parse(favorites) : [];
+  try {
+    const favorites = localStorage.getItem('favoriteMechanics');
+    const parsed = favorites ? JSON.parse(favorites) : [];
+    console.log('Loading favorites from localStorage:', parsed);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Error loading favorites from localStorage:', error);
+    return [];
+  }
 };
 
 // Check if a mechanic is in favorites
 export const isMechanicFavorite = (mechanicId: string): boolean => {
   const favorites = getFavoriteMechanics();
-  return favorites.some(fav => fav.id === mechanicId);
+  const isFavorite = favorites.some(fav => fav.id === mechanicId);
+  console.log(`Checking if mechanic ${mechanicId} is favorite:`, isFavorite);
+  return isFavorite;
 };
 
 // Add a mechanic to favorites
@@ -33,6 +42,12 @@ export const addMechanicToFavorites = (mechanic: {
     
     favorites.push(favoriteMechanic);
     localStorage.setItem('favoriteMechanics', JSON.stringify(favorites));
+    console.log('Added mechanic to favorites:', favoriteMechanic);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('favoritesUpdated', { detail: favorites }));
+  } else {
+    console.log('Mechanic already in favorites:', mechanic.id);
   }
 };
 
@@ -41,6 +56,11 @@ export const removeMechanicFromFavorites = (mechanicId: string): void => {
   const favorites = getFavoriteMechanics();
   const updatedFavorites = favorites.filter(fav => fav.id !== mechanicId);
   localStorage.setItem('favoriteMechanics', JSON.stringify(updatedFavorites));
+  console.log('Removed mechanic from favorites:', mechanicId);
+  console.log('Updated favorites list:', updatedFavorites);
+  
+  // Dispatch custom event to notify other components
+  window.dispatchEvent(new CustomEvent('favoritesUpdated', { detail: updatedFavorites }));
 };
 
 // Toggle a mechanic in favorites (add if not present, remove if present)
