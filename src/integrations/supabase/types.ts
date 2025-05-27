@@ -735,6 +735,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          mechanic_avatar: string
+          mechanic_hourly_rate: number
+          mechanic_id: string
+          mechanic_location: string
+          mechanic_name: string
+          mechanic_rating: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mechanic_avatar: string
+          mechanic_hourly_rate?: number
+          mechanic_id: string
+          mechanic_location: string
+          mechanic_name: string
+          mechanic_rating?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mechanic_avatar?: string
+          mechanic_hourly_rate?: number
+          mechanic_id?: string
+          mechanic_location?: string
+          mechanic_name?: string
+          mechanic_rating?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           created_at: string

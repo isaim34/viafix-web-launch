@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { isMechanicFavorite, toggleMechanicFavorite } from '@/utils/favoriteUtils';
+import { isMechanicFavorite, toggleMechanicFavorite, migrateFavoritesToSupabase } from '@/utils/favoriteUtils';
 
 interface FavoriteButtonProps {
   mechanicId: string;
@@ -26,17 +26,32 @@ export const FavoriteButton = ({
 }: FavoriteButtonProps) => {
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
-    // Check if this mechanic is already a favorite
-    if (isCustomerLoggedIn) {
-      setIsFavorite(isMechanicFavorite(mechanicId));
-    }
+    const checkFavoriteStatus = async () => {
+      if (isCustomerLoggedIn) {
+        setIsLoading(true);
+        try {
+          // Run migration first (only happens once if there are localStorage favorites)
+          await migrateFavoritesToSupabase();
+          
+          // Check if this mechanic is a favorite
+          const favoriteStatus = await isMechanicFavorite(mechanicId);
+          setIsFavorite(favoriteStatus);
+        } catch (error) {
+          console.error('Error checking favorite status:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    checkFavoriteStatus();
   }, [mechanicId, isCustomerLoggedIn]);
   
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = async () => {
     if (!isCustomerLoggedIn) {
-      // Notify user they need to sign in
       toast({
         title: "Authentication Required",
         description: "Please sign in as a customer to save favorite mechanics.",
@@ -45,28 +60,40 @@ export const FavoriteButton = ({
       return;
     }
     
-    // Toggle favorite status
-    const newFavoriteStatus = toggleMechanicFavorite(mechanicData);
+    if (isLoading) return;
     
-    setIsFavorite(newFavoriteStatus);
+    setIsLoading(true);
     
-    // Show toast notification
-    toast({
-      title: newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites",
-      description: newFavoriteStatus 
-        ? `${mechanicName} has been added to your favorites.` 
-        : `${mechanicName} has been removed from your favorites.`,
-    });
+    try {
+      const newFavoriteStatus = await toggleMechanicFavorite(mechanicData);
+      setIsFavorite(newFavoriteStatus);
+      
+      toast({
+        title: newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites",
+        description: newFavoriteStatus 
+          ? `${mechanicName} has been added to your favorites.` 
+          : `${mechanicName} has been removed from your favorites.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <button 
       onClick={handleToggleFavorite}
+      disabled={isLoading}
       className={`p-2 rounded-full transition-all ${
         isFavorite 
           ? 'bg-red-50 text-red-500 hover:bg-red-100' 
           : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-      }`}
+      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
     >
       <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500' : ''}`} />
