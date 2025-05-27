@@ -2,7 +2,6 @@
 import React from 'react';
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,26 +16,24 @@ interface LoginCredentialsFieldsProps {
 
 const LoginCredentialsFields: React.FC<LoginCredentialsFieldsProps> = ({ control }) => {
   return (
-    <>
-      <FormField
-        control={control}
-        name="email"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Email<span className="text-destructive ml-1">*</span></FormLabel>
-            <FormControl>
-              <Input 
-                type="email" 
-                placeholder="Enter your email" 
-                autoComplete="email"
-                {...field} 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </>
+    <FormField
+      control={control}
+      name="email"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Email<span className="text-destructive ml-1">*</span></FormLabel>
+          <FormControl>
+            <Input 
+              type="email" 
+              placeholder="Enter your email" 
+              autoComplete="email"
+              {...field} 
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 };
 

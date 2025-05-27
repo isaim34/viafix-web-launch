@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   FormControl,
   FormField,
@@ -8,55 +8,42 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, Lock } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
-import { Link } from 'react-router-dom';
 
 interface PasswordFieldProps {
   form: UseFormReturn<any>;
-  hideResetLink?: boolean;
+  name?: string;
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
 }
 
-const PasswordField = ({ form, hideResetLink = false }: PasswordFieldProps) => {
-  const [showPassword, setShowPassword] = useState(false);
-
+const PasswordField: React.FC<PasswordFieldProps> = ({ 
+  form, 
+  name = "password",
+  label = "Password",
+  placeholder = "Enter your password",
+  required = true
+}) => {
   return (
     <FormField
       control={form.control}
-      name="password"
+      name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-base">Password<span className="text-destructive ml-1">*</span></FormLabel>
+          <FormLabel>
+            {label}
+            {required && <span className="text-destructive ml-1">*</span>}
+          </FormLabel>
           <FormControl>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Enter your password" 
-                className="pl-10" 
-                autoComplete="current-password"
-                {...field} 
-              />
-              <button 
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
+            <Input 
+              type="password" 
+              placeholder={placeholder}
+              autoComplete="current-password"
+              {...field} 
+            />
           </FormControl>
           <FormMessage />
-          {!hideResetLink && (
-            <div className="text-sm text-right mt-2">
-              <Link 
-                to="/forgot-password"
-                className="text-primary hover:underline font-medium"
-              >
-                Forgot password?
-              </Link>
-            </div>
-          )}
         </FormItem>
       )}
     />

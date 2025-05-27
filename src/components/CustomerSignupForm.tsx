@@ -10,6 +10,7 @@ import ZipCodeInput from './ZipCodeInput';
 import { customerFormSchema, CustomerFormValues } from '@/schemas/signupSchema';
 import NameFields from './common/NameFields';
 import LoginCredentialsFields from './common/LoginCredentialsFields';
+import PasswordField from './auth/PasswordField';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,7 @@ const CustomerSignupForm = () => {
       firstName: '',
       lastName: '',
       email: '',
+      password: '',
       zipCode: '',
       termsAccepted: false,
     },
@@ -33,32 +35,25 @@ const CustomerSignupForm = () => {
     try {
       console.log('Customer signup data:', data);
       
-      // For testing - create account without password
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userRole', 'customer');
-      localStorage.setItem('userEmail', data.email);
-      localStorage.setItem('userName', `${data.firstName} ${data.lastName}`);
-      localStorage.setItem('userId', `customer-${Date.now()}`);
+      // Use Supabase authentication
+      const result = await signUp(data.email, data.password, {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        user_type: 'customer',
+        zip_code: data.zipCode
+      });
       
-      // Create customer profile
-      const profileData = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        profileImage: ''
-      };
-      
-      localStorage.setItem('customerProfile', JSON.stringify(profileData));
-      
-      // Trigger storage event to notify components
-      window.dispatchEvent(new Event('storage-event'));
+      if (result?.error) {
+        throw new Error(result.error.message);
+      }
       
       toast({
         title: "Account created!",
-        description: `Welcome to ViaFix, ${data.firstName}. Your customer account has been created successfully.`,
+        description: `Welcome to ViaFix, ${data.firstName}. Please check your email to verify your account.`,
       });
       
-      // Navigate to customer profile
-      navigate('/customer-profile');
+      // Navigate to signin page after successful signup
+      navigate('/signin?role=customer');
     } catch (error) {
       console.error('Signup error:', error);
       toast({
@@ -74,6 +69,7 @@ const CustomerSignupForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <NameFields control={form.control} />
         <LoginCredentialsFields control={form.control} />
+        <PasswordField form={form} />
         <ZipCodeInput 
           control={form.control}
           description="Enter your zip code to find mechanics in your area"
