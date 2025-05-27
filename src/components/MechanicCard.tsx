@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, MapPin, Wrench, ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MechanicCardProps {
   id: string;
@@ -23,14 +24,59 @@ export const MechanicCard = ({
   name,
   avatar,
   specialties,
-  rating,
-  reviewCount,
+  rating: staticRating,
+  reviewCount: staticReviewCount,
   location,
   hourlyRate,
   galleryImages,
   delay = 0,
   disableLink = false
 }: MechanicCardProps) => {
+  const [actualRating, setActualRating] = useState(staticRating);
+  const [actualReviewCount, setActualReviewCount] = useState(staticReviewCount);
+
+  useEffect(() => {
+    const fetchRealReviewData = async () => {
+      try {
+        console.log('Fetching reviews for mechanic:', id);
+        
+        const { data: reviews, error } = await supabase
+          .from('mechanic_reviews')
+          .select('rating')
+          .eq('mechanic_id', id);
+
+        if (error) {
+          console.error('Error fetching reviews:', error);
+          return;
+        }
+
+        if (reviews && reviews.length > 0) {
+          const validRatings = reviews.filter(r => r.rating && r.rating > 0);
+          const avgRating = validRatings.length > 0 
+            ? validRatings.reduce((sum, review) => sum + review.rating, 0) / validRatings.length
+            : 0;
+          
+          setActualRating(avgRating);
+          setActualReviewCount(reviews.length);
+          
+          console.log('Updated rating data:', {
+            mechanicId: id,
+            reviewCount: reviews.length,
+            avgRating: avgRating
+          });
+        } else {
+          // No reviews found, set to defaults
+          setActualRating(0);
+          setActualReviewCount(0);
+        }
+      } catch (error) {
+        console.error('Error in fetchRealReviewData:', error);
+      }
+    };
+
+    fetchRealReviewData();
+  }, [id]);
+
   const cardContent = (
     <>
       {/* Gallery Preview */}
@@ -65,8 +111,10 @@ export const MechanicCard = ({
               <h3 className="font-medium text-lg">{name}</h3>
               <div className="flex items-center mt-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
-                <span className="ml-1 text-sm text-gray-500">({reviewCount})</span>
+                <span className="ml-1 text-sm font-medium">
+                  {actualRating > 0 ? actualRating.toFixed(1) : '0.0'}
+                </span>
+                <span className="ml-1 text-sm text-gray-500">({actualReviewCount})</span>
               </div>
             </div>
           </div>
