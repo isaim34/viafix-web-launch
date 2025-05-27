@@ -25,6 +25,7 @@ const MechanicSignupForm = () => {
       firstName: '',
       lastName: '',
       email: '',
+      password: '',
       zipCode: '',
       specialties: '',
       hourlyRate: '',
@@ -36,28 +37,30 @@ const MechanicSignupForm = () => {
     try {
       console.log('Mechanic signup data:', data);
       
-      // For testing - create account without password
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userRole', 'mechanic');
-      localStorage.setItem('userEmail', data.email);
-      localStorage.setItem('userName', `${data.firstName} ${data.lastName}`);
-      localStorage.setItem('userId', `mechanic-${Date.now()}`);
+      // Create account with Supabase authentication
+      const userData = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        user_type: 'mechanic',
+        zip_code: data.zipCode,
+        specialties: data.specialties,
+        hourly_rate: data.hourlyRate
+      };
       
-      // Trigger storage event to notify components
-      window.dispatchEvent(new Event('storage-event'));
+      await signUp(data.email, data.password, userData);
       
       toast({
         title: "Account created!",
-        description: `Welcome to ViaFix, ${data.firstName}. Your mechanic account has been created successfully.`,
+        description: `Welcome to ViaFix, ${data.firstName}. Please check your email to verify your account.`,
       });
       
-      // Navigate to mechanic dashboard
-      navigate('/mechanic-dashboard');
-    } catch (error) {
+      // Navigate to sign in page for email verification
+      navigate('/signin');
+    } catch (error: any) {
       console.error('Signup error:', error);
       toast({
         title: "Signup failed",
-        description: "An error occurred during signup.",
+        description: error.message || "An error occurred during signup.",
         variant: "destructive"
       });
     }
