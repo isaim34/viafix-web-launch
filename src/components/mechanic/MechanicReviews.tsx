@@ -29,6 +29,18 @@ export const MechanicReviews = ({
 }: MechanicReviewsProps) => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
 
+  // Ensure we have valid numbers for display
+  const displayRating = rating && !isNaN(rating) ? rating : 0;
+  const displayReviewCount = reviewCount && !isNaN(reviewCount) ? reviewCount : 0;
+  const displayReviews = reviews || [];
+
+  console.log('MechanicReviews render:', {
+    mechanicId,
+    rating: displayRating,
+    reviewCount: displayReviewCount,
+    reviewsLength: displayReviews.length
+  });
+
   return (
     <motion.div 
       className="glass-card p-6"
@@ -40,8 +52,10 @@ export const MechanicReviews = ({
         <h2 className="text-xl font-bold">Reviews</h2>
         <div className="flex items-center">
           <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-          <span className="ml-1 font-bold text-lg">{rating.toFixed(1)}</span>
-          <span className="ml-1 text-gray-500">({reviewCount})</span>
+          <span className="ml-1 font-bold text-lg">{displayRating.toFixed(1)}</span>
+          <span className="ml-1 text-gray-500">
+            ({displayReviewCount} {displayReviewCount === 1 ? 'review' : 'reviews'})
+          </span>
         </div>
       </div>
       
@@ -65,9 +79,9 @@ export const MechanicReviews = ({
         </div>
       )}
       
-      {reviews.length > 0 ? (
+      {displayReviews.length > 0 ? (
         <div className="space-y-6">
-          {reviews.map((review, index) => (
+          {displayReviews.map((review, index) => (
             <div key={index} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-medium">{review.author}</h3>
@@ -84,6 +98,9 @@ export const MechanicReviews = ({
       ) : (
         <div className="text-center py-8 text-gray-500">
           <p>No reviews yet</p>
+          {isCustomerLoggedIn && (
+            <p className="text-sm mt-2">Be the first to leave a review!</p>
+          )}
         </div>
       )}
     </motion.div>
