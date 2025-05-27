@@ -6,6 +6,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
@@ -43,6 +44,9 @@ const PasswordField: React.FC<PasswordFieldProps> = ({
               {...field} 
             />
           </FormControl>
+          <FormDescription className="text-xs text-gray-500">
+            Avoid common passwords like "password123" or "qwerty". Try using a mix of letters, numbers, and symbols.
+          </FormDescription>
           <FormMessage />
         </FormItem>
       )}

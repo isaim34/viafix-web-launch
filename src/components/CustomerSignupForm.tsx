@@ -55,9 +55,22 @@ const CustomerSignupForm = () => {
       navigate('/signin?role=customer');
     } catch (error) {
       console.error('Signup error:', error);
+      
+      let errorMessage = "An unknown error occurred during signup.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("weak") || error.message.includes("easy to guess")) {
+          errorMessage = "Password is too common. Try adding numbers, special characters, or making it longer.";
+        } else if (error.message.includes("breach") || error.message.includes("compromised")) {
+          errorMessage = "This password has been found in data breaches. Please choose a different one.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Signup failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred during signup.",
+        description: errorMessage,
         variant: "destructive"
       });
     }

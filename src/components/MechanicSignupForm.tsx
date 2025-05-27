@@ -58,9 +58,22 @@ const MechanicSignupForm = () => {
       navigate('/signin');
     } catch (error: any) {
       console.error('Signup error:', error);
+      
+      let errorMessage = "An error occurred during signup.";
+      
+      if (error.message) {
+        if (error.message.includes("weak") || error.message.includes("easy to guess")) {
+          errorMessage = "Password is too common. Try adding numbers, special characters, or making it longer.";
+        } else if (error.message.includes("breach") || error.message.includes("compromised")) {
+          errorMessage = "This password has been found in data breaches. Please choose a different one.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Signup failed",
-        description: error.message || "An error occurred during signup.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
