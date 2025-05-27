@@ -68,7 +68,7 @@ const CustomerSignupForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <NameFields control={form.control} />
-        <LoginCredentialsFields control={form.control} />
+        <LoginCredentialsFields form={form} />
         <PasswordField form={form} />
         <ZipCodeInput 
           control={form.control}
