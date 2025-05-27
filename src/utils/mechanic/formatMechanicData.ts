@@ -41,9 +41,11 @@ export const formatMechanicProfile = (
       { name: "Brake Inspection", price: 45 }
     ],
     reviews: reviews?.map(r => ({
+      id: r.id,
       author: r.author,
       rating: r.rating,
-      text: r.text
+      text: r.text,
+      user_id: r.user_id
     })) || [],
     galleryImages: gallery?.map(g => g.image_url) || []
   };
