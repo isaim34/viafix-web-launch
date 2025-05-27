@@ -27,6 +27,7 @@ interface AddReviewFormProps {
 export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }: AddReviewFormProps) => {
   const { toast } = useToast();
   const [selectedRating, setSelectedRating] = React.useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewSchema),
@@ -37,6 +38,14 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
   });
 
   const onSubmit = async (values: ReviewFormValues) => {
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      console.log('Submission already in progress, ignoring duplicate');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
     try {
       console.log('Starting review submission for mechanic:', mechanicId);
       
@@ -123,6 +132,8 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -143,6 +154,7 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
                 type="button"
                 onClick={() => handleRatingClick(rating)}
                 className="focus:outline-none"
+                disabled={isSubmitting}
               >
                 <Star 
                   className={`w-8 h-8 cursor-pointer ${
@@ -171,6 +183,7 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
                 <Textarea
                   placeholder="Share your experience with this mechanic..."
                   className="resize-none min-h-[100px]"
+                  disabled={isSubmitting}
                   {...field}
                 />
               </FormControl>
@@ -180,11 +193,19 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         />
 
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onCancel} type="button">
+          <Button 
+            variant="outline" 
+            onClick={onCancel} 
+            type="button"
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit">
-            Submit Review
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </Button>
         </div>
       </form>
