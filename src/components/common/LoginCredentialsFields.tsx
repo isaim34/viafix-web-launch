@@ -8,18 +8,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Control } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 import PasswordField from '@/components/auth/PasswordField';
 
 interface LoginCredentialsFieldsProps {
-  control: Control<any>;
+  form: UseFormReturn<any>;
 }
 
-const LoginCredentialsFields: React.FC<LoginCredentialsFieldsProps> = ({ control }) => {
+const LoginCredentialsFields: React.FC<LoginCredentialsFieldsProps> = ({ form }) => {
   return (
     <>
       <FormField
-        control={control}
+        control={form.control}
         name="email"
         render={({ field }) => (
           <FormItem>
@@ -38,7 +38,7 @@ const LoginCredentialsFields: React.FC<LoginCredentialsFieldsProps> = ({ control
       />
       
       <PasswordField 
-        form={{ control }} 
+        form={form} 
         name="password"
         label="Password"
         placeholder="Enter your password"

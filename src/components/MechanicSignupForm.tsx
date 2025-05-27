@@ -70,7 +70,7 @@ const MechanicSignupForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <NameFields control={form.control} />
-        <LoginCredentialsFields control={form.control} />
+        <LoginCredentialsFields form={form} />
         <ZipCodeInput 
           control={form.control}
           description="Enter your zip code to help customers find you"
