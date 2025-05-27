@@ -531,13 +531,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "mechanic_reviews_mechanic_id_fkey"
-            columns: ["mechanic_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       mechanic_services: {

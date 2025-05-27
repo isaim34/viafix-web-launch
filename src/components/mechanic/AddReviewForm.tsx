@@ -38,9 +38,22 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
 
   const onSubmit = async (values: ReviewFormValues) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
+      console.log('Starting review submission for mechanic:', mechanicId);
+      
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Auth error:', userError);
+        toast({
+          title: "Authentication Error",
+          description: "Failed to get user information. Please try logging in again.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       if (!user.user) {
+        console.log('No user found');
         toast({
           title: "Authentication Error",
           description: "You must be logged in to submit a review",
@@ -49,16 +62,31 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         return;
       }
       
+      console.log('User authenticated:', user.user.id);
+      
       // Get user's name from profiles
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('first_name, last_name')
         .eq('id', user.user.id)
         .single();
       
+      if (profileError) {
+        console.log('Profile fetch error (non-critical):', profileError);
+      }
+      
       const authorName = profiles 
         ? `${profiles.first_name || ''} ${profiles.last_name || ''}`.trim() 
         : user.user.email?.split('@')[0] || 'Anonymous';
+      
+      console.log('Author name resolved to:', authorName);
+      console.log('Submitting review data:', {
+        mechanic_id: mechanicId,
+        customer_id: user.user.id,
+        author: authorName,
+        rating: values.rating,
+        text: values.text
+      });
       
       // Always store reviews in Supabase - use mechanicId as text field
       const { error } = await supabase
@@ -72,15 +100,16 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
         });
       
       if (error) {
-        console.error('Error submitting review:', error);
+        console.error('Supabase insert error:', error);
         toast({
           title: "Error",
-          description: "Failed to submit your review. Please try again.",
+          description: `Failed to submit your review: ${error.message}`,
           variant: "destructive",
         });
         return;
       }
       
+      console.log('Review submitted successfully');
       toast({
         title: "Review Submitted",
         description: `Thank you for reviewing ${mechanicName}!`,
@@ -88,7 +117,7 @@ export const AddReviewForm = ({ mechanicId, mechanicName, onSuccess, onCancel }:
       
       onSuccess();
     } catch (error) {
-      console.error('Error in review submission:', error);
+      console.error('Unexpected error in review submission:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
