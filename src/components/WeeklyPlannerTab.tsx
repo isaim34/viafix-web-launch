@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import WeeklyPlanner from '@/components/mechanic/WeeklyPlanner';
+import SupabaseWeeklyPlanner from '@/components/mechanic/SupabaseWeeklyPlanner';
 
 const WeeklyPlannerTab = () => {
   return (
@@ -11,7 +11,7 @@ const WeeklyPlannerTab = () => {
         Plan your week by scheduling jobs with customers. Keep track of dates, service types, and estimated time for each job.
       </p>
       
-      <WeeklyPlanner />
+      <SupabaseWeeklyPlanner />
     </Card>
   );
 };

@@ -5,126 +5,137 @@ import { CompletedJobs } from '@/components/mechanic/CompletedJobs';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
+interface CompletedJob {
+  id: string;
+  title: string;
+  description: string;
+  vehicleType: string;
+  completionDate: string;
+  imageUrls: string[];
+  customerName: string;
+  customerMaintenanceRecord?: any;
+}
 
 const CompletedJobsTab = () => {
-  const [completedOffers, setCompletedOffers] = useState([]);
+  const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const getCurrentUserId = () => {
-    const supabaseUserId = user?.id;
-    const localStorageUserId = localStorage.getItem('userId');
-    return localStorageUserId || supabaseUserId || null;
-  };
-
-  const mechanicId = getCurrentUserId();
+  const mechanicId = user?.id;
 
   useEffect(() => {
     if (mechanicId) {
-      fetchCompletedOffers();
+      fetchCompletedJobs();
     }
   }, [mechanicId]);
 
-  const fetchCompletedOffers = async () => {
+  const fetchCompletedJobs = async () => {
     if (!mechanicId) return;
     
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('custom_offers')
-        .select('*')
+      // Fetch completed service bookings
+      const { data: completedBookings, error: bookingsError } = await supabase
+        .from('service_bookings')
+        .select(`
+          id,
+          service_name,
+          completed_at,
+          completion_notes,
+          vehicle_info,
+          customer_id,
+          profiles!inner(first_name, last_name)
+        `)
         .eq('mechanic_id', mechanicId)
         .eq('status', 'completed')
-        .order('updated_at', { ascending: false });
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false });
 
-      if (error) throw error;
-      
-      // Convert custom offers to completed job format
-      const convertedOffers = (data || []).map(offer => ({
+      if (bookingsError) throw bookingsError;
+
+      // Fetch completed custom offers
+      const { data: completedOffers, error: offersError } = await supabase
+        .from('custom_offers')
+        .select(`
+          id,
+          description,
+          completed_at,
+          completion_notes,
+          customer_id
+        `)
+        .eq('mechanic_id', mechanicId)
+        .eq('status', 'completed')
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false });
+
+      if (offersError) throw offersError;
+
+      // Convert bookings to completed jobs format
+      const bookingJobs: CompletedJob[] = (completedBookings || []).map(booking => ({
+        id: booking.id,
+        title: booking.service_name,
+        description: booking.completion_notes || `Completed ${booking.service_name} service`,
+        vehicleType: booking.vehicle_info || 'Customer Vehicle',
+        completionDate: new Date(booking.completed_at).toISOString().split('T')[0],
+        imageUrls: [], // Could be enhanced with actual job photos
+        customerName: `${booking.profiles?.first_name || 'Customer'} ${booking.profiles?.last_name || ''}`.trim(),
+        customerMaintenanceRecord: null
+      }));
+
+      // Convert offers to completed jobs format
+      const offerJobs: CompletedJob[] = (completedOffers || []).map(offer => ({
         id: offer.id,
         title: 'Custom Service',
         description: offer.description,
-        vehicleType: 'Custom Vehicle', // This could be enhanced with actual vehicle data
-        completionDate: offer.updated_at ? new Date(offer.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        imageUrls: [], // Custom offers don't have images yet, but could be added
-        customerName: 'Customer', // This could be enhanced with actual customer name
-        customerMaintenanceRecord: null // This could be linked to actual maintenance records
+        vehicleType: 'Custom Vehicle',
+        completionDate: new Date(offer.completed_at).toISOString().split('T')[0],
+        imageUrls: [],
+        customerName: 'Customer', // Could be enhanced with actual customer name
+        customerMaintenanceRecord: null
       }));
+
+      // Combine and sort all completed jobs
+      const allJobs = [...bookingJobs, ...offerJobs].sort((a, b) => 
+        new Date(b.completionDate).getTime() - new Date(a.completionDate).getTime()
+      );
       
-      setCompletedOffers(convertedOffers);
+      setCompletedJobs(allJobs);
     } catch (error) {
-      console.error('Error fetching completed custom offers:', error);
+      console.error('Error fetching completed jobs:', error);
       toast({
         title: "Error",
-        description: "Failed to load completed custom offers",
+        description: "Failed to load completed jobs",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Sample completed job data (in a real app, this would come from a database)
-  const sampleCompletedJobs = [
-    {
-      id: '1',
-      title: 'Timing Belt Replacement',
-      description: 'Replaced timing belt and water pump on a Honda Accord with 120,000 miles.',
-      vehicleType: '2015 Honda Accord',
-      completionDate: '2023-06-15',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1596455607563-ad6193f76b17?q=80&w=1000&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=1000&auto=format&fit=crop'
-      ],
-      customerName: 'John D.',
-      customerMaintenanceRecord: {
-        id: 'maint-1',
-        date: '2023-06-15',
-        vehicle: '2015 Honda Accord',
-        vin: 'JH4KA7670MC033114',
-        serviceType: 'Timing Belt Replacement',
-        description: 'Replaced timing belt and water pump. Also changed coolant and checked accessory belts.',
-        mechanic: 'James Wilson',
-        mechanicSignature: true,
-        mechanicNotes: ['Customer reported occasional squeaking noise', 'Recommended coolant flush next service']
-      }
-    },
-    {
-      id: '2',
-      title: 'Brake System Overhaul',
-      description: 'Complete brake system replacement including rotors, calipers, and pads.',
-      vehicleType: '2018 Toyota Camry',
-      completionDate: '2023-07-22',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1597987072661-38ed5f617808?q=80&w=1000&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1592053104090-a3be784b5329?q=80&w=1000&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1000&auto=format&fit=crop'
-      ],
-      customerName: 'Sarah M.',
-      customerMaintenanceRecord: {
-        id: 'maint-2',
-        date: '2023-07-22',
-        vehicle: '2018 Toyota Camry',
-        vin: '4T1BF1FK7CU513879',
-        serviceType: 'Brake System Replacement',
-        description: 'Replaced front and rear brake pads, rotors, and calipers. Flushed brake fluid and bled system.',
-        mechanic: 'James Wilson',
-        mechanicSignature: true,
-        mechanicNotes: ['Customer reported vibration when braking', 'All brake components were significantly worn']
-      }
-    }
-  ];
-
-  // Combine sample jobs with completed custom offers
-  const allCompletedJobs = [...sampleCompletedJobs, ...completedOffers];
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading completed jobs...</span>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
       <h2 className="text-2xl font-bold mb-6">Completed Jobs</h2>
       <p className="text-muted-foreground mb-8">
-        Showcase your best work to attract more customers and build trust. Add photos and details of your completed repair jobs and custom services.
+        Showcase your best work to attract more customers and build trust. View your completed repair jobs and custom services.
       </p>
       
       <CompletedJobs 
-        jobs={allCompletedJobs} 
-        mechanicId={mechanicId || "1"}
+        jobs={completedJobs} 
+        mechanicId={mechanicId || ""}
       />
     </Card>
   );

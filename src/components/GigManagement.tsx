@@ -1,14 +1,16 @@
 
 import React from 'react';
-import GigForm from './GigForm';
-import { useGigManagement } from '@/hooks/useGigManagement';
+import { useSupabaseGigManagement } from '@/hooks/useSupabaseGigManagement';
 import GigManagementHeader from '@/components/gig/GigManagementHeader';
 import GigList from '@/components/gig/GigList';
 import EmptyGigState from '@/components/gig/EmptyGigState';
+import SupabaseGigForm from '@/components/gig/SupabaseGigForm';
+import { Loader2 } from 'lucide-react';
 
 const GigManagement = () => {
   const {
     gigs,
+    isLoading,
     isCreating,
     editingGig,
     setIsCreating,
@@ -16,13 +18,21 @@ const GigManagement = () => {
     handleCreateGig,
     handleEditGig,
     handleDeleteGig
-  } = useGigManagement();
+  } = useSupabaseGigManagement();
 
-  // Helper to cancel all editing/creating states
   const handleCancel = () => {
     setIsCreating(false);
     setEditingGig(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading services...</span>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -30,7 +40,7 @@ const GigManagement = () => {
 
       {(isCreating || editingGig) && (
         <div className="mb-8">
-          <GigForm 
+          <SupabaseGigForm 
             gig={editingGig} 
             onSubmit={editingGig ? handleEditGig : handleCreateGig} 
             onCancel={handleCancel} 
@@ -42,9 +52,22 @@ const GigManagement = () => {
         <EmptyGigState onCreateClick={() => setIsCreating(true)} />
       ) : (
         <GigList 
-          gigs={gigs} 
-          onEdit={setEditingGig} 
-          onDelete={handleDeleteGig} 
+          gigs={gigs.map(gig => ({
+            id: gig.id,
+            title: gig.name,
+            description: gig.description,
+            price: gig.price,
+            duration: gig.duration,
+            image: gig.image_url || 'https://images.unsplash.com/photo-1599256879960-6ead7c9d1ae4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+            status: gig.status
+          }))}
+          onEdit={(gig) => {
+            const supabaseGig = gigs.find(g => g.id === gig.id);
+            if (supabaseGig) {
+              setEditingGig(supabaseGig);
+            }
+          }} 
+          onDelete={(id) => handleDeleteGig(id)} 
         />
       )}
     </div>

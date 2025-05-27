@@ -165,11 +165,15 @@ export type Database = {
       custom_offers: {
         Row: {
           budget: string | null
+          completed_at: string | null
+          completion_notes: string | null
           created_at: string
           customer_id: string
           description: string
           id: string
+          labor_hours: number | null
           mechanic_id: string
+          parts_used: string | null
           preferred_date: string | null
           status: string
           timeframe: string | null
@@ -177,11 +181,15 @@ export type Database = {
         }
         Insert: {
           budget?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
           created_at?: string
           customer_id: string
           description: string
           id?: string
+          labor_hours?: number | null
           mechanic_id: string
+          parts_used?: string | null
           preferred_date?: string | null
           status?: string
           timeframe?: string | null
@@ -189,11 +197,15 @@ export type Database = {
         }
         Update: {
           budget?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
           created_at?: string
           customer_id?: string
           description?: string
           id?: string
+          labor_hours?: number | null
           mechanic_id?: string
+          parts_used?: string | null
           preferred_date?: string | null
           status?: string
           timeframe?: string | null
@@ -404,6 +416,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "maintenance_records_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanic_stats"
+            referencedColumns: ["mechanic_id"]
+          },
+          {
             foreignKeyName: "maintenance_records_service_booking_id_fkey"
             columns: ["service_booking_id"]
             isOneToOne: false
@@ -540,26 +559,35 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          duration: string | null
           id: string
+          image_url: string | null
           mechanic_id: string
           name: string
           price: number
+          status: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
+          duration?: string | null
           id?: string
+          image_url?: string | null
           mechanic_id: string
           name: string
           price?: number
+          status?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
+          duration?: string | null
           id?: string
+          image_url?: string | null
           mechanic_id?: string
           name?: string
           price?: number
+          status?: string | null
         }
         Relationships: [
           {
@@ -570,6 +598,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      planner_entries: {
+        Row: {
+          created_at: string
+          customer_name: string
+          date: string
+          estimated_time: string
+          id: string
+          mechanic_id: string
+          notes: string | null
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          date: string
+          estimated_time: string
+          id?: string
+          mechanic_id: string
+          notes?: string | null
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          date?: string
+          estimated_time?: string
+          id?: string
+          mechanic_id?: string
+          notes?: string | null
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -653,11 +717,15 @@ export type Database = {
       }
       service_bookings: {
         Row: {
+          completed_at: string | null
+          completion_notes: string | null
           created_at: string
           customer_id: string
           id: string
+          labor_hours: number | null
           mechanic_id: string
           notes: string | null
+          parts_used: string | null
           preferred_date: string | null
           service_id: string | null
           service_name: string
@@ -667,11 +735,15 @@ export type Database = {
           vehicle_info: string | null
         }
         Insert: {
+          completed_at?: string | null
+          completion_notes?: string | null
           created_at?: string
           customer_id: string
           id?: string
+          labor_hours?: number | null
           mechanic_id: string
           notes?: string | null
+          parts_used?: string | null
           preferred_date?: string | null
           service_id?: string | null
           service_name: string
@@ -681,11 +753,15 @@ export type Database = {
           vehicle_info?: string | null
         }
         Update: {
+          completed_at?: string | null
+          completion_notes?: string | null
           created_at?: string
           customer_id?: string
           id?: string
+          labor_hours?: number | null
           mechanic_id?: string
           notes?: string | null
+          parts_used?: string | null
           preferred_date?: string | null
           service_id?: string | null
           service_name?: string
@@ -886,7 +962,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mechanic_stats: {
+        Row: {
+          cancelled_bookings: number | null
+          cancelled_offers: number | null
+          completed_bookings: number | null
+          completed_offers: number | null
+          mechanic_id: string | null
+          ongoing_bookings: number | null
+          ongoing_offers: number | null
+          rating: number | null
+          review_count: number | null
+          total_earnings_bookings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mechanic_profiles_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
