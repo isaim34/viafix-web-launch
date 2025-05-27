@@ -36,28 +36,28 @@ export const getTodaysSchedule = () => [
 export const getRecentActivity = () => [
   {
     id: '1',
-    type: 'review',
+    type: 'review' as const,
     message: 'New 5-star review from Emma Davis',
     time: '2 hours ago',
     icon: Star
   },
   {
     id: '2',
-    type: 'message',
+    type: 'message' as const,
     message: 'Message from Alex Thompson about brake service',
     time: '4 hours ago',
     icon: MessageCircle
   },
   {
     id: '3',
-    type: 'completed',
+    type: 'completed' as const,
     message: 'Completed oil change for Robert Chen',
     time: '6 hours ago',
     icon: CheckCircle
   },
   {
     id: '4',
-    type: 'booking',
+    type: 'booking' as const,
     message: 'New booking request for transmission repair',
     time: '1 day ago',
     icon: Calendar
