@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MechanicDetail } from '@/types/mechanic';
 import { fetchMechanicProfile } from '@/services/mechanic/fetchMechanicProfile';
 import { fetchLocalMechanic } from '@/services/mechanic/fetchLocalMechanic';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Custom hook to fetch and prepare mechanic data based on ID
@@ -54,29 +55,51 @@ export const useMechanicData = () => {
         // Always fetch reviews from Supabase for all mechanics
         if (mechanicData && id) {
           try {
-            const { data: reviews } = await import('@/integrations/supabase/client').then(module => 
-              module.supabase
-                .from('mechanic_reviews')
-                .select('id, author, rating, text, created_at')
-                .eq('mechanic_id', id) // Query by exact mechanic_id, works for both UUIDs and special IDs
-            );
+            console.log('Fetching reviews for mechanic:', id);
             
-            if (reviews) {
-              mechanicData.reviews = reviews.map(review => ({
-                author: review.author,
-                rating: review.rating,
-                text: review.text || ''
-              }));
-              mechanicData.reviewCount = reviews.length;
+            const { data: reviews, error: reviewsError } = await supabase
+              .from('mechanic_reviews')
+              .select('id, author, rating, text, created_at')
+              .eq('mechanic_id', id); // Query by exact mechanic_id, works for both UUIDs and special IDs
+            
+            if (reviewsError) {
+              console.error('Error fetching reviews:', reviewsError);
+            } else {
+              console.log('Fetched reviews:', reviews?.length || 0, 'reviews');
               
-              // Calculate average rating if there are reviews
-              if (reviews.length > 0) {
+              if (reviews && reviews.length > 0) {
+                // Map reviews to the expected format
+                mechanicData.reviews = reviews.map(review => ({
+                  author: review.author,
+                  rating: review.rating,
+                  text: review.text || ''
+                }));
+                
+                // Update review count
+                mechanicData.reviewCount = reviews.length;
+                
+                // Calculate average rating
                 const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
                 mechanicData.rating = totalRating / reviews.length;
+                
+                console.log('Updated mechanic data with reviews:', {
+                  reviewCount: mechanicData.reviewCount,
+                  rating: mechanicData.rating
+                });
+              } else {
+                // No reviews found
+                mechanicData.reviews = [];
+                mechanicData.reviewCount = 0;
+                mechanicData.rating = 0;
+                console.log('No reviews found for mechanic:', id);
               }
             }
           } catch (error) {
-            console.error('Error fetching reviews:', error);
+            console.error('Error in review fetching process:', error);
+            // Set default values on error
+            mechanicData.reviews = [];
+            mechanicData.reviewCount = 0;
+            mechanicData.rating = 0;
           }
         }
         
@@ -98,6 +121,9 @@ export const useMechanicData = () => {
       id: id,
       mechanicId: mechanic?.id,
       mechanicName: mechanic?.name,
+      rating: mechanic?.rating,
+      reviewCount: mechanic?.reviewCount,
+      reviewsLength: mechanic?.reviews?.length,
       isNull: mechanic === null
     });
   }, [id, mechanic]);
