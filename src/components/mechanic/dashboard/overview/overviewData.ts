@@ -10,3 +10,21 @@ export const performanceData = {
   averageRating: 0,
   responseTime: "N/A"
 };
+
+// Provide empty implementations for the functions that are still being imported
+export const getTodaysSchedule = () => [];
+export const getRecentActivity = () => [];
+export const getQuickActions = (onTabChange: (tabValue: string) => void) => [
+  {
+    title: "View Schedule",
+    description: "Check your appointments",
+    icon: "Calendar",
+    onClick: () => onTabChange('planner')
+  },
+  {
+    title: "View Messages",
+    description: "Check customer messages",
+    icon: "MessageSquare",
+    onClick: () => onTabChange('messages')
+  }
+];
