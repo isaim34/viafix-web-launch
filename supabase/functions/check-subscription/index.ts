@@ -16,7 +16,7 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Customer ID resolution function
+// Improved customer ID resolution function
 const resolveCustomerId = async (stripe: Stripe, email: string) => {
   logStep("Starting customer ID resolution", { email });
   
@@ -28,7 +28,7 @@ const resolveCustomerId = async (stripe: Stripe, email: string) => {
   
   logStep("Found customers", { 
     count: customers.data.length,
-    customerIds: customers.data.map(c => c.id)
+    customerIds: customers.data.map(c => ({ id: c.id, created: c.created }))
   });
   
   if (customers.data.length === 0) {
@@ -41,60 +41,21 @@ const resolveCustomerId = async (stripe: Stripe, email: string) => {
     return customers.data[0].id;
   }
   
-  // Multiple customers exist - need to resolve which one to use
-  logStep("Multiple customers found, resolving priority");
+  // Multiple customers exist - prioritize the MOST RECENTLY CREATED
+  logStep("Multiple customers found, prioritizing most recent");
   
-  // Check each customer for active subscriptions
-  const customersWithSubscriptions = [];
+  // Sort by creation date (most recent first)
+  const sortedByCreation = customers.data.sort((a, b) => b.created - a.created);
+  const mostRecentCustomer = sortedByCreation[0];
   
-  for (const customer of customers.data) {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer.id,
-      status: "all",
-      limit: 10,
-    });
-    
-    const activeSubscriptions = subscriptions.data.filter(
-      sub => ['active', 'trialing', 'past_due'].includes(sub.status)
-    );
-    
-    customersWithSubscriptions.push({
-      customer,
-      activeSubscriptions,
-      hasActiveSubscriptions: activeSubscriptions.length > 0,
-      mostRecentSubscription: subscriptions.data.length > 0 ? subscriptions.data[0] : null
-    });
-    
-    logStep("Customer subscription analysis", {
-      customerId: customer.id,
-      activeCount: activeSubscriptions.length,
-      totalSubscriptions: subscriptions.data.length,
-      hasActive: activeSubscriptions.length > 0
-    });
-  }
-  
-  // Priority 1: Customer with active subscriptions
-  const customersWithActive = customersWithSubscriptions.filter(c => c.hasActiveSubscriptions);
-  if (customersWithActive.length > 0) {
-    // If multiple have active subscriptions, pick the one with the most recent subscription
-    const selectedCustomer = customersWithActive.sort((a, b) => {
-      const aDate = a.mostRecentSubscription?.current_period_end || 0;
-      const bDate = b.mostRecentSubscription?.current_period_end || 0;
-      return bDate - aDate;
-    })[0];
-    
-    logStep("Selected customer with active subscription", { 
-      customerId: selectedCustomer.customer.id,
-      reason: "has_active_subscriptions"
-    });
-    return selectedCustomer.customer.id;
-  }
-  
-  // Priority 2: Most recently created customer
-  const mostRecentCustomer = customers.data.sort((a, b) => b.created - a.created)[0];
-  logStep("Selected most recent customer", { 
+  logStep("Selected most recently created customer", { 
     customerId: mostRecentCustomer.id,
-    reason: "most_recent_creation"
+    created: new Date(mostRecentCustomer.created * 1000).toISOString(),
+    reason: "most_recent_creation",
+    allCustomers: sortedByCreation.map(c => ({
+      id: c.id,
+      created: new Date(c.created * 1000).toISOString()
+    }))
   });
   
   return mostRecentCustomer.id;
