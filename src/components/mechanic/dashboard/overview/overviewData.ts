@@ -19,12 +19,12 @@ export const getQuickActions = (onTabChange: (tabValue: string) => void) => [
     title: "View Schedule",
     description: "Check your appointments",
     icon: "Calendar",
-    onClick: () => onTabChange('planner')
+    action: () => onTabChange('planner')
   },
   {
     title: "View Messages",
     description: "Check customer messages",
     icon: "MessageSquare",
-    onClick: () => onTabChange('messages')
+    action: () => onTabChange('messages')
   }
 ];

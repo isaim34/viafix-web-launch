@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import ErrorBoundary from '@/ErrorBoundary';
-import { OverviewTab } from './OverviewTab';
+import { OverviewTab } from './overview/OverviewTab';
 import GigManagement from '@/components/GigManagement';
 import ProfileEditor from '@/components/ProfileEditor';
 import MechanicChat from '@/components/MechanicChat';
