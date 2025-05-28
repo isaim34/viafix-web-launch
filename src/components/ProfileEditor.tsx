@@ -5,7 +5,6 @@ import { BasicProfileFormValues, sampleMechanicProfile } from '@/schemas/profile
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
-import { useMechanicProfileSync } from '@/hooks/useMechanicProfileSync';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
@@ -14,9 +13,6 @@ const ProfileEditor = () => {
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
-  
-  // Use profile sync hook to ensure data consistency
-  useMechanicProfileSync();
 
   // Load profile data from localStorage on component mount
   useEffect(() => {
@@ -28,23 +24,6 @@ const ProfileEditor = () => {
       try {
         const parsedData = JSON.parse(savedProfileData);
         console.log('Loading saved profile data:', parsedData);
-        
-        // For mechanics, ensure we use the correct vendor name and avatar
-        if (currentUserRole === 'mechanic') {
-          const vendorName = localStorage.getItem('vendorName');
-          const vendorAvatar = localStorage.getItem('vendorAvatar');
-          
-          if (vendorName && vendorName !== 'test.mechanic') {
-            const nameParts = vendorName.split(' ');
-            parsedData.firstName = nameParts[0] || parsedData.firstName;
-            parsedData.lastName = nameParts.slice(1).join(' ') || parsedData.lastName;
-          }
-          
-          if (vendorAvatar && !parsedData.profileImage) {
-            parsedData.profileImage = vendorAvatar;
-          }
-        }
-        
         setProfileData(parsedData);
       } catch (error) {
         console.error('Error parsing profile data from localStorage:', error);
@@ -77,27 +56,6 @@ const ProfileEditor = () => {
       }
     }
     
-    // For mechanics/vendors, check if there's a vendor name already set
-    if (currentUserRole === 'mechanic') {
-      const vendorName = localStorage.getItem('vendorName');
-      if (vendorName && vendorName !== currentUserName) {
-        const nameParts = vendorName.split(' ');
-        firstName = nameParts[0] || firstName;
-        lastName = nameParts.slice(1).join(' ') || lastName;
-      }
-      
-      // Use vendor avatar if available
-      const vendorAvatar = localStorage.getItem('vendorAvatar');
-      if (vendorAvatar) {
-        return {
-          ...sampleMechanicProfile,
-          firstName,
-          lastName,
-          profileImage: vendorAvatar,
-        };
-      }
-    }
-    
     const initialProfile = {
       ...sampleMechanicProfile,
       firstName,
@@ -124,41 +82,6 @@ const ProfileEditor = () => {
     // Save to localStorage with user role-specific key
     localStorage.setItem(storageKey, JSON.stringify(data));
     
-    // Explicitly save avatar to localStorage - store both keys for compatibility
-    if (data.profileImage) {
-      const avatarKey = currentUserRole === 'mechanic' ? 'mechanicAvatar' : 'customerAvatar';
-      const legacyAvatarKey = currentUserRole === 'mechanic' ? 'mechanic-avatar' : 'customer-avatar';
-      
-      localStorage.setItem(avatarKey, data.profileImage);
-      localStorage.setItem(legacyAvatarKey, data.profileImage);
-      
-      // Also save to the userId-specific key
-      const userId = localStorage.getItem('userId');
-      if (userId) {
-        localStorage.setItem(`${currentUserRole === 'mechanic' ? 'mechanic' : 'customer'}-${userId}-profileImage`, data.profileImage);
-      }
-      
-      // For mechanics, also save as vendor data
-      if (currentUserRole === 'mechanic') {
-        localStorage.setItem('vendorAvatar', data.profileImage);
-        localStorage.setItem('local-mechanic-avatar', data.profileImage);
-        
-        // For consistency, update the profileImage in their mechanic profile too
-        try {
-          const mechanicProfile = localStorage.getItem('mechanicProfile');
-          if (mechanicProfile) {
-            const profile = JSON.parse(mechanicProfile);
-            profile.profileImage = data.profileImage;
-            localStorage.setItem('mechanicProfile', JSON.stringify(profile));
-          }
-        } catch (e) {
-          console.error('Error updating profile image in mechanic profile:', e);
-        }
-      }
-      
-      console.log('Avatar saved to localStorage with keys:', avatarKey, legacyAvatarKey);
-    }
-    
     // Update username in localStorage if name has changed
     if (data.firstName !== undefined && data.lastName !== undefined) {
       const fullName = `${data.firstName} ${data.lastName}`.trim();
@@ -167,28 +90,6 @@ const ProfileEditor = () => {
         // Use the updateUserName function from useAuth to ensure proper updates
         updateUserName(fullName);
         console.log('Updated userName in localStorage to:', fullName);
-        
-        // For mechanics, also save as vendor name
-        if (currentUserRole === 'mechanic') {
-          localStorage.setItem('vendorName', fullName);
-          localStorage.setItem('local-mechanic-name', fullName);
-          
-          // For consistency, update the name in their mechanic profile too
-          try {
-            const mechanicProfile = localStorage.getItem('mechanicProfile');
-            if (mechanicProfile) {
-              const profile = JSON.parse(mechanicProfile);
-              profile.firstName = data.firstName;
-              profile.lastName = data.lastName;
-              localStorage.setItem('mechanicProfile', JSON.stringify(profile));
-            }
-          } catch (e) {
-            console.error('Error updating name in mechanic profile:', e);
-          }
-        }
-        
-        // Force refresh for mechanic dashboard header and trigger sync
-        window.dispatchEvent(new Event('storage-event'));
       }
     }
     
@@ -199,9 +100,6 @@ const ProfileEditor = () => {
       title: "Profile updated",
       description: "Your profile has been successfully updated and saved",
     });
-    
-    // Trigger profile sync to ensure consistency
-    window.dispatchEvent(new Event('storage-event'));
   };
 
   if (isLoading) {

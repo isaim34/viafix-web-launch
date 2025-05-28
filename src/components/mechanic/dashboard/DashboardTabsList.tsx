@@ -12,7 +12,6 @@ import {
   Settings, 
   X,
   Star,
-  Database,
   FileText
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -22,7 +21,7 @@ const tabGroups = [
     { value: "overview", icon: Home, label: "Overview" },
     { value: "gigs", icon: Wrench, label: "My Gigs" },
     { value: "custom-offers", icon: FileText, label: "Custom Offers" },
-    { value: "maintenance", icon: Database, label: "Maintenance" },
+    { value: "maintenance", icon: FileText, label: "Maintenance" },
     { value: "completed-jobs", icon: CheckSquare, label: "Completed" },
     { value: "cancelled", icon: X, label: "Cancelled" },
   ],
@@ -37,7 +36,6 @@ const tabGroups = [
   ],
   [
     { value: "profile", icon: Settings, label: "Profile" },
-    { value: "debug", icon: Database, label: "Debug" },
   ],
 ];
 

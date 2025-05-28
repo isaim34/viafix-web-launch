@@ -7,7 +7,6 @@ import { FeaturedMechanics } from "@/components/FeaturedMechanics";
 import { BlogSection } from "@/components/BlogSection";
 import { Layout } from "@/components/Layout";
 import { IndexSEO } from "@/components/sections/IndexSEO";
-import { ChatTestHelper } from "@/components/chat/ChatTestHelper";
 
 const Index = () => {
   return (
@@ -19,11 +18,6 @@ const Index = () => {
       <IndexHowItWorks />
       <FeaturedMechanics />
       <BlogSection />
-      
-      {/* Temporary Chat Test Helper */}
-      <div className="container py-12">
-        <ChatTestHelper />
-      </div>
     </Layout>
   );
 };

@@ -12,7 +12,6 @@ import StatsOverview from '@/components/stats/StatsOverview';
 import CancelledGigsTab from '@/components/CancelledGigsTab';
 import ReviewsTab from '@/components/ReviewsTab';
 import CustomOffersTab from '@/components/mechanic/CustomOffersTab';
-import { DebugPanel } from '@/components/debug/DebugPanel';
 import MaintenanceRecordsTab from '@/components/mechanic/MaintenanceRecordsTab';
 import AdvertisingTab from '@/components/advertising/AdvertisingTab';
 
@@ -92,12 +91,6 @@ export const DashboardTabsContent = ({ onTabChange }: DashboardTabsContentProps)
       <TabsContent value="reviews">
         <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading reviews</div>}>
           <ReviewsTab />
-        </ErrorBoundary>
-      </TabsContent>
-      
-      <TabsContent value="debug">
-        <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading debug tools</div>}>
-          <DebugPanel />
         </ErrorBoundary>
       </TabsContent>
     </>

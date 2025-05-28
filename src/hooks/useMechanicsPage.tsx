@@ -2,8 +2,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useZipcode } from '@/hooks/useZipcode';
-import { useLocalMechanicProfile } from '@/hooks/useLocalMechanicProfile';
-import { useMechanicProfileSync } from '@/hooks/useMechanicProfileSync';
 import { useMechanics } from '@/hooks/useMechanics';
 import { useDisplayedMechanics } from '@/components/mechanics/useDisplayedMechanics';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,12 +19,6 @@ export const useMechanicsPage = () => {
   // Get auth context
   const auth = useAuth();
   const { currentUserRole } = auth;
-  
-  // Get the local mechanic profile
-  const { localMechanicProfile } = useLocalMechanicProfile();
-  
-  // Sync mechanic profile data across the app
-  useMechanicProfileSync();
   
   // Fetch mechanics from the database
   const { mechanics, loading: loadingMechanics } = useMechanics();
