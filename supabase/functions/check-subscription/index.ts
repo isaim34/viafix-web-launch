@@ -16,6 +16,90 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+// Customer ID resolution function
+const resolveCustomerId = async (stripe: Stripe, email: string) => {
+  logStep("Starting customer ID resolution", { email });
+  
+  // Fetch ALL customers for this email (no limit)
+  const customers = await stripe.customers.list({ 
+    email: email,
+    expand: ['data.subscriptions'],
+  });
+  
+  logStep("Found customers", { 
+    count: customers.data.length,
+    customerIds: customers.data.map(c => c.id)
+  });
+  
+  if (customers.data.length === 0) {
+    logStep("No customers found for email");
+    return null;
+  }
+  
+  if (customers.data.length === 1) {
+    logStep("Single customer found", { customerId: customers.data[0].id });
+    return customers.data[0].id;
+  }
+  
+  // Multiple customers exist - need to resolve which one to use
+  logStep("Multiple customers found, resolving priority");
+  
+  // Check each customer for active subscriptions
+  const customersWithSubscriptions = [];
+  
+  for (const customer of customers.data) {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      status: "all",
+      limit: 10,
+    });
+    
+    const activeSubscriptions = subscriptions.data.filter(
+      sub => ['active', 'trialing', 'past_due'].includes(sub.status)
+    );
+    
+    customersWithSubscriptions.push({
+      customer,
+      activeSubscriptions,
+      hasActiveSubscriptions: activeSubscriptions.length > 0,
+      mostRecentSubscription: subscriptions.data.length > 0 ? subscriptions.data[0] : null
+    });
+    
+    logStep("Customer subscription analysis", {
+      customerId: customer.id,
+      activeCount: activeSubscriptions.length,
+      totalSubscriptions: subscriptions.data.length,
+      hasActive: activeSubscriptions.length > 0
+    });
+  }
+  
+  // Priority 1: Customer with active subscriptions
+  const customersWithActive = customersWithSubscriptions.filter(c => c.hasActiveSubscriptions);
+  if (customersWithActive.length > 0) {
+    // If multiple have active subscriptions, pick the one with the most recent subscription
+    const selectedCustomer = customersWithActive.sort((a, b) => {
+      const aDate = a.mostRecentSubscription?.current_period_end || 0;
+      const bDate = b.mostRecentSubscription?.current_period_end || 0;
+      return bDate - aDate;
+    })[0];
+    
+    logStep("Selected customer with active subscription", { 
+      customerId: selectedCustomer.customer.id,
+      reason: "has_active_subscriptions"
+    });
+    return selectedCustomer.customer.id;
+  }
+  
+  // Priority 2: Most recently created customer
+  const mostRecentCustomer = customers.data.sort((a, b) => b.created - a.created)[0];
+  logStep("Selected most recent customer", { 
+    customerId: mostRecentCustomer.id,
+    reason: "most_recent_creation"
+  });
+  
+  return mostRecentCustomer.id;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -65,14 +149,10 @@ serve(async (req) => {
           const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
           
           try {
-            logStep("Checking Stripe for customer", { email: body.email });
-            const customers = await stripe.customers.list({ 
-              email: body.email, 
-              limit: 1,
-              expand: ['data.subscriptions'],
-            });
+            logStep("Starting customer resolution for body email", { email: body.email });
+            const customerId = await resolveCustomerId(stripe, body.email);
             
-            if (customers.data.length === 0) {
+            if (!customerId) {
               logStep("No Stripe customer found for email", { email: body.email });
               return new Response(JSON.stringify({ 
                 subscribed: false,
@@ -84,11 +164,9 @@ serve(async (req) => {
               });
             }
             
-            // Continue with subscription check using the found customer
-            const customerId = customers.data[0].id;
-            logStep("Found Stripe customer", { customerId });
+            logStep("Resolved customer ID", { customerId });
             
-            // Get all subscriptions for the customer
+            // Get all subscriptions for the resolved customer
             const subscriptions = await stripe.subscriptions.list({
               customer: customerId,
               status: "active",
@@ -187,25 +265,28 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
-    logStep("Finding Stripe customer for authenticated user", { email: user.email });
+    logStep("Starting customer resolution for authenticated user", { email: user.email });
     
     try {
-      const customers = await stripe.customers.list({ 
-        email: user.email, 
-        limit: 1,
-        expand: ['data.subscriptions'],
-      });
+      // Check if user already exists in subscribers table to see stored customer ID
+      const { data: existingSubscriber } = await supabaseClient
+        .from("subscribers")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+        
+      if (existingSubscriber) {
+        logStep("Found existing subscriber record", { 
+          storedCustomerId: existingSubscriber.stripe_customer_id,
+          subscribed: existingSubscriber.subscribed
+        });
+      }
       
-      if (customers.data.length === 0) {
+      const customerId = await resolveCustomerId(stripe, user.email);
+      
+      if (!customerId) {
         logStep("No Stripe customer found, updating unsubscribed state");
         
-        // Check if user already exists in subscribers table
-        const { data: existingSubscriber } = await supabaseClient
-          .from("subscribers")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-          
         // Store subscription status in Supabase subscribers table
         try {
           if (existingSubscriber) {
@@ -256,8 +337,17 @@ serve(async (req) => {
         });
       }
 
-      const customerId = customers.data[0].id;
-      logStep("Found Stripe customer for authenticated user", { customerId });
+      logStep("Resolved customer ID for authenticated user", { customerId });
+      
+      // Log customer ID changes
+      if (existingSubscriber && existingSubscriber.stripe_customer_id && 
+          existingSubscriber.stripe_customer_id !== customerId) {
+        logStep("Customer ID mismatch detected - updating", {
+          oldCustomerId: existingSubscriber.stripe_customer_id,
+          newCustomerId: customerId,
+          reason: "resolved_to_different_customer"
+        });
+      }
 
       // Make sure to check for all subscription statuses that are "active"
       const subscriptions = await stripe.subscriptions.list({
@@ -300,31 +390,28 @@ serve(async (req) => {
           subscriptionId, 
           endDate: subscriptionEnd,
           status: subscription.status,
-          metadata: subscription.metadata
+          metadata: subscription.metadata,
+          resolvedCustomerId: customerId
         });
       } else {
-        logStep("No active subscription found for authenticated user");
+        logStep("No active subscription found for authenticated user", {
+          resolvedCustomerId: customerId
+        });
       }
 
-      // Check if user already exists in subscribers table
-      const { data: existingSubscriber } = await supabaseClient
-        .from("subscribers")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      // Store subscription status in Supabase subscribers table
+      // Store subscription status in Supabase subscribers table with resolved customer ID
       try {
         if (existingSubscriber) {
           logStep("Updating existing subscriber record for authenticated user", { 
             userId: user.id,
-            id: existingSubscriber.id 
+            id: existingSubscriber.id,
+            updatingCustomerId: customerId
           });
           
           const { error: updateError } = await supabaseClient
             .from("subscribers")
             .update({
-              stripe_customer_id: customerId,
+              stripe_customer_id: customerId, // Use resolved customer ID
               stripe_subscription_id: subscriptionId,
               subscribed: hasActiveSub,
               subscription_tier: subscriptionTier,
@@ -336,17 +423,20 @@ serve(async (req) => {
           if (updateError) {
             logStep("Error updating subscription status", { error: updateError });
           } else {
-            logStep("Successfully updated subscriber record");
+            logStep("Successfully updated subscriber record with resolved customer ID");
           }
         } else {
-          logStep("Creating new subscriber record for authenticated user", { userId: user.id });
+          logStep("Creating new subscriber record for authenticated user", { 
+            userId: user.id,
+            customerId: customerId
+          });
           
           const { error: insertError } = await supabaseClient
             .from("subscribers")
             .insert({
               user_id: user.id,
               email: user.email,
-              stripe_customer_id: customerId,
+              stripe_customer_id: customerId, // Use resolved customer ID
               stripe_subscription_id: subscriptionId,
               subscribed: hasActiveSub,
               subscription_tier: subscriptionTier,
@@ -356,7 +446,7 @@ serve(async (req) => {
           if (insertError) {
             logStep("Error inserting subscriber record", { error: insertError });
           } else {
-            logStep("Successfully inserted subscriber record");
+            logStep("Successfully inserted subscriber record with resolved customer ID");
           }
         }
       } catch (dbError) {
@@ -367,7 +457,8 @@ serve(async (req) => {
       logStep("Returning subscription info for authenticated user", { 
         subscribed: hasActiveSub, 
         subscriptionTier,
-        subscriptionEnd 
+        subscriptionEnd,
+        resolvedCustomerId: customerId
       });
       
       return new Response(JSON.stringify({
