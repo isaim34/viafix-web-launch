@@ -16,7 +16,7 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Improved customer ID resolution function
+// Improved customer ID resolution function - ALWAYS returns most recent customer
 const resolveCustomerId = async (stripe: Stripe, email: string) => {
   logStep("Starting customer ID resolution", { email });
   
@@ -41,20 +41,21 @@ const resolveCustomerId = async (stripe: Stripe, email: string) => {
     return customers.data[0].id;
   }
   
-  // Multiple customers exist - prioritize the MOST RECENTLY CREATED
-  logStep("Multiple customers found, prioritizing most recent");
+  // Multiple customers exist - ALWAYS prioritize the MOST RECENTLY CREATED
+  logStep("Multiple customers found, STRICTLY prioritizing most recent");
   
   // Sort by creation date (most recent first)
   const sortedByCreation = customers.data.sort((a, b) => b.created - a.created);
   const mostRecentCustomer = sortedByCreation[0];
   
-  logStep("Selected most recently created customer", { 
+  logStep("SELECTED most recently created customer (FINAL DECISION)", { 
     customerId: mostRecentCustomer.id,
     created: new Date(mostRecentCustomer.created * 1000).toISOString(),
-    reason: "most_recent_creation",
-    allCustomers: sortedByCreation.map(c => ({
+    reason: "most_recent_creation_STRICT",
+    rejectedCustomers: sortedByCreation.slice(1).map(c => ({
       id: c.id,
-      created: new Date(c.created * 1000).toISOString()
+      created: new Date(c.created * 1000).toISOString(),
+      reason: "older_creation_date"
     }))
   });
   
@@ -127,7 +128,7 @@ serve(async (req) => {
             
             logStep("Resolved customer ID", { customerId });
             
-            // Get all subscriptions for the resolved customer
+            // Get all subscriptions for the resolved customer ONLY
             const subscriptions = await stripe.subscriptions.list({
               customer: customerId,
               status: "active",
@@ -243,6 +244,7 @@ serve(async (req) => {
         });
       }
       
+      // ALWAYS resolve to most recent customer - ignore stored customer ID
       const customerId = await resolveCustomerId(stripe, user.email);
       
       if (!customerId) {
@@ -303,14 +305,15 @@ serve(async (req) => {
       // Log customer ID changes
       if (existingSubscriber && existingSubscriber.stripe_customer_id && 
           existingSubscriber.stripe_customer_id !== customerId) {
-        logStep("Customer ID mismatch detected - updating", {
+        logStep("Customer ID changed - will update database", {
           oldCustomerId: existingSubscriber.stripe_customer_id,
           newCustomerId: customerId,
-          reason: "resolved_to_different_customer"
+          reason: "resolved_to_most_recent_customer"
         });
       }
 
-      // Make sure to check for all subscription statuses that are "active"
+      // Get subscriptions ONLY for the resolved customer ID
+      logStep("Fetching subscriptions for resolved customer ONLY", { customerId });
       const subscriptions = await stripe.subscriptions.list({
         customer: customerId,
         status: "all",
@@ -318,13 +321,14 @@ serve(async (req) => {
         limit: 10,
       });
       
-      // Log all subscriptions for debugging
+      // Log all subscriptions for this specific customer
       subscriptions.data.forEach((sub, idx) => {
-        logStep(`Subscription ${idx+1} found`, { 
+        logStep(`Subscription ${idx+1} for customer ${customerId}`, { 
           id: sub.id, 
           status: sub.status, 
           current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-          metadata: sub.metadata
+          metadata: sub.metadata,
+          customer: sub.customer
         });
       });
       
@@ -339,6 +343,7 @@ serve(async (req) => {
       let subscriptionId = null;
 
       if (hasActiveSub) {
+        // Sort by most recent period end (latest subscription)
         const subscription = activeSubscriptions.sort(
           (a, b) => b.current_period_end - a.current_period_end
         )[0];
@@ -347,15 +352,16 @@ serve(async (req) => {
         subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
         subscriptionTier = subscription.metadata?.plan_type || 'monthly';
         
-        logStep("Active subscription found for authenticated user", { 
+        logStep("FINAL Active subscription found for resolved customer", { 
           subscriptionId, 
           endDate: subscriptionEnd,
           status: subscription.status,
           metadata: subscription.metadata,
-          resolvedCustomerId: customerId
+          resolvedCustomerId: customerId,
+          tier: subscriptionTier
         });
       } else {
-        logStep("No active subscription found for authenticated user", {
+        logStep("No active subscription found for resolved customer", {
           resolvedCustomerId: customerId
         });
       }
