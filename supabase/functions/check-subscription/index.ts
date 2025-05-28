@@ -10,56 +10,73 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 }
 
-// Helper logging function for enhanced debugging
+// Enhanced logging function for debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
+  console.log(`[CHECK-SUBSCRIPTION-V2] ${step}${detailsStr}`);
 };
 
-// Improved customer ID resolution function - ALWAYS returns most recent customer
+// STRICT customer ID resolution - ALWAYS returns the NEWEST customer
 const resolveCustomerId = async (stripe: Stripe, email: string) => {
-  logStep("Starting customer ID resolution", { email });
+  logStep("🔍 STARTING STRICT CUSTOMER RESOLUTION", { email });
   
-  // Fetch ALL customers for this email (no limit)
-  const customers = await stripe.customers.list({ 
-    email: email,
-    expand: ['data.subscriptions'],
-  });
-  
-  logStep("Found customers", { 
-    count: customers.data.length,
-    customerIds: customers.data.map(c => ({ id: c.id, created: c.created }))
-  });
-  
-  if (customers.data.length === 0) {
-    logStep("No customers found for email");
-    return null;
+  try {
+    // Fetch ALL customers for this email (no limits)
+    const customers = await stripe.customers.list({ 
+      email: email,
+      expand: ['data.subscriptions'],
+      limit: 100 // Ensure we get all customers
+    });
+    
+    logStep("📊 FOUND CUSTOMERS", { 
+      count: customers.data.length,
+      customerDetails: customers.data.map(c => ({ 
+        id: c.id, 
+        created: c.created,
+        createdReadable: new Date(c.created * 1000).toISOString(),
+        hasSubscriptions: c.subscriptions?.data?.length || 0
+      }))
+    });
+    
+    if (customers.data.length === 0) {
+      logStep("❌ NO CUSTOMERS FOUND");
+      return null;
+    }
+    
+    if (customers.data.length === 1) {
+      logStep("✅ SINGLE CUSTOMER - AUTO SELECT", { 
+        customerId: customers.data[0].id,
+        created: new Date(customers.data[0].created * 1000).toISOString()
+      });
+      return customers.data[0].id;
+    }
+    
+    // MULTIPLE CUSTOMERS - FORCE SELECT THE NEWEST ONE
+    logStep("🔄 MULTIPLE CUSTOMERS - FORCING NEWEST SELECTION");
+    
+    // Sort by creation timestamp (newest first)
+    const sortedCustomers = customers.data.sort((a, b) => b.created - a.created);
+    const newestCustomer = sortedCustomers[0];
+    
+    logStep("🎯 STRICT NEWEST CUSTOMER SELECTED", { 
+      selectedCustomerId: newestCustomer.id,
+      selectedCreated: new Date(newestCustomer.created * 1000).toISOString(),
+      selectedTimestamp: newestCustomer.created,
+      reason: "STRICT_NEWEST_POLICY",
+      allCustomersRanked: sortedCustomers.map((c, index) => ({
+        rank: index + 1,
+        id: c.id,
+        created: new Date(c.created * 1000).toISOString(),
+        timestamp: c.created,
+        selected: index === 0
+      }))
+    });
+    
+    return newestCustomer.id;
+  } catch (error) {
+    logStep("💥 ERROR IN CUSTOMER RESOLUTION", { error: error.message });
+    throw error;
   }
-  
-  if (customers.data.length === 1) {
-    logStep("Single customer found", { customerId: customers.data[0].id });
-    return customers.data[0].id;
-  }
-  
-  // Multiple customers exist - ALWAYS prioritize the MOST RECENTLY CREATED
-  logStep("Multiple customers found, STRICTLY prioritizing most recent");
-  
-  // Sort by creation date (most recent first)
-  const sortedByCreation = customers.data.sort((a, b) => b.created - a.created);
-  const mostRecentCustomer = sortedByCreation[0];
-  
-  logStep("SELECTED most recently created customer (FINAL DECISION)", { 
-    customerId: mostRecentCustomer.id,
-    created: new Date(mostRecentCustomer.created * 1000).toISOString(),
-    reason: "most_recent_creation_STRICT",
-    rejectedCustomers: sortedByCreation.slice(1).map(c => ({
-      id: c.id,
-      created: new Date(c.created * 1000).toISOString(),
-      reason: "older_creation_date"
-    }))
-  });
-  
-  return mostRecentCustomer.id;
 };
 
 serve(async (req) => {
@@ -68,11 +85,11 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Function started");
+    logStep("🚀 FUNCTION STARTED - V2 ENHANCED");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      logStep("STRIPE_SECRET_KEY is not set - returning unsubscribed");
+      logStep("⚠️ STRIPE_SECRET_KEY MISSING - RETURNING UNSUBSCRIBED");
       return new Response(JSON.stringify({
         subscribed: false,
         subscription_tier: null,
@@ -91,31 +108,28 @@ serve(async (req) => {
       throw new Error('Supabase environment variables are not configured');
     }
     
-    // Use the service role key to perform writes in Supabase
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRole);
-    logStep("Supabase client initialized");
+    logStep("✅ SUPABASE CLIENT INITIALIZED");
 
-    // Check for auth header - but don't require it
+    // Check for auth header
     const authHeader = req.headers.get("Authorization");
-    logStep("Authorization header check", { hasAuthHeader: !!authHeader });
+    logStep("🔐 AUTH CHECK", { hasAuthHeader: !!authHeader });
     
     if (!authHeader) {
-      logStep("No authorization header - checking body for email");
-      // If no auth header, try to get email from request body (local auth)
+      logStep("❌ NO AUTH HEADER - CHECKING BODY");
       try {
         const body = await req.json();
         if (body && body.email) {
-          logStep("Using email from request body", { email: body.email });
+          logStep("📧 USING EMAIL FROM BODY", { email: body.email });
           
-          // Always check Stripe for all accounts when we have a Stripe key
           const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
           
           try {
-            logStep("Starting customer resolution for body email", { email: body.email });
+            logStep("🔍 STARTING BODY EMAIL CUSTOMER RESOLUTION", { email: body.email });
             const customerId = await resolveCustomerId(stripe, body.email);
             
             if (!customerId) {
-              logStep("No Stripe customer found for email", { email: body.email });
+              logStep("❌ NO CUSTOMER FOR BODY EMAIL", { email: body.email });
               return new Response(JSON.stringify({ 
                 subscribed: false,
                 subscription_tier: null,
@@ -126,14 +140,27 @@ serve(async (req) => {
               });
             }
             
-            logStep("Resolved customer ID", { customerId });
+            logStep("✅ RESOLVED CUSTOMER FOR BODY EMAIL", { customerId });
             
-            // Get all subscriptions for the resolved customer ONLY
+            // Get subscriptions for this specific customer ONLY
+            logStep("📋 FETCHING SUBSCRIPTIONS FOR RESOLVED CUSTOMER", { customerId });
             const subscriptions = await stripe.subscriptions.list({
               customer: customerId,
               status: "active",
               expand: ['data.plan'],
-              limit: 5,
+              limit: 10,
+            });
+            
+            logStep("📊 SUBSCRIPTION RESULTS", {
+              customerIdUsed: customerId,
+              subscriptionCount: subscriptions.data.length,
+              subscriptions: subscriptions.data.map(sub => ({
+                id: sub.id,
+                status: sub.status,
+                endDate: new Date(sub.current_period_end * 1000).toISOString(),
+                planType: sub.metadata?.plan_type,
+                customer: sub.customer
+              }))
             });
             
             const hasActiveSub = subscriptions.data.length > 0;
@@ -144,14 +171,16 @@ serve(async (req) => {
               const subscription = subscriptions.data[0];
               subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
               subscriptionTier = subscription.metadata?.plan_type || 'monthly';
-              logStep("Active subscription found via body email", { 
+              
+              logStep("🎉 ACTIVE SUBSCRIPTION FOUND VIA BODY EMAIL", { 
                 subscriptionId: subscription.id, 
                 endDate: subscriptionEnd,
                 tier: subscriptionTier,
-                status: subscription.status 
+                status: subscription.status,
+                customerUsed: customerId
               });
             } else {
-              logStep("No active subscription found via body email");
+              logStep("❌ NO ACTIVE SUBSCRIPTION FOR RESOLVED CUSTOMER", { customerId });
             }
             
             return new Response(JSON.stringify({
@@ -163,7 +192,7 @@ serve(async (req) => {
               status: 200,
             });
           } catch (stripeError) {
-            logStep("Stripe API error - falling back to unsubscribed", { error: stripeError.message });
+            logStep("💥 STRIPE ERROR - FALLBACK", { error: stripeError.message });
             return new Response(JSON.stringify({
               subscribed: false,
               subscription_tier: null,
@@ -175,10 +204,10 @@ serve(async (req) => {
           }
         }
       } catch (e) {
-        logStep("Error parsing request body", { error: e });
+        logStep("💥 ERROR PARSING BODY", { error: e });
       }
       
-      logStep("No email found in body, returning auth error");
+      logStep("❌ NO EMAIL IN BODY");
       return new Response(JSON.stringify({ 
         error: "No authorization header or email provided",
         subscribed: false,
@@ -190,14 +219,14 @@ serve(async (req) => {
       });
     }
 
-    logStep("Authorization header found, processing with Supabase auth");
+    logStep("🔐 PROCESSING WITH SUPABASE AUTH");
 
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
+    logStep("🔑 AUTHENTICATING USER");
     
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) {
-      logStep("Authentication error", { error: userError.message });
+      logStep("💥 AUTH ERROR", { error: userError.message });
       return new Response(JSON.stringify({ 
         error: `Authentication error: ${userError.message}`,
         subscribed: false,
@@ -211,7 +240,7 @@ serve(async (req) => {
     
     const user = userData.user;
     if (!user?.email) {
-      logStep("User not authenticated or email not available");
+      logStep("❌ USER NOT AUTHENTICATED");
       return new Response(JSON.stringify({ 
         error: "User not authenticated or email not available",
         subscribed: false,
@@ -223,14 +252,14 @@ serve(async (req) => {
       });
     }
     
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("✅ USER AUTHENTICATED", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
-    logStep("Starting customer resolution for authenticated user", { email: user.email });
+    logStep("🔍 STARTING AUTH USER CUSTOMER RESOLUTION", { email: user.email });
     
     try {
-      // Check if user already exists in subscribers table to see stored customer ID
+      // Check existing subscriber record
       const { data: existingSubscriber } = await supabaseClient
         .from("subscribers")
         .select("*")
@@ -238,22 +267,22 @@ serve(async (req) => {
         .maybeSingle();
         
       if (existingSubscriber) {
-        logStep("Found existing subscriber record", { 
+        logStep("📋 EXISTING SUBSCRIBER RECORD", { 
           storedCustomerId: existingSubscriber.stripe_customer_id,
           subscribed: existingSubscriber.subscribed
         });
       }
       
-      // ALWAYS resolve to most recent customer - ignore stored customer ID
+      // FORCE RESOLUTION TO NEWEST CUSTOMER - IGNORE STORED VALUE
+      logStep("🔄 FORCING FRESH CUSTOMER RESOLUTION - IGNORING STORED DATA");
       const customerId = await resolveCustomerId(stripe, user.email);
       
       if (!customerId) {
-        logStep("No Stripe customer found, updating unsubscribed state");
+        logStep("❌ NO CUSTOMER FOUND - UPDATING UNSUBSCRIBED");
         
-        // Store subscription status in Supabase subscribers table
         try {
           if (existingSubscriber) {
-            logStep("Updating existing subscriber record", { userId: user.id });
+            logStep("📝 UPDATING EXISTING RECORD TO UNSUBSCRIBED", { userId: user.id });
             
             const { error: updateError } = await supabaseClient
               .from("subscribers")
@@ -266,10 +295,10 @@ serve(async (req) => {
               .eq("user_id", user.id);
               
             if (updateError) {
-              logStep("Error updating subscription status", { error: updateError });
+              logStep("💥 UPDATE ERROR", { error: updateError });
             }
           } else {
-            logStep("Creating new subscriber record", { userId: user.id });
+            logStep("📝 CREATING NEW UNSUBSCRIBED RECORD", { userId: user.id });
             
             const { error: insertError } = await supabaseClient
               .from("subscribers")
@@ -283,11 +312,11 @@ serve(async (req) => {
               });
               
             if (insertError) {
-              logStep("Error inserting subscription status", { error: insertError });
+              logStep("💥 INSERT ERROR", { error: insertError });
             }
           }
         } catch (dbError) {
-          logStep("Database error when updating subscriber record", { error: dbError });
+          logStep("💥 DATABASE ERROR", { error: dbError });
         }
         
         return new Response(JSON.stringify({ 
@@ -300,20 +329,20 @@ serve(async (req) => {
         });
       }
 
-      logStep("Resolved customer ID for authenticated user", { customerId });
+      logStep("✅ RESOLVED CUSTOMER FOR AUTH USER", { customerId });
       
-      // Log customer ID changes
+      // Log customer changes
       if (existingSubscriber && existingSubscriber.stripe_customer_id && 
           existingSubscriber.stripe_customer_id !== customerId) {
-        logStep("Customer ID changed - will update database", {
+        logStep("🔄 CUSTOMER ID CHANGE DETECTED", {
           oldCustomerId: existingSubscriber.stripe_customer_id,
           newCustomerId: customerId,
-          reason: "resolved_to_most_recent_customer"
+          reason: "FORCED_NEWEST_CUSTOMER_POLICY"
         });
       }
 
-      // Get subscriptions ONLY for the resolved customer ID
-      logStep("Fetching subscriptions for resolved customer ONLY", { customerId });
+      // Get subscriptions STRICTLY for the resolved customer
+      logStep("📋 FETCHING SUBSCRIPTIONS FOR RESOLVED CUSTOMER ONLY", { customerId });
       const subscriptions = await stripe.subscriptions.list({
         customer: customerId,
         status: "all",
@@ -321,14 +350,15 @@ serve(async (req) => {
         limit: 10,
       });
       
-      // Log all subscriptions for this specific customer
+      // Log ALL subscriptions for this customer
       subscriptions.data.forEach((sub, idx) => {
-        logStep(`Subscription ${idx+1} for customer ${customerId}`, { 
+        logStep(`📄 SUBSCRIPTION ${idx+1} FOR CUSTOMER ${customerId}`, { 
           id: sub.id, 
           status: sub.status, 
           current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
           metadata: sub.metadata,
-          customer: sub.customer
+          customer: sub.customer,
+          planType: sub.metadata?.plan_type
         });
       });
       
@@ -337,13 +367,19 @@ serve(async (req) => {
         sub => ['active', 'trialing', 'past_due'].includes(sub.status)
       );
       
+      logStep("🔍 ACTIVE SUBSCRIPTION FILTER", {
+        totalSubscriptions: subscriptions.data.length,
+        activeSubscriptions: activeSubscriptions.length,
+        activeIds: activeSubscriptions.map(s => s.id)
+      });
+      
       const hasActiveSub = activeSubscriptions.length > 0;
       let subscriptionTier = null;
       let subscriptionEnd = null;
       let subscriptionId = null;
 
       if (hasActiveSub) {
-        // Sort by most recent period end (latest subscription)
+        // Sort by most recent period end
         const subscription = activeSubscriptions.sort(
           (a, b) => b.current_period_end - a.current_period_end
         )[0];
@@ -352,7 +388,7 @@ serve(async (req) => {
         subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
         subscriptionTier = subscription.metadata?.plan_type || 'monthly';
         
-        logStep("FINAL Active subscription found for resolved customer", { 
+        logStep("🎉 FINAL ACTIVE SUBSCRIPTION SELECTED", { 
           subscriptionId, 
           endDate: subscriptionEnd,
           status: subscription.status,
@@ -361,24 +397,24 @@ serve(async (req) => {
           tier: subscriptionTier
         });
       } else {
-        logStep("No active subscription found for resolved customer", {
+        logStep("❌ NO ACTIVE SUBSCRIPTION FOR RESOLVED CUSTOMER", {
           resolvedCustomerId: customerId
         });
       }
 
-      // Store subscription status in Supabase subscribers table with resolved customer ID
+      // Update Supabase with resolved customer data
       try {
         if (existingSubscriber) {
-          logStep("Updating existing subscriber record for authenticated user", { 
+          logStep("📝 UPDATING EXISTING SUBSCRIBER WITH RESOLVED DATA", { 
             userId: user.id,
             id: existingSubscriber.id,
-            updatingCustomerId: customerId
+            newCustomerId: customerId
           });
           
           const { error: updateError } = await supabaseClient
             .from("subscribers")
             .update({
-              stripe_customer_id: customerId, // Use resolved customer ID
+              stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               subscribed: hasActiveSub,
               subscription_tier: subscriptionTier,
@@ -388,12 +424,12 @@ serve(async (req) => {
             .eq("id", existingSubscriber.id);
           
           if (updateError) {
-            logStep("Error updating subscription status", { error: updateError });
+            logStep("💥 UPDATE ERROR", { error: updateError });
           } else {
-            logStep("Successfully updated subscriber record with resolved customer ID");
+            logStep("✅ SUCCESSFULLY UPDATED SUBSCRIBER RECORD");
           }
         } else {
-          logStep("Creating new subscriber record for authenticated user", { 
+          logStep("📝 CREATING NEW SUBSCRIBER RECORD", { 
             userId: user.id,
             customerId: customerId
           });
@@ -403,7 +439,7 @@ serve(async (req) => {
             .insert({
               user_id: user.id,
               email: user.email,
-              stripe_customer_id: customerId, // Use resolved customer ID
+              stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               subscribed: hasActiveSub,
               subscription_tier: subscriptionTier,
@@ -411,17 +447,16 @@ serve(async (req) => {
             });
           
           if (insertError) {
-            logStep("Error inserting subscriber record", { error: insertError });
+            logStep("💥 INSERT ERROR", { error: insertError });
           } else {
-            logStep("Successfully inserted subscriber record with resolved customer ID");
+            logStep("✅ SUCCESSFULLY CREATED SUBSCRIBER RECORD");
           }
         }
       } catch (dbError) {
-        logStep("Database error when updating subscriber record", { error: dbError });
-        // Continue despite DB error - we should still return the subscription status
+        logStep("💥 DATABASE ERROR", { error: dbError });
       }
 
-      logStep("Returning subscription info for authenticated user", { 
+      logStep("🏁 RETURNING FINAL SUBSCRIPTION INFO", { 
         subscribed: hasActiveSub, 
         subscriptionTier,
         subscriptionEnd,
@@ -437,7 +472,7 @@ serve(async (req) => {
         status: 200,
       });
     } catch (stripeError) {
-      logStep("Stripe API error - falling back to unsubscribed", { error: stripeError.message });
+      logStep("💥 STRIPE ERROR - FALLBACK TO UNSUBSCRIBED", { error: stripeError.message });
       return new Response(JSON.stringify({
         subscribed: false,
         subscription_tier: null,
@@ -449,7 +484,7 @@ serve(async (req) => {
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in check-subscription", { message: errorMessage });
+    logStep("💥 CRITICAL ERROR", { message: errorMessage });
     
     return new Response(JSON.stringify({ 
       error: errorMessage,
