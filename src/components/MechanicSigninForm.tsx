@@ -7,24 +7,33 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, Link } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
+import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { z } from 'zod';
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const mechanicFormSchema = z.object({
-  email: z.string().email("Please enter a valid email address")
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required")
 });
 
 type MechanicFormValues = z.infer<typeof mechanicFormSchema>;
 
 const MechanicSigninForm = () => {
-  console.log("MechanicSigninForm rendering");
   const [isLoading, setIsLoading] = useState(false);
-  const { authChecked, isLoggedIn } = useAuth();
+  const { signIn, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const form = useForm<MechanicFormValues>({
+    resolver: zodResolver(mechanicFormSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    },
+  });
+
   // Don't render the form if we're already logged in
   if (isLoggedIn) {
     return (
@@ -34,44 +43,25 @@ const MechanicSigninForm = () => {
       </div>
     );
   }
-  
-  const form = useForm<MechanicFormValues>({
-    resolver: zodResolver(mechanicFormSchema),
-    defaultValues: {
-      email: ''
-    },
-  });
 
   const handleSignin = async (data: MechanicFormValues) => {
     try {
       setIsLoading(true);
-      console.log("Processing sign in for:", data.email);
+      console.log("Processing mechanic sign in for:", data.email);
       
-      // For testing - sign in without password
-      const userName = data.email.split('@')[0];
-      
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userRole', 'mechanic');
-      localStorage.setItem('userEmail', data.email);
-      localStorage.setItem('userName', userName);
-      localStorage.setItem('userId', `mechanic-${Date.now()}`);
-      localStorage.setItem('vendorName', userName);
-      
-      // Notify application of auth change
-      window.dispatchEvent(new Event('storage-event'));
+      await signIn(data.email, data.password);
       
       toast({
-        title: `Welcome back!`,
+        title: "Welcome back!",
         description: "You have successfully signed in.",
       });
       
-      // Navigate to mechanic dashboard
       navigate('/mechanic-dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in error:", error);
       toast({
         title: "Sign in failed",
-        description: "An error occurred during the sign in process.",
+        description: error.message || "Invalid email or password",
         variant: "destructive"
       });
     } finally {
@@ -83,18 +73,25 @@ const MechanicSigninForm = () => {
     <div className="space-y-6">      
       <h3 className="text-lg font-medium">Mechanic Sign In</h3>
       <p className="text-sm text-gray-500">
-        Enter your email to sign in to your mechanic account.
+        Enter your email and password to sign in to your mechanic account.
       </p>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSignin)} className="space-y-6">
           <EmailField form={form} />
+          <PasswordField 
+            form={form} 
+            name="password"
+            label="Password"
+            placeholder="Enter your password"
+            required={true}
+          />
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             <div className="flex items-center justify-center">
               {isLoading ? (
                 <>
-                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   <span>Signing in...</span>
                 </>
               ) : (

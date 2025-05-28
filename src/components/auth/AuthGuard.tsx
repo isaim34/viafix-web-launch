@@ -33,7 +33,7 @@ export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
     };
   }, [isLoggedIn, authChecked, currentUserRole, requiredRole]);
 
-  // Show simple loading during the brief check period
+  // Show loading during the auth check period
   if (isChecking || !authChecked) {
     console.log("AuthGuard is still checking...");
     return (
@@ -55,7 +55,6 @@ export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
   // If a specific role is required and user doesn't match
   if (requiredRole && currentUserRole !== requiredRole) {
     console.log(`User role (${currentUserRole}) doesn't match required role (${requiredRole}), redirecting`);
-    // Explicitly cast currentUserRole to UserRole type if it's not null or undefined
     const role = currentUserRole as UserRole;
     return <Navigate to={getProfileRoute(role)} />;
   }

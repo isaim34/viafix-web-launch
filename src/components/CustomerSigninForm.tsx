@@ -1,20 +1,39 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate, Link } from 'react-router-dom';
 import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
+import { z } from 'zod';
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useCustomerSignin } from '@/hooks/useCustomerSignin';
+
+const customerFormSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required")
+});
+
+type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
 const CustomerSigninForm = () => {
-  console.log("CustomerSigninForm rendering");
-  const { authChecked, isLoggedIn } = useAuth();
-  const { form, onSubmit, isLoading } = useCustomerSignin();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerFormSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    },
+  });
+
   // Don't render the form if we're already logged in
   if (isLoggedIn) {
     return (
@@ -24,7 +43,32 @@ const CustomerSigninForm = () => {
       </div>
     );
   }
-  
+
+  const handleSignin = async (data: CustomerFormValues) => {
+    try {
+      setIsLoading(true);
+      console.log("Processing customer sign in for:", data.email);
+      
+      await signIn(data.email, data.password);
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+      
+      navigate('/customer-profile');
+    } catch (error: any) {
+      console.error("Sign in error:", error);
+      toast({
+        title: "Sign in failed",
+        description: error.message || "Invalid email or password",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">      
       <h3 className="text-lg font-medium">Customer Sign In</h3>
@@ -33,15 +77,21 @@ const CustomerSigninForm = () => {
       </p>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSignin)} className="space-y-6">
           <EmailField form={form} />
-          <PasswordField form={form} />
+          <PasswordField 
+            form={form} 
+            name="password"
+            label="Password"
+            placeholder="Enter your password"
+            required={true}
+          />
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             <div className="flex items-center justify-center">
               {isLoading ? (
                 <>
-                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   <span>Signing in...</span>
                 </>
               ) : (

@@ -30,7 +30,6 @@ import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
 import HowItWorks from '@/pages/HowItWorks';
 import NotFound from '@/pages/NotFound';
-import Debug from '@/pages/Debug';
 import ZipcodeTest from '@/pages/ZipcodeTest';
 
 import './App.css';
@@ -68,7 +67,6 @@ function AppContent() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
-        <Route path="/debug" element={<Debug />} />
         <Route path="/zipcode-test" element={<ZipcodeTest />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
