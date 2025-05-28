@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import ProfileTabs from './profile/ProfileTabs';
-import { BasicProfileFormValues, sampleMechanicProfile } from '@/schemas/profileSchema';
+import { BasicProfileFormValues } from '@/schemas/profileSchema';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 const ProfileEditor = () => {
   const { toast } = useToast();
   const auth = useAuth();
-  const { currentUserRole, updateUserName, currentUserName, getFirstName } = auth;
+  const { currentUserRole, updateUserName, currentUserName } = auth;
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
@@ -57,9 +57,15 @@ const ProfileEditor = () => {
     }
     
     const initialProfile = {
-      ...sampleMechanicProfile,
       firstName,
       lastName,
+      phone: '',
+      zipCode: '',
+      about: '',
+      specialties: '',
+      yearsExperience: 0,
+      hourlyRate: 0,
+      profileImage: '',
     };
     
     console.log('Created new profile with current username:', initialProfile);

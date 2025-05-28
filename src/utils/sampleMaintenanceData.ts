@@ -1,7 +1,7 @@
 
 import { MaintenanceRecord } from '@/types/customer';
 
-// This file now contains empty data arrays since test data has been removed
+// Production-ready file with no sample data
 export function getSampleRecords(): MaintenanceRecord[] {
   return [];
 }

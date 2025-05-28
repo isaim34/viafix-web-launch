@@ -20,7 +20,7 @@ export const useMechanicsPage = () => {
   const auth = useAuth();
   const { currentUserRole } = auth;
   
-  // Fetch mechanics from the database
+  // Fetch mechanics from the database (real data only)
   const { mechanics, loading: loadingMechanics } = useMechanics();
   
   // Get filtered mechanics
@@ -37,10 +37,8 @@ export const useMechanicsPage = () => {
     if (!newZipCode) {
       setLocationName('');
       reset();
-      // Clear manual flag when zip is explicitly cleared
       sessionStorage.removeItem('zipCodeManuallyCleared');
     } else {
-      // Set flag to indicate user has set a zip code
       sessionStorage.removeItem('zipCodeManuallyCleared');
     }
   }, [reset]);
@@ -59,10 +57,6 @@ export const useMechanicsPage = () => {
     if (locationData && locationData.places && locationData.places.length > 0) {
       const place = locationData.places[0];
       setLocationName(`${place.placeName}, ${place.stateAbbreviation}`);
-    } else if (zipCode.length === 5 && !locationData) {
-      if (zipCode === '01605') {
-        setLocationName('Worcester, MA');
-      }
     }
   }, [locationData, zipCode]);
 
