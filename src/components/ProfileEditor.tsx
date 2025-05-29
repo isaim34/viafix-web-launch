@@ -74,8 +74,8 @@ const ProfileEditor = () => {
   };
   
   const onSubmit = async (data: BasicProfileFormValues) => {
-    console.log('=== PROFILE EDITOR SUBMIT DEBUG ===');
-    console.log('ProfileEditor onSubmit called with data:', data);
+    console.log('🚀 PROFILE EDITOR SUBMIT START');
+    console.log('📝 Form data received:', data);
     
     // Ensure we have the profile image in the data
     if (!data.profileImage && profileData?.profileImage) {
@@ -89,7 +89,7 @@ const ProfileEditor = () => {
     
     // Save to localStorage with user role-specific key
     localStorage.setItem(storageKey, JSON.stringify(data));
-    console.log('Profile data saved to localStorage with key:', storageKey);
+    console.log('💾 Profile data saved to localStorage with key:', storageKey);
     
     // Update username in localStorage if name has changed
     if (data.firstName !== undefined && data.lastName !== undefined) {
@@ -98,14 +98,14 @@ const ProfileEditor = () => {
       if (fullName) {
         // Use the updateUserName function from useAuth to ensure proper updates
         updateUserName(fullName);
-        console.log('Updated userName in localStorage to:', fullName);
+        console.log('👤 Updated userName in localStorage to:', fullName);
       }
     }
 
     // Save to Supabase database as well
     if (user?.id) {
       try {
-        console.log('Saving profile data to database for user:', user.id);
+        console.log('💾 Saving profile data to database for user:', user.id);
         
         // Update profiles table
         const profileUpdateData = {
@@ -117,16 +117,17 @@ const ProfileEditor = () => {
           profile_image: data.profileImage || null,
         };
 
-        console.log('Updating profiles table with:', profileUpdateData);
+        console.log('📋 Updating profiles table with:', profileUpdateData);
 
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert(profileUpdateData);
+          .upsert(profileUpdateData, { onConflict: 'id' });
 
         if (profileError) {
-          console.error('Error updating profiles table:', profileError);
+          console.error('❌ Error updating profiles table:', profileError);
+          throw profileError;
         } else {
-          console.log('Successfully updated profiles table');
+          console.log('✅ Successfully updated profiles table');
         }
 
         // Update mechanic_profiles table if user is a mechanic
@@ -139,39 +140,58 @@ const ProfileEditor = () => {
             years_experience: data.yearsExperience,
           };
 
-          console.log('Updating mechanic_profiles table with:', mechanicUpdateData);
+          console.log('🔧 Updating mechanic_profiles table with:', mechanicUpdateData);
 
           const { error: mechanicError } = await supabase
             .from('mechanic_profiles')
-            .upsert(mechanicUpdateData);
+            .upsert(mechanicUpdateData, { onConflict: 'id' });
 
           if (mechanicError) {
-            console.error('Error updating mechanic_profiles table:', mechanicError);
+            console.error('❌ Error updating mechanic_profiles table:', mechanicError);
+            throw mechanicError;
           } else {
-            console.log('Successfully updated mechanic_profiles table');
+            console.log('✅ Successfully updated mechanic_profiles table');
           }
         }
 
-        // Force a small delay and trigger window event to update progress tracker
+        console.log('🎉 All database updates completed successfully');
+
+        // Update state after saving
+        setProfileData({...data});
+        
+        // Trigger window event to update progress tracker immediately
+        console.log('📡 Dispatching profile-updated event');
+        window.dispatchEvent(new CustomEvent('profile-updated'));
+        
+        // Also force a page refresh of the progress data after a short delay
         setTimeout(() => {
-          console.log('Dispatching profile-updated event');
+          console.log('🔄 Triggering additional profile update event');
           window.dispatchEvent(new CustomEvent('profile-updated'));
-        }, 1000);
+        }, 500);
+
+        toast({
+          title: "Profile updated",
+          description: "Your profile has been successfully updated and saved",
+        });
 
       } catch (error) {
-        console.error('Error saving to database:', error);
+        console.error('💥 Error saving to database:', error);
+        toast({
+          title: "Error saving profile",
+          description: "There was an error saving your profile. Please try again.",
+          variant: "destructive"
+        });
+        return; // Don't continue if database save failed
       }
+    } else {
+      console.log('⚠️ No user ID found, skipping database save');
+      toast({
+        title: "Profile updated locally",
+        description: "Your profile has been saved locally",
+      });
     }
     
-    // Update state after saving
-    setProfileData({...data});
-    
-    console.log('=== END PROFILE EDITOR SUBMIT DEBUG ===');
-    
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been successfully updated and saved",
-    });
+    console.log('✅ PROFILE EDITOR SUBMIT COMPLETE');
   };
 
   if (isLoading) {

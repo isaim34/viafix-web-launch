@@ -9,20 +9,37 @@ import { useMechanicProgress } from './useMechanicProgress';
 export const MechanicProgressTracker = () => {
   const { progress, loading, refetch } = useMechanicProgress();
 
-  // Listen for profile updates
+  // Listen for profile updates with more aggressive refresh
   useEffect(() => {
     const handleProfileUpdate = () => {
-      console.log('Profile update event received, refetching progress...');
+      console.log('🔄 Profile update event received, refetching progress...');
       if (refetch) {
         refetch();
       }
     };
 
+    // Listen to multiple event types
     window.addEventListener('profile-updated', handleProfileUpdate);
+    window.addEventListener('storage', handleProfileUpdate);
+    window.addEventListener('storage-event', handleProfileUpdate);
     
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate);
+      window.removeEventListener('storage', handleProfileUpdate);
+      window.removeEventListener('storage-event', handleProfileUpdate);
     };
+  }, [refetch]);
+
+  // Auto-refresh every 10 seconds when on the dashboard
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('⏰ Auto-refreshing progress data...');
+      if (refetch) {
+        refetch();
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, [refetch]);
 
   if (loading) {
@@ -67,6 +84,13 @@ export const MechanicProgressTracker = () => {
   const completedMilestones = milestones.filter(m => m.completed).length;
   const progressPercentage = (completedMilestones / milestones.length) * 100;
 
+  console.log('📊 Progress Tracker Render:', {
+    progress,
+    completedMilestones,
+    progressPercentage,
+    milestones: milestones.map(m => ({ id: m.id, completed: m.completed }))
+  });
+
   const getBadgeLevel = () => {
     if (progressPercentage === 100) return { title: 'Elite Mechanic', color: 'bg-purple-500' };
     if (progressPercentage >= 75) return { title: 'Verified Pro', color: 'bg-blue-500' };
@@ -83,6 +107,15 @@ export const MechanicProgressTracker = () => {
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5" />
             Professional Progress
+            <button 
+              onClick={() => {
+                console.log('🔄 Manual refresh triggered');
+                if (refetch) refetch();
+              }}
+              className="ml-2 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+            >
+              Refresh
+            </button>
           </CardTitle>
           <Badge className={`${badge.color} text-white`}>
             {badge.title}

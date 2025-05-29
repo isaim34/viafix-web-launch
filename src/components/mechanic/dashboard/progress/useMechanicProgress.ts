@@ -22,77 +22,95 @@ export const useMechanicProgress = () => {
 
   const fetchProgress = useCallback(async () => {
     if (!user?.id) {
-      console.log('No user ID available for progress tracking');
+      console.log('❌ No user ID available for progress tracking');
       setLoading(false);
       return;
     }
 
     try {
-      console.log('=== MECHANIC PROGRESS TRACKER DEBUG ===');
-      console.log('Fetching progress for user:', user.id);
+      console.log('🔍 PROGRESS TRACKER: Starting fetch for user:', user.id);
+      setLoading(true);
 
       // Check profile completeness from profiles table
+      console.log('📋 Fetching basic profile...');
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('first_name, last_name, phone, zip_code, profile_image')
         .eq('id', user.id)
         .single();
 
-      console.log('Profile query result:', { profile, profileError });
+      if (profileError) {
+        console.error('❌ Profile query error:', profileError);
+      } else {
+        console.log('✅ Profile data:', profile);
+      }
 
       // Check mechanic profile completeness
+      console.log('🔧 Fetching mechanic profile...');
       const { data: mechanicProfile, error: mechanicError } = await supabase
         .from('mechanic_profiles')
         .select('about, specialties, hourly_rate, years_experience')
         .eq('id', user.id)
         .single();
 
-      console.log('Mechanic profile query result:', { mechanicProfile, mechanicError });
+      if (mechanicError) {
+        console.error('❌ Mechanic profile query error:', mechanicError);
+      } else {
+        console.log('✅ Mechanic profile data:', mechanicProfile);
+      }
 
       // Detailed profile completeness check
-      const hasBasicProfile = profile && 
-        profile.first_name && 
-        profile.first_name.trim().length > 0 &&
-        profile.last_name && 
-        profile.last_name.trim().length > 0 &&
-        profile.phone && 
-        profile.phone.trim().length > 0 &&
-        profile.zip_code && 
-        profile.zip_code.trim().length > 0;
+      const basicProfileFields = {
+        firstName: profile?.first_name?.trim(),
+        lastName: profile?.last_name?.trim(),
+        phone: profile?.phone?.trim(),
+        zipCode: profile?.zip_code?.trim()
+      };
 
-      const hasMechanicProfile = mechanicProfile &&
-        mechanicProfile.about && 
-        mechanicProfile.about.trim().length >= 20 &&
-        mechanicProfile.specialties && 
-        mechanicProfile.specialties.trim().length > 0 &&
-        mechanicProfile.hourly_rate && 
-        mechanicProfile.hourly_rate > 0 &&
-        mechanicProfile.years_experience !== null &&
-        mechanicProfile.years_experience >= 0;
+      const mechanicProfileFields = {
+        about: mechanicProfile?.about?.trim(),
+        specialties: mechanicProfile?.specialties?.trim(),
+        hourlyRate: mechanicProfile?.hourly_rate,
+        yearsExperience: mechanicProfile?.years_experience
+      };
+
+      console.log('🔍 Basic profile fields:', basicProfileFields);
+      console.log('🔍 Mechanic profile fields:', mechanicProfileFields);
+
+      const hasBasicProfile = !!(
+        basicProfileFields.firstName && 
+        basicProfileFields.lastName && 
+        basicProfileFields.phone && 
+        basicProfileFields.zipCode
+      );
+
+      const hasMechanicProfile = !!(
+        mechanicProfileFields.about && 
+        mechanicProfileFields.about.length >= 20 &&
+        mechanicProfileFields.specialties &&
+        mechanicProfileFields.hourlyRate && 
+        mechanicProfileFields.hourlyRate > 0 &&
+        mechanicProfileFields.yearsExperience !== null &&
+        mechanicProfileFields.yearsExperience >= 0
+      );
 
       const profileComplete = hasBasicProfile && hasMechanicProfile;
 
-      console.log('Profile completeness detailed check:', {
+      console.log('📊 Profile completeness analysis:', {
         hasBasicProfile,
         hasMechanicProfile,
         profileComplete,
-        basicProfileData: {
-          firstName: profile?.first_name,
-          lastName: profile?.last_name,
-          phone: profile?.phone,
-          zipCode: profile?.zip_code,
-          profileImage: profile?.profile_image
-        },
-        mechanicProfileData: {
-          about: mechanicProfile?.about?.substring(0, 50) + '...',
-          aboutLength: mechanicProfile?.about?.length,
-          specialties: mechanicProfile?.specialties,
-          hourlyRate: mechanicProfile?.hourly_rate,
-          yearsExperience: mechanicProfile?.years_experience
-        }
+        basicMissing: Object.entries(basicProfileFields).filter(([key, value]) => !value),
+        mechanicMissing: Object.entries(mechanicProfileFields).filter(([key, value]) => {
+          if (key === 'about') return !value || value.length < 20;
+          if (key === 'hourlyRate') return !value || value <= 0;
+          if (key === 'yearsExperience') return value === null || value < 0;
+          return !value;
+        })
       });
 
       // Check for verification (certifications or gallery)
+      console.log('🏆 Checking verifications...');
       const { data: certifications } = await supabase
         .from('certifications')
         .select('id')
@@ -108,13 +126,14 @@ export const useMechanicProgress = () => {
       const hasVerification = (certifications && certifications.length > 0) || 
                              (gallery && gallery.length > 0);
 
-      console.log('Verification check:', { 
+      console.log('🏆 Verification status:', { 
         certificationsCount: certifications?.length || 0,
         galleryCount: gallery?.length || 0,
         hasVerification 
       });
 
       // Check for maintenance records
+      console.log('🔧 Checking maintenance records...');
       const { data: maintenanceRecords } = await supabase
         .from('maintenance_records')
         .select('id')
@@ -123,12 +142,13 @@ export const useMechanicProgress = () => {
 
       const hasMaintenanceRecord = maintenanceRecords && maintenanceRecords.length > 0;
 
-      console.log('Maintenance records check:', { 
+      console.log('🔧 Maintenance records:', { 
         recordsCount: maintenanceRecords?.length || 0,
         hasMaintenanceRecord 
       });
 
       // Check for 5-star review
+      console.log('⭐ Checking reviews...');
       const { data: reviews } = await supabase
         .from('mechanic_reviews')
         .select('rating')
@@ -138,7 +158,7 @@ export const useMechanicProgress = () => {
 
       const hasFiveStarReview = reviews && reviews.length > 0;
 
-      console.log('Five star review check:', { 
+      console.log('⭐ Five star review status:', { 
         fiveStarCount: reviews?.length || 0,
         hasFiveStarReview 
       });
@@ -150,7 +170,7 @@ export const useMechanicProgress = () => {
         hasFiveStarReview: !!hasFiveStarReview
       };
 
-      console.log('Final progress state:', newProgress);
+      console.log('🎯 FINAL PROGRESS STATE:', newProgress);
 
       setProgress(newProgress);
 
@@ -162,7 +182,7 @@ export const useMechanicProgress = () => {
         hasFiveStarReview
       ].filter(Boolean).length * 25;
 
-      console.log('Updating completion score to:', completionScore);
+      console.log('📈 Updating completion score to:', completionScore);
 
       const { error: updateError } = await supabase
         .from('mechanic_profiles')
@@ -170,21 +190,20 @@ export const useMechanicProgress = () => {
         .eq('id', user.id);
 
       if (updateError) {
-        console.error('Error updating completion score:', updateError);
+        console.error('❌ Error updating completion score:', updateError);
       } else {
-        console.log('Successfully updated completion score');
+        console.log('✅ Successfully updated completion score to:', completionScore);
       }
 
-      console.log('=== END MECHANIC PROGRESS TRACKER DEBUG ===');
-
     } catch (error) {
-      console.error('Error fetching mechanic progress:', error);
+      console.error('💥 Error in fetchProgress:', error);
     } finally {
       setLoading(false);
     }
   }, [user?.id]);
 
   useEffect(() => {
+    console.log('🚀 Progress tracker hook mounted, fetching initial data...');
     fetchProgress();
   }, [fetchProgress]);
 
