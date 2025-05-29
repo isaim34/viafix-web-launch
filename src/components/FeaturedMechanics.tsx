@@ -5,19 +5,12 @@ import { Button } from './Button';
 import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useMechanics } from '@/hooks/useMechanics';
+import { useFeaturedMechanics } from '@/hooks/useFeaturedMechanics';
 
 export const FeaturedMechanics = () => {
-  const { mechanics, loading } = useMechanics();
+  const { featuredMechanics, loading, error } = useFeaturedMechanics(3);
   
-  // Filter for featured mechanics only
-  const featuredMechanics = mechanics.filter(mechanic => {
-    // You can add logic here to determine featured mechanics
-    // For now, we'll show the first 3 mechanics from the database
-    return true;
-  }).slice(0, 3);
-
-  // Don't render the section if no mechanics are available
+  // Don't render the section if no mechanics are available or loading
   if (loading || featuredMechanics.length === 0) {
     return null;
   }
