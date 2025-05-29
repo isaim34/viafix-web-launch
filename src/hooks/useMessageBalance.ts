@@ -11,7 +11,7 @@ interface MessageBalance {
 }
 
 export const useMessageBalance = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [balance, setBalance] = useState<MessageBalance>({
     available: 0,
     used: 0,
@@ -22,7 +22,7 @@ export const useMessageBalance = () => {
 
   useEffect(() => {
     const fetchMessageBalance = async () => {
-      if (!currentUser) {
+      if (!user) {
         setBalance(prev => ({ ...prev, loading: false }));
         return;
       }
@@ -50,7 +50,7 @@ export const useMessageBalance = () => {
     };
 
     fetchMessageBalance();
-  }, [currentUser]);
+  }, [user]);
 
   const deductMessages = (count: number) => {
     setBalance(prev => ({
