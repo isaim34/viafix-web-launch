@@ -74,7 +74,8 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
     form.trigger('profileImage');
   };
 
-  const handleButtonClick = (e: React.MouseEvent) => {
+  const handleButtonClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
     console.log('Save Changes button clicked');
     console.log('Form state:', {
       isValid: form.formState.isValid,
@@ -83,7 +84,17 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
       errors: form.formState.errors
     });
     
-    // Don't prevent default here - let the form handle it
+    // Manually trigger form submission
+    const isValid = await form.trigger();
+    console.log('Manual validation result:', isValid);
+    
+    if (isValid) {
+      const formData = form.getValues();
+      console.log('Form data to submit:', formData);
+      handleSubmit(formData);
+    } else {
+      console.log('Form validation failed:', form.formState.errors);
+    }
   };
 
   return (
@@ -126,7 +137,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
 
         <div className="flex justify-center">
           <Button 
-            type="submit" 
+            type="button"
             className="px-8"
             onClick={handleButtonClick}
           >
