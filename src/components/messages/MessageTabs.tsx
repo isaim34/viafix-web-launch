@@ -28,6 +28,15 @@ const MessageTabs = ({
   isLoading,
   error
 }: MessageTabsProps) => {
+  console.log('MessageTabs component rendering with:', {
+    currentUserRole,
+    currentUserId,
+    threadsCount: threads?.length || 0,
+    isLoading,
+    error,
+    activeTab
+  });
+
   return (
     <Tabs value="chat" className="w-full">
       <TabsList className="mb-6">
@@ -71,6 +80,14 @@ const MessageThreadsPanel = ({
   isLoading,
   error
 }: MessageThreadsPanelProps) => {
+  console.log('MessageThreadsPanel rendering with:', {
+    threadsCount: threads?.length || 0,
+    currentUserId,
+    currentUserRole,
+    isLoading,
+    error
+  });
+
   return (
     <div className="bg-white rounded-lg border shadow-sm">
       <div className="p-4 border-b">
@@ -87,7 +104,7 @@ const MessageThreadsPanel = ({
       </div>
       {error ? (
         <div className="p-4 bg-red-50 text-red-500 text-sm border-b">
-          {error}
+          Error: {error}
         </div>
       ) : (
         <ChatThreadsList 

@@ -20,7 +20,16 @@ export const ChatThreadsList = ({
   selectedThreadId,
   isLoading = false
 }: ChatThreadsListProps) => {
+  console.log('ChatThreadsList rendering with:', {
+    threadsCount: threads?.length || 0,
+    currentUserId,
+    selectedThreadId,
+    isLoading,
+    threads: threads?.map(t => ({ id: t.id, unreadCount: t.unreadCount, participants: t.participants }))
+  });
+
   if (isLoading) {
+    console.log('ChatThreadsList - Showing loading state');
     return (
       <div className="flex justify-center items-center py-20">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -29,6 +38,7 @@ export const ChatThreadsList = ({
   }
   
   if (threads.length === 0) {
+    console.log('ChatThreadsList - No threads found, showing empty state');
     return (
       <div className="text-center py-20 text-muted-foreground">
         <MessageCircle className="mx-auto h-12 w-12 text-gray-300 mb-3" />
@@ -37,6 +47,8 @@ export const ChatThreadsList = ({
       </div>
     );
   }
+
+  console.log('ChatThreadsList - Rendering thread list');
 
   // Helper function to determine message type and urgency
   const getMessageTypeInfo = (thread: ChatThread) => {
@@ -85,6 +97,14 @@ export const ChatThreadsList = ({
         // Get the other participant name (not the current user)
         const otherParticipantId = thread.participants.find(p => p !== currentUserId) || '';
         const otherParticipantName = thread.participantNames[otherParticipantId] || 'Unknown User';
+        
+        console.log(`ChatThreadsList - Rendering thread ${thread.id}:`, {
+          otherParticipantId,
+          otherParticipantName,
+          unreadCount: thread.unreadCount,
+          participants: thread.participants,
+          participantNames: thread.participantNames
+        });
         
         // Format the last message timestamp
         const lastMessageTime = thread.lastMessageAt ? new Date(thread.lastMessageAt).toLocaleTimeString([], {
