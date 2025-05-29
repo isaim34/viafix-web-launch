@@ -86,11 +86,14 @@ export const useMechanicProgress = () => {
 
       const hasMechanicProfile = !!(
         mechanicProfileFields.about && 
+        typeof mechanicProfileFields.about === 'string' &&
         mechanicProfileFields.about.length >= 20 &&
         mechanicProfileFields.specialties &&
         mechanicProfileFields.hourlyRate && 
+        typeof mechanicProfileFields.hourlyRate === 'number' &&
         mechanicProfileFields.hourlyRate > 0 &&
         mechanicProfileFields.yearsExperience !== null &&
+        typeof mechanicProfileFields.yearsExperience === 'number' &&
         mechanicProfileFields.yearsExperience >= 0
       );
 
@@ -102,9 +105,9 @@ export const useMechanicProgress = () => {
         profileComplete,
         basicMissing: Object.entries(basicProfileFields).filter(([key, value]) => !value),
         mechanicMissing: Object.entries(mechanicProfileFields).filter(([key, value]) => {
-          if (key === 'about') return !value || value.length < 20;
-          if (key === 'hourlyRate') return !value || value <= 0;
-          if (key === 'yearsExperience') return value === null || value < 0;
+          if (key === 'about') return !value || typeof value !== 'string' || value.length < 20;
+          if (key === 'hourlyRate') return !value || typeof value !== 'number' || value <= 0;
+          if (key === 'yearsExperience') return value === null || typeof value !== 'number' || value < 0;
           return !value;
         })
       });
