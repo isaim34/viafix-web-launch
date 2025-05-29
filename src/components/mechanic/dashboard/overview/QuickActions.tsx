@@ -11,10 +11,49 @@ interface QuickAction {
 }
 
 interface QuickActionsProps {
-  actions: QuickAction[];
+  onTabChange: (tabValue: string) => void;
 }
 
-export const QuickActions = ({ actions }: QuickActionsProps) => {
+export const QuickActions = ({ onTabChange }: QuickActionsProps) => {
+  const actions: QuickAction[] = [
+    {
+      title: 'Add Service',
+      description: 'Create new service',
+      icon: '🔧',
+      action: () => onTabChange('services')
+    },
+    {
+      title: 'View Calendar',
+      description: 'Check schedule',
+      icon: '📅',
+      action: () => onTabChange('calendar')
+    },
+    {
+      title: 'Messages',
+      description: 'Check messages',
+      icon: '💬',
+      action: () => onTabChange('messages')
+    },
+    {
+      title: 'Analytics',
+      description: 'View reports',
+      icon: '📊',
+      action: () => onTabChange('analytics')
+    },
+    {
+      title: 'Profile',
+      description: 'Edit profile',
+      icon: '👤',
+      action: () => onTabChange('profile')
+    },
+    {
+      title: 'Settings',
+      description: 'Account settings',
+      icon: '⚙️',
+      action: () => onTabChange('settings')
+    }
+  ];
+
   return (
     <Card>
       <CardHeader>

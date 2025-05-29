@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Header } from './Header';
+import Header from './Header';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Logo } from './header/Logo';
 import { Navigation } from './header/Navigation';
 import { AuthButtons } from './header/AuthButtons';
@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
   const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>
@@ -19,7 +20,10 @@ const Header = () => {
           <Navigation />
           <div className="flex items-center gap-4">
             {user ? <UserGreeting /> : <AuthButtons />}
-            <MobileMenu />
+            <MobileMenu 
+              isOpen={isMobileMenuOpen} 
+              onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            />
           </div>
         </div>
       </header>
