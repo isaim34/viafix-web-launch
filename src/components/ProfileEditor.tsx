@@ -5,11 +5,12 @@ import { BasicProfileFormValues } from '@/schemas/profileSchema';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProfileEditor = () => {
   const { toast } = useToast();
   const auth = useAuth();
-  const { currentUserRole, updateUserName, currentUserName } = auth;
+  const { currentUserRole, updateUserName, currentUserName, user } = auth;
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
@@ -72,7 +73,7 @@ const ProfileEditor = () => {
     return initialProfile;
   };
   
-  const onSubmit = (data: BasicProfileFormValues) => {
+  const onSubmit = async (data: BasicProfileFormValues) => {
     console.log('ProfileEditor onSubmit called with data:', data);
     
     // Ensure we have the profile image in the data
@@ -97,6 +98,53 @@ const ProfileEditor = () => {
         // Use the updateUserName function from useAuth to ensure proper updates
         updateUserName(fullName);
         console.log('Updated userName in localStorage to:', fullName);
+      }
+    }
+
+    // Save to Supabase database as well
+    if (user?.id) {
+      try {
+        console.log('Saving profile data to database for user:', user.id);
+        
+        // Update profiles table
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+            zip_code: data.zipCode,
+            profile_image: data.profileImage || null,
+          });
+
+        if (profileError) {
+          console.error('Error updating profiles table:', profileError);
+        } else {
+          console.log('Successfully updated profiles table');
+        }
+
+        // Update mechanic_profiles table if user is a mechanic
+        if (currentUserRole === 'mechanic') {
+          const { error: mechanicError } = await supabase
+            .from('mechanic_profiles')
+            .upsert({
+              id: user.id,
+              about: data.about,
+              specialties: data.specialties,
+              hourly_rate: data.hourlyRate,
+              years_experience: data.yearsExperience,
+            });
+
+          if (mechanicError) {
+            console.error('Error updating mechanic_profiles table:', mechanicError);
+          } else {
+            console.log('Successfully updated mechanic_profiles table');
+          }
+        }
+
+      } catch (error) {
+        console.error('Error saving to database:', error);
       }
     }
     

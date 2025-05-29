@@ -25,18 +25,50 @@ export const useMechanicProgress = () => {
       if (!user?.id) return;
 
       try {
-        // Check profile completeness
+        console.log('Fetching progress for user:', user.id);
+
+        // Check profile completeness from profiles table first
         const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, phone, zip_code, profile_image')
+          .eq('id', user.id)
+          .single();
+
+        console.log('Profile data:', profile);
+
+        // Check mechanic profile completeness
+        const { data: mechanicProfile } = await supabase
           .from('mechanic_profiles')
           .select('about, specialties, hourly_rate, years_experience')
           .eq('id', user.id)
           .single();
 
-        const profileComplete = profile && 
-          profile.about && 
-          profile.specialties && 
-          profile.hourly_rate > 0 && 
-          profile.years_experience > 0;
+        console.log('Mechanic profile data:', mechanicProfile);
+
+        // Check if profile is complete - need both basic profile and mechanic-specific data
+        const profileComplete = profile && mechanicProfile &&
+          profile.first_name && 
+          profile.last_name && 
+          profile.phone && 
+          profile.zip_code &&
+          mechanicProfile.about && 
+          mechanicProfile.specialties && 
+          mechanicProfile.hourly_rate > 0 && 
+          mechanicProfile.years_experience >= 0;
+
+        console.log('Profile complete check:', {
+          hasProfile: !!profile,
+          hasMechanicProfile: !!mechanicProfile,
+          firstName: profile?.first_name,
+          lastName: profile?.last_name,
+          phone: profile?.phone,
+          zipCode: profile?.zip_code,
+          about: mechanicProfile?.about,
+          specialties: mechanicProfile?.specialties,
+          hourlyRate: mechanicProfile?.hourly_rate,
+          yearsExperience: mechanicProfile?.years_experience,
+          profileComplete
+        });
 
         // Check for verification (certifications or gallery)
         const { data: certifications } = await supabase
@@ -54,6 +86,8 @@ export const useMechanicProgress = () => {
         const hasVerification = (certifications && certifications.length > 0) || 
                                (gallery && gallery.length > 0);
 
+        console.log('Verification check:', { certifications, gallery, hasVerification });
+
         // Check for maintenance records
         const { data: maintenanceRecords } = await supabase
           .from('maintenance_records')
@@ -62,6 +96,8 @@ export const useMechanicProgress = () => {
           .limit(1);
 
         const hasMaintenanceRecord = maintenanceRecords && maintenanceRecords.length > 0;
+
+        console.log('Maintenance records check:', { maintenanceRecords, hasMaintenanceRecord });
 
         // Check for 5-star review
         const { data: reviews } = await supabase
@@ -73,12 +109,18 @@ export const useMechanicProgress = () => {
 
         const hasFiveStarReview = reviews && reviews.length > 0;
 
-        setProgress({
+        console.log('Five star review check:', { reviews, hasFiveStarReview });
+
+        const newProgress = {
           profileComplete: !!profileComplete,
           hasVerification: !!hasVerification,
           hasMaintenanceRecord: !!hasMaintenanceRecord,
           hasFiveStarReview: !!hasFiveStarReview
-        });
+        };
+
+        console.log('Final progress state:', newProgress);
+
+        setProgress(newProgress);
 
         // Update profile completion score
         const completionScore = [
@@ -87,6 +129,8 @@ export const useMechanicProgress = () => {
           hasMaintenanceRecord,
           hasFiveStarReview
         ].filter(Boolean).length * 25;
+
+        console.log('Updating completion score to:', completionScore);
 
         await supabase
           .from('mechanic_profiles')
