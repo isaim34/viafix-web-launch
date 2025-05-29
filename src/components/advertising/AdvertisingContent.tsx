@@ -7,7 +7,7 @@ import { FeaturedPlansSection } from './FeaturedPlansSection';
 import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
-import { MassMessageForm } from './MassMessageForm';
+import { MassMessageForm } from './mass-message/MassMessageForm';
 import { useMessageBalance } from '@/hooks/useMessageBalance';
 
 export const AdvertisingContent = () => {
