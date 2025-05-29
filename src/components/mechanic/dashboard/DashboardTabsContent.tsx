@@ -14,9 +14,6 @@ import CustomOffersTab from '@/components/mechanic/CustomOffersTab';
 import MaintenanceRecordsTab from '@/components/mechanic/MaintenanceRecordsTab';
 import AdvertisingTab from '@/components/advertising/AdvertisingTab';
 
-// Import the standalone Messages page component instead of MechanicChat
-import Messages from '@/pages/Messages';
-
 interface DashboardTabsContentProps {
   onTabChange: (tabValue: string) => void;
 }
@@ -59,14 +56,6 @@ export const DashboardTabsContent = ({ onTabChange }: DashboardTabsContentProps)
       <TabsContent value="planner">
         <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading planner</div>}>
           <WeeklyPlannerTab />
-        </ErrorBoundary>
-      </TabsContent>
-      
-      <TabsContent value="messages">
-        <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading messages</div>}>
-          <div className="min-h-[600px]">
-            <Messages />
-          </div>
         </ErrorBoundary>
       </TabsContent>
       

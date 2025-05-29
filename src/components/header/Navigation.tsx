@@ -3,10 +3,11 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { NotificationBadge } from '@/components/notifications/NotificationBadge';
 
 export const Navigation = () => {
   const location = useLocation();
-  const { currentUserRole } = useAuth();
+  const { currentUserRole, isLoggedIn } = useAuth();
   const isMechanicRole = currentUserRole === 'mechanic';
   const isMechanicProfile = location.pathname.startsWith('/mechanics/');
   const isMobile = useIsMobile();
@@ -41,6 +42,14 @@ export const Navigation = () => {
       <Link to="/favorites" className={getLinkClass('/favorites')}>
         My Favorites
       </Link>
+      
+      {/* Messages link - show for all logged in users */}
+      {isLoggedIn && (
+        <Link to="/messages" className={`${getLinkClass('/messages')} flex items-center gap-2`}>
+          <span>Messages</span>
+          <NotificationBadge showIcon={false} />
+        </Link>
+      )}
       
       <Link to="/blog" className={getLinkClass('/blog')}>
         Blog

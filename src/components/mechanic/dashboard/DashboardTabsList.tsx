@@ -6,7 +6,6 @@ import {
   Wrench, 
   CheckSquare, 
   Calendar, 
-  MessageCircle, 
   Tags, 
   BarChart3, 
   Settings, 
@@ -27,7 +26,6 @@ const tabGroups = [
   ],
   [
     { value: "planner", icon: Calendar, label: "Planner" },
-    { value: "messages", icon: MessageCircle, label: "Messages" },
   ],
   [
     { value: "advertising", icon: Tags, label: "Advertising" },
