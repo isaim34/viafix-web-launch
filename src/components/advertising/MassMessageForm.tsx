@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -10,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Users, CreditCard } from 'lucide-react';
+import { Send, Users, CreditCard, MessageSquare } from 'lucide-react';
 import { useZipcode } from '@/hooks/useZipcode';
+import { supabase } from '@/integrations/supabase/client';
 
 const massMessageSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters" }),
@@ -35,6 +35,8 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
 }) => {
   const { toast } = useToast();
   const [estimatedCount, setEstimatedCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCountLoading, setIsCountLoading] = useState(false);
   const { locationData, fetchLocationData } = useZipcode();
   
   const form = useForm<z.infer<typeof massMessageSchema>>({
@@ -48,72 +50,128 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
       customZipCode: "",
     },
   });
-  
-  const handleSelectTarget = (value: string) => {
-    // Enhanced recipient estimation based on area
-    let estimatedRecipients = 0;
-    
-    switch(value) {
-      case "localZip":
-        estimatedRecipients = 35;
-        break;
-      case "nearbyZips":
-        estimatedRecipients = 120;
-        break;
-      case "cityWide":
-        estimatedRecipients = 250;
-        break;
-      case "stateWide":
-        estimatedRecipients = 500;
-        break;
-      case "custom":
-        estimatedRecipients = 75; // Default for custom zip
-        break;
+
+  // Get real customer count for target area
+  const getCustomerCount = async (targetArea: string, customZip?: string) => {
+    setIsCountLoading(true);
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('zip_code')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      const userZip = profile?.zip_code;
+      let query = supabase
+        .from('profiles')
+        .select('id', { count: 'exact' })
+        .not('zip_code', 'is', null);
+
+      // Exclude the current user
+      const currentUser = await supabase.auth.getUser();
+      if (currentUser.data.user) {
+        query = query.neq('id', currentUser.data.user.id);
+      }
+
+      switch (targetArea) {
+        case 'localZip':
+          if (userZip) {
+            query = query.eq('zip_code', userZip);
+          }
+          break;
+        case 'custom':
+          if (customZip) {
+            query = query.eq('zip_code', customZip);
+          }
+          break;
+        case 'nearbyZips':
+        case 'cityWide':
+        case 'stateWide':
+          // For now, return all customers with zip codes
+          // In production, implement proper geographic filtering
+          break;
+      }
+
+      const { count } = await query;
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting customer count:', error);
+      return 0;
+    } finally {
+      setIsCountLoading(false);
     }
-    
-    setEstimatedCount(estimatedRecipients);
+  };
+  
+  const handleSelectTarget = async (value: string) => {
     form.setValue("targetArea", value);
+    const count = await getCustomerCount(value, form.getValues("customZipCode"));
+    setEstimatedCount(count);
   };
 
   const handleCustomZipCode = async (zipCode: string) => {
     if (zipCode.length === 5) {
       await fetchLocationData(zipCode);
-      // Update estimated count based on zip code data
-      setEstimatedCount(45); // Estimate for custom zip
+      const count = await getCustomerCount("custom", zipCode);
+      setEstimatedCount(count);
     }
   };
   
-  const onSubmit = (data: z.infer<typeof massMessageSchema>) => {
-    console.log("Mass message data:", data);
-    
-    // Check if user has enough messages
-    if (estimatedCount > messagesAvailable) {
+  const onSubmit = async (data: z.infer<typeof massMessageSchema>) => {
+    if (estimatedCount === 0) {
       toast({
-        title: "Not enough messages",
-        description: `You need ${estimatedCount} messages but only have ${messagesAvailable}. Purchase more message credits to continue.`,
+        title: "No customers found",
+        description: "There are no customers in your target area to send messages to.",
         variant: "destructive",
       });
       return;
     }
-    
-    // Try to send the message
-    const success = onSend(estimatedCount);
-    
-    if (success) {
+
+    if (estimatedCount > messagesAvailable) {
       toast({
-        title: "Advertisement sent!",
-        description: `Your message has been sent to approximately ${estimatedCount} customers in your target area.`,
-      });
-      
-      // Reset the form
-      form.reset();
-      setEstimatedCount(0);
-    } else {
-      toast({
-        title: "Failed to send",
-        description: "There was an error sending your message. Please try again.",
+        title: "Not enough message credits",
+        description: `You need ${estimatedCount} credits but only have ${messagesAvailable}. Purchase more message credits to continue.`,
         variant: "destructive",
       });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-mass-message', {
+        body: {
+          title: data.title,
+          content: data.content,
+          targetArea: data.targetArea,
+          customZipCode: data.customZipCode
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        // Deduct messages from balance
+        onSend(data.sentCount);
+        
+        toast({
+          title: "Messages sent successfully!",
+          description: `Your advertisement was sent to ${data.sentCount} customers via ViaFix messaging.`,
+        });
+        
+        // Reset the form
+        form.reset();
+        setEstimatedCount(0);
+      } else {
+        throw new Error(data.error || 'Failed to send messages');
+      }
+    } catch (error) {
+      console.error('Error sending mass message:', error);
+      toast({
+        title: "Failed to send messages",
+        description: "There was an error sending your messages. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,7 +195,9 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
                 <div className="text-sm text-gray-600">Available</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{estimatedCount}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {isCountLoading ? '...' : estimatedCount}
+                </div>
                 <div className="text-sm text-gray-600">Required</div>
               </div>
             </div>
@@ -156,10 +216,12 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
-            Send Mass Advertisement
+            <MessageSquare className="h-5 w-5" />
+            Send Mass Advertisement via ViaFix
           </CardTitle>
-          <CardDescription>Promote your services to customers in your target area</CardDescription>
+          <CardDescription>
+            Send your advertisement to customers in your target area through ViaFix's internal messaging system
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -212,11 +274,11 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="localZip">Your Zip Code Only (~35 customers)</SelectItem>
-                        <SelectItem value="nearbyZips">Nearby Zip Codes (~120 customers)</SelectItem>
-                        <SelectItem value="cityWide">City-Wide (~250 customers)</SelectItem>
-                        <SelectItem value="stateWide">State-Wide (~500 customers)</SelectItem>
-                        <SelectItem value="custom">Custom Zip Code (~45 customers)</SelectItem>
+                        <SelectItem value="localZip">Your Zip Code Only</SelectItem>
+                        <SelectItem value="nearbyZips">Nearby Zip Codes</SelectItem>
+                        <SelectItem value="cityWide">City-Wide</SelectItem>
+                        <SelectItem value="stateWide">State-Wide</SelectItem>
+                        <SelectItem value="custom">Custom Zip Code</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -301,7 +363,7 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
                   </div>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Estimated recipients:</span>
+                      <span>Target customers:</span>
                       <span className="font-medium">{estimatedCount}</span>
                     </div>
                     <div className="flex justify-between">
@@ -321,13 +383,14 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
               <Button 
                 type="submit" 
                 className="w-full flex items-center gap-2"
-                disabled={!canAffordMessage || estimatedCount === 0}
+                disabled={!canAffordMessage || estimatedCount === 0 || isLoading || isCountLoading}
                 size="lg"
               >
                 <Send className="h-4 w-4" />
-                {estimatedCount === 0 ? 'Select Target Area' : 
+                {isLoading ? 'Sending...' :
+                 estimatedCount === 0 ? 'Select Target Area' : 
                  !canAffordMessage ? 'Insufficient Credits' : 
-                 'Send Advertisement'}
+                 'Send Advertisement via ViaFix'}
               </Button>
             </form>
           </Form>
