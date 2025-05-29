@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, Plus, MessageCircle, Calendar, DollarSign, Clock } from 'lucide-react';
+import { Bell, Plus, Calendar, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,6 @@ const getCurrentDate = () => {
 // Mock data - in a real app this would come from API/state
 const getQuickStats = () => ({
   todaysJobs: 3,
-  pendingMessages: 7,
   weeklyRevenue: 1250,
   completionRate: 98
 });
@@ -60,15 +59,6 @@ export const DashboardHeader = () => {
             <Plus className="h-4 w-4" />
             New Gig
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 relative">
-            <MessageCircle className="h-4 w-4" />
-            Messages
-            {stats.pendingMessages > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
-                {stats.pendingMessages}
-              </Badge>
-            )}
-          </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Bell className="h-4 w-4" />
             Alerts
@@ -101,20 +91,6 @@ export const DashboardHeader = () => {
               <div>
                 <p className="text-xs md:text-sm font-medium text-green-700">This Week</p>
                 <p className="text-lg md:text-2xl font-bold text-green-900">${stats.weeklyRevenue}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-500 rounded-full p-2">
-                <MessageCircle className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm font-medium text-purple-700">Messages</p>
-                <p className="text-lg md:text-2xl font-bold text-purple-900">{stats.pendingMessages}</p>
               </div>
             </div>
           </CardContent>
