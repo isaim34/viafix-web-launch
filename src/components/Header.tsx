@@ -7,6 +7,8 @@ import { UserGreeting } from './header/UserGreeting';
 import { MobileMenu } from './header/MobileMenu';
 import { SmartReminders } from './notifications/SmartReminders';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 
 const Header = () => {
   const { user } = useAuth();
@@ -19,14 +21,29 @@ const Header = () => {
           <Logo />
           <Navigation />
           <div className="flex items-center gap-4">
-            {user ? <UserGreeting /> : <AuthButtons />}
-            <MobileMenu 
-              isOpen={isMobileMenuOpen} 
-              onClose={() => setIsMobileMenuOpen(false)} 
-            />
+            {/* Desktop Auth/User Menu */}
+            <div className="hidden md:block">
+              <AuthButtons />
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </header>
+      
+      {/* Mobile Menu */}
+      <MobileMenu 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+      />
       
       {/* Smart Reminders - shown below header when user is logged in */}
       {user && (
