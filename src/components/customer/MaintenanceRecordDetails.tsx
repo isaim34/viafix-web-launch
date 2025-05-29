@@ -1,80 +1,90 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, User, FileText, Wrench } from 'lucide-react';
 import { MaintenanceRecord } from '@/types/customer';
-import MechanicNoteForm from './MechanicNoteForm';
+import { RebookMechanicButton } from '../common/RebookMechanicButton';
 
 interface MaintenanceRecordDetailsProps {
   record: MaintenanceRecord;
-  isMechanic: boolean;
-  onEdit: () => void;
-  onAddNote: (note: string) => void;
 }
 
-const MaintenanceRecordDetails = ({ 
-  record, 
-  isMechanic, 
-  onEdit, 
-  onAddNote 
-}: MaintenanceRecordDetailsProps) => {
+const MaintenanceRecordDetails = ({ record }: MaintenanceRecordDetailsProps) => {
+  const isRecentService = () => {
+    const recordDate = new Date(record.date);
+    const daysSince = Math.floor((Date.now() - recordDate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysSince <= 30;
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <h4 className="text-sm font-semibold text-muted-foreground">Date</h4>
-          <p>{record.date}</p>
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5" />
+            {record.serviceType}
+          </CardTitle>
+          <Badge variant={isRecentService() ? "default" : "secondary"}>
+            {new Date(record.date).toLocaleDateString()}
+          </Badge>
         </div>
-        <div>
-          <h4 className="text-sm font-semibold text-muted-foreground">Vehicle</h4>
-          <p>{record.vehicle}</p>
-        </div>
-        {record.vin && (
-          <div className="col-span-2">
-            <h4 className="text-sm font-semibold text-muted-foreground">VIN</h4>
-            <p className="font-mono">{record.vin}</p>
-          </div>
-        )}
-        <div>
-          <h4 className="text-sm font-semibold text-muted-foreground">Service Type</h4>
-          <p>{record.serviceType}</p>
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold text-muted-foreground">Mechanic</h4>
-          <p>{record.mechanic}</p>
-        </div>
-      </div>
-      
-      <div>
-        <h4 className="text-sm font-semibold text-muted-foreground">Description</h4>
-        <p className="mt-1 whitespace-pre-wrap">{record.description}</p>
-      </div>
-      
-      {record.mechanicNotes && record.mechanicNotes.length > 0 && (
-        <div>
-          <h4 className="text-sm font-semibold text-muted-foreground">Mechanic Notes</h4>
-          <div className="mt-2 space-y-2">
-            {record.mechanicNotes.map((note, index) => (
-              <div key={index} className="bg-muted p-3 rounded-md">
-                <p className="whitespace-pre-wrap">{note}</p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">Service Date:</span>
+              <span className="font-medium">{new Date(record.date).toLocaleDateString()}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">Performed by:</span>
+              <span className="font-medium">{record.mechanic}</span>
+            </div>
+            
+            {record.vin && (
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-600">Vehicle:</span>
+                <span className="font-medium">{record.vehicle}</span>
               </div>
-            ))}
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            {record.mechanicSignature && (
+              <Badge className="bg-green-100 text-green-800 border-green-300">
+                Mechanic Verified
+              </Badge>
+            )}
           </div>
         </div>
-      )}
-      
-      <div className="flex justify-end gap-2">
-        {isMechanic ? (
-          <MechanicNoteForm 
-            record={record} 
-            onAddNote={onAddNote} 
-          />
-        ) : (
-          <Button onClick={onEdit}>
-            Edit Record
-          </Button>
+        
+        {record.description && (
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm">Service Details:</h4>
+            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              {record.description}
+            </p>
+          </div>
         )}
-      </div>
-    </div>
+        
+        {record.mechanic !== 'Self-Recorded' && record.mechanic !== 'Self-recorded' && (
+          <div className="pt-3 border-t">
+            <RebookMechanicButton
+              mechanicId="default-mechanic" // This would need to be the actual mechanic ID
+              mechanicName={record.mechanic}
+              lastServiceType={record.serviceType}
+              lastServiceDate={record.date}
+              className="w-full sm:w-auto"
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

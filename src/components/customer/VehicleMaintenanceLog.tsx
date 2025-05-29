@@ -7,6 +7,7 @@ import { useMaintenanceLog } from './maintenance-log/useMaintenanceLog';
 import { useMaintenanceRecordOperations } from './maintenance-log/MaintenanceRecordOperations';
 import { MaintenanceLogActions } from './maintenance-log/MaintenanceLogActions';
 import { MaintenanceLogContent } from './maintenance-log/MaintenanceLogContent';
+import { MyVehiclesSection } from './vehicles/MyVehiclesSection';
 
 const VehicleMaintenanceLog = () => {
   const [editingRecord, setEditingRecord] = useState<MaintenanceRecord | null>(null);
@@ -49,11 +50,16 @@ const VehicleMaintenanceLog = () => {
   
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="maintenance" className="w-full">
+      <Tabs defaultValue="vehicles" className="w-full">
         <TabsList className="mb-6">
+          <TabsTrigger value="vehicles">My Vehicles</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance Log</TabsTrigger>
           <TabsTrigger value="fixiq">FixIQ Dashboard</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="vehicles">
+          <MyVehiclesSection />
+        </TabsContent>
         
         <TabsContent value="maintenance">
           <div className="space-y-6">

@@ -236,6 +236,30 @@ export type Database = {
           },
         ]
       }
+      customer_vehicles: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          is_primary: boolean | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          is_primary?: boolean | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          is_primary?: boolean | null
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
       education: {
         Row: {
           created_at: string
@@ -474,10 +498,12 @@ export type Database = {
           hourly_rate: number
           id: string
           is_featured: boolean | null
+          profile_completion_score: number | null
           rating: number | null
           response_time: string | null
           review_count: number | null
           specialties: string | null
+          verification_status: string | null
           years_experience: number
         }
         Insert: {
@@ -486,10 +512,12 @@ export type Database = {
           hourly_rate?: number
           id: string
           is_featured?: boolean | null
+          profile_completion_score?: number | null
           rating?: number | null
           response_time?: string | null
           review_count?: number | null
           specialties?: string | null
+          verification_status?: string | null
           years_experience?: number
         }
         Update: {
@@ -498,10 +526,12 @@ export type Database = {
           hourly_rate?: number
           id?: string
           is_featured?: boolean | null
+          profile_completion_score?: number | null
           rating?: number | null
           response_time?: string | null
           review_count?: number | null
           specialties?: string | null
+          verification_status?: string | null
           years_experience?: number
         }
         Relationships: [
@@ -599,6 +629,36 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_reminders: boolean | null
+          id: string
+          mechanic_inactivity_alerts: boolean | null
+          service_reminders: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_reminders?: boolean | null
+          id?: string
+          mechanic_inactivity_alerts?: boolean | null
+          service_reminders?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_reminders?: boolean | null
+          id?: string
+          mechanic_inactivity_alerts?: boolean | null
+          service_reminders?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       planner_entries: {
         Row: {
           created_at: string
@@ -635,11 +695,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_views: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          mechanic_id: string
+          user_agent: string | null
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          mechanic_id: string
+          user_agent?: string | null
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          mechanic_id?: string
+          user_agent?: string | null
+          viewer_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           first_name: string | null
           id: string
+          last_login: string | null
           last_name: string | null
           phone: string | null
           profile_image: string | null
@@ -650,6 +738,7 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           id: string
+          last_login?: string | null
           last_name?: string | null
           phone?: string | null
           profile_image?: string | null
@@ -660,6 +749,7 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           id?: string
+          last_login?: string | null
           last_name?: string | null
           phone?: string | null
           profile_image?: string | null
