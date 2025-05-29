@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -116,7 +117,7 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
     }
   };
   
-  const onSubmit = async (data: z.infer<typeof massMessageSchema>) => {
+  const onSubmit = async (formData: z.infer<typeof massMessageSchema>) => {
     if (estimatedCount === 0) {
       toast({
         title: "No customers found",
@@ -137,31 +138,31 @@ export const MassMessageForm: React.FC<MassMessageFormProps> = ({
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-mass-message', {
+      const { data: responseData, error } = await supabase.functions.invoke('send-mass-message', {
         body: {
-          title: data.title,
-          content: data.content,
-          targetArea: data.targetArea,
-          customZipCode: data.customZipCode
+          title: formData.title,
+          content: formData.content,
+          targetArea: formData.targetArea,
+          customZipCode: formData.customZipCode
         }
       });
 
       if (error) throw error;
 
-      if (data.success) {
+      if (responseData.success) {
         // Deduct messages from balance
-        onSend(data.sentCount);
+        onSend(responseData.sentCount);
         
         toast({
           title: "Messages sent successfully!",
-          description: `Your advertisement was sent to ${data.sentCount} customers via ViaFix messaging.`,
+          description: `Your advertisement was sent to ${responseData.sentCount} customers via ViaFix messaging.`,
         });
         
         // Reset the form
         form.reset();
         setEstimatedCount(0);
       } else {
-        throw new Error(data.error || 'Failed to send messages');
+        throw new Error(responseData.error || 'Failed to send messages');
       }
     } catch (error) {
       console.error('Error sending mass message:', error);
