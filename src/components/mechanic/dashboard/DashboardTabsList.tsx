@@ -11,7 +11,8 @@ import {
   Settings, 
   X,
   Star,
-  FileText
+  FileText,
+  MessageSquare
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -25,6 +26,7 @@ const tabGroups = [
     { value: "cancelled", icon: X, label: "Cancelled" },
   ],
   [
+    { value: "messages", icon: MessageSquare, label: "Messages" },
     { value: "planner", icon: Calendar, label: "Planner" },
   ],
   [
