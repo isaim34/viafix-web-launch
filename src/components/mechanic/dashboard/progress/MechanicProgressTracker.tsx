@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,23 @@ import { CheckCircle, Circle, Star, Award, Camera, FileText } from 'lucide-react
 import { useMechanicProgress } from './useMechanicProgress';
 
 export const MechanicProgressTracker = () => {
-  const { progress, loading } = useMechanicProgress();
+  const { progress, loading, refetch } = useMechanicProgress();
+
+  // Listen for profile updates
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      console.log('Profile update event received, refetching progress...');
+      if (refetch) {
+        refetch();
+      }
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate);
+    };
+  }, [refetch]);
 
   if (loading) {
     return <div className="animate-pulse bg-gray-200 h-32 rounded-lg"></div>;

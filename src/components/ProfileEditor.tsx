@@ -74,6 +74,7 @@ const ProfileEditor = () => {
   };
   
   const onSubmit = async (data: BasicProfileFormValues) => {
+    console.log('=== PROFILE EDITOR SUBMIT DEBUG ===');
     console.log('ProfileEditor onSubmit called with data:', data);
     
     // Ensure we have the profile image in the data
@@ -107,16 +108,20 @@ const ProfileEditor = () => {
         console.log('Saving profile data to database for user:', user.id);
         
         // Update profiles table
+        const profileUpdateData = {
+          id: user.id,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone,
+          zip_code: data.zipCode,
+          profile_image: data.profileImage || null,
+        };
+
+        console.log('Updating profiles table with:', profileUpdateData);
+
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert({
-            id: user.id,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            phone: data.phone,
-            zip_code: data.zipCode,
-            profile_image: data.profileImage || null,
-          });
+          .upsert(profileUpdateData);
 
         if (profileError) {
           console.error('Error updating profiles table:', profileError);
@@ -126,15 +131,19 @@ const ProfileEditor = () => {
 
         // Update mechanic_profiles table if user is a mechanic
         if (currentUserRole === 'mechanic') {
+          const mechanicUpdateData = {
+            id: user.id,
+            about: data.about,
+            specialties: data.specialties,
+            hourly_rate: data.hourlyRate,
+            years_experience: data.yearsExperience,
+          };
+
+          console.log('Updating mechanic_profiles table with:', mechanicUpdateData);
+
           const { error: mechanicError } = await supabase
             .from('mechanic_profiles')
-            .upsert({
-              id: user.id,
-              about: data.about,
-              specialties: data.specialties,
-              hourly_rate: data.hourlyRate,
-              years_experience: data.yearsExperience,
-            });
+            .upsert(mechanicUpdateData);
 
           if (mechanicError) {
             console.error('Error updating mechanic_profiles table:', mechanicError);
@@ -143,6 +152,12 @@ const ProfileEditor = () => {
           }
         }
 
+        // Force a small delay and trigger window event to update progress tracker
+        setTimeout(() => {
+          console.log('Dispatching profile-updated event');
+          window.dispatchEvent(new CustomEvent('profile-updated'));
+        }, 1000);
+
       } catch (error) {
         console.error('Error saving to database:', error);
       }
@@ -150,6 +165,8 @@ const ProfileEditor = () => {
     
     // Update state after saving
     setProfileData({...data});
+    
+    console.log('=== END PROFILE EDITOR SUBMIT DEBUG ===');
     
     toast({
       title: "Profile updated",
