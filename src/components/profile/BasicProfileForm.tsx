@@ -77,7 +77,37 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   const handleButtonClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     console.log('Save Changes button clicked');
-    console.log('Form state:', {
+    
+    // Get current form values
+    const currentValues = form.getValues();
+    console.log('Current form values:', currentValues);
+    
+    // Check each field individually for validation
+    const fieldValidations = await Promise.all([
+      form.trigger('firstName'),
+      form.trigger('lastName'),
+      form.trigger('zipCode'),
+      form.trigger('phone'),
+      form.trigger('hourlyRate'),
+      form.trigger('yearsExperience'),
+      form.trigger('about'),
+      form.trigger('specialties'),
+      form.trigger('profileImage'),
+    ]);
+    
+    console.log('Individual field validations:', {
+      firstName: fieldValidations[0],
+      lastName: fieldValidations[1],
+      zipCode: fieldValidations[2],
+      phone: fieldValidations[3],
+      hourlyRate: fieldValidations[4],
+      yearsExperience: fieldValidations[5],
+      about: fieldValidations[6],
+      specialties: fieldValidations[7],
+      profileImage: fieldValidations[8],
+    });
+    
+    console.log('Form state after field validation:', {
       isValid: form.formState.isValid,
       isDirty: form.formState.isDirty,
       isSubmitting: form.formState.isSubmitting,
@@ -94,6 +124,10 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
       handleSubmit(formData);
     } else {
       console.log('Form validation failed:', form.formState.errors);
+      // Try to submit anyway to see what happens
+      console.log('Attempting to submit anyway...');
+      const formData = form.getValues();
+      handleSubmit(formData);
     }
   };
 
