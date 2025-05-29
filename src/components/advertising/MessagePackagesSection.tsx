@@ -73,45 +73,41 @@ export const MessagePackagesSection: React.FC<MessagePackagesSectionProps> = ({
     setIsConfirmDialogOpen(false);
   };
 
-  const price50 = (messageCost * 50).toFixed(2);
-  const price200 = (messageCost * 200 * 0.9).toFixed(2);
-  const price500 = (messageCost * 500 * 0.8).toFixed(2);
+  // Updated pricing to match new Stripe products
+  const packages = [
+    { quantity: 50, price: 49.99, description: "Perfect for getting started" },
+    { quantity: 200, price: 99.99, description: "Most popular choice", popular: true },
+    { quantity: 500, price: 199.99, description: "Best value for heavy users" }
+  ];
   
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="border-dashed hover:border-primary/50 transition-colors cursor-pointer" onClick={() => handlePackageClick(50)}>
-          <CardHeader>
-            <CardTitle>50 Messages</CardTitle>
-            <CardDescription>${price50}</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Button variant="outline" className="w-full">Buy Now</Button>
-          </CardFooter>
-        </Card>
-        
-        <Card className="border-primary shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => handlePackageClick(200)}>
-          <CardHeader>
-            <CardTitle>200 Messages</CardTitle>
-            <CardDescription>${price200} (10% discount)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Most Popular</Badge>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full">Buy Now</Button>
-          </CardFooter>
-        </Card>
-        
-        <Card className="border-dashed hover:border-primary/50 transition-colors cursor-pointer" onClick={() => handlePackageClick(500)}>
-          <CardHeader>
-            <CardTitle>500 Messages</CardTitle>
-            <CardDescription>${price500} (20% discount)</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Button variant="outline" className="w-full">Buy Now</Button>
-          </CardFooter>
-        </Card>
+        {packages.map((pkg) => (
+          <Card 
+            key={pkg.quantity}
+            className={`${pkg.popular ? 'border-primary shadow-sm' : 'border-dashed'} hover:border-primary/50 transition-colors cursor-pointer`}
+            onClick={() => handlePackageClick(pkg.quantity)}
+          >
+            <CardHeader>
+              <CardTitle>{pkg.quantity} Messages</CardTitle>
+              <CardDescription>${pkg.price}</CardDescription>
+            </CardHeader>
+            {pkg.popular && (
+              <CardContent>
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Most Popular</Badge>
+              </CardContent>
+            )}
+            <CardContent className="pt-0">
+              <p className="text-sm text-muted-foreground">{pkg.description}</p>
+            </CardContent>
+            <CardFooter>
+              <Button variant={pkg.popular ? "default" : "outline"} className="w-full">
+                Buy Now
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
       </div>
       
       <div className="flex items-center gap-2 mb-4">
@@ -132,9 +128,9 @@ export const MessagePackagesSection: React.FC<MessagePackagesSectionProps> = ({
               {selectedPackage && (
                 <>
                   You are about to purchase {selectedPackage} messages{' '}
-                  {selectedPackage === 50 && `for $${price50}`}
-                  {selectedPackage === 200 && `for $${price200} (10% discount)`}
-                  {selectedPackage === 500 && `for $${price500} (20% discount)`}.
+                  {selectedPackage === 50 && `for $49.99`}
+                  {selectedPackage === 200 && `for $99.99`}
+                  {selectedPackage === 500 && `for $199.99`}.
                   Would you like to proceed?
                 </>
               )}

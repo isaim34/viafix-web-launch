@@ -13,7 +13,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'monthly',
     name: 'Monthly',
-    price: 50,
+    price: 49.99,
     billing: 'per month',
     description: 'Perfect for trying out our premium features',
     features: [
@@ -26,8 +26,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'quarterly',
     name: 'Quarterly',
-    price: 45,
-    billing: 'per month, billed quarterly at $135',
+    price: 44.99,
+    billing: 'per month, billed quarterly at $134.97',
     description: 'Save 10% with quarterly billing',
     features: [
       'All Monthly plan features',
@@ -40,8 +40,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'biannual',
     name: 'Bi-Annual',
-    price: 42.50,
-    billing: 'per month, billed bi-annually at $255',
+    price: 42.49,
+    billing: 'per month, billed bi-annually at $254.94',
     description: 'Save 15% with bi-annual billing',
     features: [
       'All Quarterly plan features',
@@ -53,8 +53,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'annual',
     name: 'Annual',
-    price: 40,
-    billing: 'per month, billed annually at $480',
+    price: 39.99,
+    billing: 'per month, billed annually at $479.88',
     description: 'Our best value subscription plan',
     features: [
       'All Bi-Annual plan features',

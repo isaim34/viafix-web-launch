@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
@@ -189,12 +188,12 @@ serve(async (req) => {
     let session;
     
     if (paymentType === 'subscription') {
-      // Calculate price amounts based on plan type
+      // Updated price amounts to match new Stripe products (in cents)
       const priceAmounts = {
-        monthly: 5000,     // $50/month
-        quarterly: 13500,  // $45/month (billed quarterly at $135)
-        biannual: 25500,   // $42.50/month (billed bi-annually at $255)
-        annual: 48000,     // $40/month (billed annually at $480)
+        monthly: 4999,      // $49.99/month
+        quarterly: 13497,   // $44.99/month (billed quarterly at $134.97)
+        biannual: 25494,    // $42.49/month (billed bi-annually at $254.94)
+        annual: 47988,      // $39.99/month (billed annually at $479.88)
       };
       
       const intervals = {
@@ -266,8 +265,71 @@ serve(async (req) => {
         client_reference_id: userId || userEmail, // Add reference for tracking
         automatic_tax: { enabled: false }
       });
+    } else if (paymentType === 'messages') {
+      // Updated message package pricing (in cents)
+      const messagePackages = {
+        50: 4999,    // $49.99 for 50 messages
+        200: 9999,   // $99.99 for 200 messages  
+        500: 19999,  // $199.99 for 500 messages
+      };
+      
+      const packageQuantity = quantity || 50;
+      const unitAmount = messagePackages[packageQuantity as keyof typeof messagePackages];
+      
+      if (!unitAmount) {
+        logStep('ERROR: Invalid message package quantity', { quantity: packageQuantity });
+        return new Response(JSON.stringify({ 
+          error: `Invalid message package: ${packageQuantity}`,
+          success: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
+
+      logStep('Creating message package checkout', { 
+        paymentType, 
+        quantity: packageQuantity, 
+        unitAmount
+      });
+      
+      // Get origin from request headers or set a default
+      const origin = req.headers.get('origin') || req.headers.get('referer') || 'https://viafix-web.com';
+
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Message Package',
+                description: `${packageQuantity} messages`,
+                metadata: {
+                  payment_type: paymentType,
+                  quantity: packageQuantity.toString(),
+                  user_id: userId || 'local_auth_user'
+                }
+              },
+              unit_amount: unitAmount,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${origin}/mechanic-dashboard?success=${paymentType}&quantity=${packageQuantity}`,
+        cancel_url: `${origin}/mechanic-dashboard?canceled=true`,
+        payment_intent_data: {
+          metadata: {
+            payment_type: paymentType,
+            quantity: packageQuantity.toString(),
+            user_id: userId || 'local_auth_user'
+          }
+        },
+        client_reference_id: userId || userEmail
+      });
     } else {
-      // One-off payment for featured listing or message packages
+      // Legacy featured listing support (keeping existing logic)
       const unitAmount = paymentType === 'featured' ? 2499 : 10;
       let finalAmount = unitAmount * (quantity || 1);
       
@@ -275,9 +337,6 @@ serve(async (req) => {
       if (paymentType === 'featured') {
         if (quantity >= 30) finalAmount = Math.floor(finalAmount * 0.8);
         else if (quantity >= 7) finalAmount = Math.floor(finalAmount * 0.9);
-      } else {
-        if (quantity >= 500) finalAmount = Math.floor(finalAmount * 0.8);
-        else if (quantity >= 200) finalAmount = Math.floor(finalAmount * 0.9);
       }
 
       logStep('Creating one-off checkout', { 
@@ -297,10 +356,10 @@ serve(async (req) => {
             price_data: {
               currency: 'usd',
               product_data: {
-                name: paymentType === 'featured' ? 'Featured Listing' : 'Message Package',
+                name: paymentType === 'featured' ? 'Featured Listing' : 'Legacy Product',
                 description: paymentType === 'featured' 
                   ? `${quantity} days of featured listing`
-                  : `${quantity} messages`,
+                  : `${quantity} units`,
                 metadata: {
                   payment_type: paymentType,
                   quantity: quantity ? quantity.toString() : '1',
@@ -322,7 +381,7 @@ serve(async (req) => {
             user_id: userId || 'local_auth_user'
           }
         },
-        client_reference_id: userId || userEmail // Add reference for tracking
+        client_reference_id: userId || userEmail
       });
     }
 
