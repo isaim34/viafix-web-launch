@@ -28,11 +28,11 @@ const MechanicDashboard = () => {
       });
       
       // Switch to advertising tab and clean up URL
-      const newUrl = new URL(window.location);
+      const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete('success');
       newUrl.searchParams.delete('plan');
       newUrl.hash = '#advertising';
-      window.history.replaceState({}, '', newUrl);
+      window.history.replaceState({}, '', newUrl.toString());
     } else if (success === 'featured') {
       toast({
         title: "Featured Plan Purchased!",
@@ -41,11 +41,11 @@ const MechanicDashboard = () => {
       });
       
       // Switch to advertising tab and clean up URL
-      const newUrl = new URL(window.location);
+      const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete('success');
       newUrl.searchParams.delete('quantity');
       newUrl.hash = '#advertising';
-      window.history.replaceState({}, '', newUrl);
+      window.history.replaceState({}, '', newUrl.toString());
     } else if (canceled === 'true') {
       toast({
         title: "Payment Canceled",
@@ -54,9 +54,9 @@ const MechanicDashboard = () => {
       });
       
       // Clean up URL
-      const newUrl = new URL(window.location);
+      const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete('canceled');
-      window.history.replaceState({}, '', newUrl);
+      window.history.replaceState({}, '', newUrl.toString());
     }
   }, [searchParams, toast]);
 
