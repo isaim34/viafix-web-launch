@@ -22,7 +22,7 @@ const Header = () => {
             {user ? <UserGreeting /> : <AuthButtons />}
             <MobileMenu 
               isOpen={isMobileMenuOpen} 
-              onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              onClose={() => setIsMobileMenuOpen(false)} 
             />
           </div>
         </div>
