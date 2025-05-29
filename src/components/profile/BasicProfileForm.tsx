@@ -48,6 +48,8 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
   const handleSubmit = (data: BasicProfileFormValues) => {
     console.log('Form submission triggered with data:', data);
     console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
+    console.log('Form errors:', form.formState.errors);
+    console.log('Form is valid:', form.formState.isValid);
     
     if (onSubmit) {
       console.log('Calling onSubmit function with data');
@@ -70,6 +72,18 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
     
     // Force the form to recognize this as a change
     form.trigger('profileImage');
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    console.log('Save Changes button clicked');
+    console.log('Form state:', {
+      isValid: form.formState.isValid,
+      isDirty: form.formState.isDirty,
+      isSubmitting: form.formState.isSubmitting,
+      errors: form.formState.errors
+    });
+    
+    // Don't prevent default here - let the form handle it
   };
 
   return (
@@ -114,7 +128,7 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
           <Button 
             type="submit" 
             className="px-8"
-            onClick={() => console.log('Save Changes button clicked')}
+            onClick={handleButtonClick}
           >
             Save Changes
           </Button>
