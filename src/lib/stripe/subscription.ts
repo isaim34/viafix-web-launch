@@ -7,7 +7,7 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
   try {
     console.log("🔍 Starting subscription check...");
     
-    // Always check local auth first
+    // Check local auth first
     const { isLoggedInLocally, userEmail } = checkLocalAuth();
     console.log("📱 Local auth check:", { isLoggedInLocally, hasEmail: !!userEmail });
     
@@ -22,16 +22,15 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
       sessionError: sessionError?.message 
     });
     
-    // Prefer Supabase session over local auth if available AND valid
+    // Prefer Supabase session over local auth if available
     if (sessionData?.session && authToken && !sessionError) {
       console.log("✅ Using Supabase authentication");
       
       const userSessionEmail = sessionData.session.user.email;
       console.log("📧 User session email:", userSessionEmail);
       
-      // Call Stripe API with proper authorization
       try {
-        console.log("🚀 Calling check-subscription edge function with Supabase auth...");
+        console.log("🚀 Calling check-subscription edge function...");
         const response = await Promise.race([
           supabase.functions.invoke('check-subscription', {
             body: { timestamp: new Date().getTime() },
@@ -40,11 +39,11 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
             }
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Request timeout')), 30000)
+            setTimeout(() => reject(new Error('Request timeout')), 15000) // Reduced to 15s
           )
         ]) as any;
         
-        console.log("📦 Edge function response with auth:", response);
+        console.log("📦 Edge function response:", response);
         
         if (response.error) {
           console.error("❌ Subscription check error:", response.error);
@@ -56,14 +55,10 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           };
         }
         
-        // Store subscription info in localStorage for easy access
+        // Store subscription info in localStorage
         updateLocalSubscriptionData(response.data);
         
-        console.log("✅ Subscription check completed successfully:", {
-          subscribed: response.data?.subscribed,
-          tier: response.data?.subscription_tier,
-          end: response.data?.subscription_end
-        });
+        console.log("✅ Subscription check completed successfully");
         
         return { 
           subscribed: response.data?.subscribed || false,
@@ -86,15 +81,13 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
     if (isLoggedInLocally && userEmail) {
       console.log("✅ Using local authentication with email:", userEmail);
       
-      // Call edge function with email in body for local auth (NO authorization header)
       try {
-        console.log("🚀 Calling check-subscription edge function with local auth (no auth header)...");
+        console.log("🚀 Calling check-subscription with local auth...");
         const response = await supabase.functions.invoke('check-subscription', {
           body: { 
             email: userEmail, 
             timestamp: new Date().getTime() 
           }
-          // Deliberately NOT including any Authorization header
         });
         
         console.log("📦 Edge function response for local auth:", response);
@@ -109,14 +102,10 @@ export const checkSubscription = async (): Promise<SubscriptionResult> => {
           };
         }
         
-        // Store subscription info in localStorage for easy access
+        // Store subscription info in localStorage
         updateLocalSubscriptionData(response.data);
         
-        console.log("✅ Subscription check completed successfully:", {
-          subscribed: response.data?.subscribed,
-          tier: response.data?.subscription_tier,
-          end: response.data?.subscription_end
-        });
+        console.log("✅ Subscription check completed successfully");
         
         return { 
           subscribed: response.data?.subscribed || false,

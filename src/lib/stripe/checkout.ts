@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 import { CheckoutSessionOptions, CheckoutResult } from "./types";
 import { checkLocalAuth } from "./utils";
 
@@ -54,14 +53,11 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
           authError: true 
         };
       }
-      
-      // We'll still try to proceed with the function call
-      console.log("Proceeding with local authentication", { userEmail });
     }
     
     console.log("Calling Supabase edge function...");
     
-    // Prepare the request body - this is the key fix
+    // Prepare the request body
     const requestBody = {
       paymentType: options.paymentType,
       planType: options.planType,
@@ -71,12 +67,11 @@ export const createCheckoutSession = async (options: CheckoutSessionOptions): Pr
     
     console.log("Request body:", requestBody);
     
-    // Add timeout to prevent hanging requests
+    // Reduced timeout to 15 seconds for better UX
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     
     try {
-      // Fixed: Pass the body correctly to the edge function
       const response = await supabase.functions.invoke('create-checkout', {
         body: requestBody
       });

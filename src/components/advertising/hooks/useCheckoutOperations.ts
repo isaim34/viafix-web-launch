@@ -49,9 +49,9 @@ export const useCheckoutOperations = () => {
       
       console.log("Calling createCheckoutSession...");
       
-      // Add timeout handling for the checkout session creation
+      // Reduced timeout to 15 seconds
       const timeoutPromise = new Promise<CheckoutResult>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout - please try again')), 30000);
+        setTimeout(() => reject(new Error('Request timeout - please try again')), 15000);
       });
       
       const checkoutPromise = createCheckoutSession({
@@ -86,11 +86,10 @@ export const useCheckoutOperations = () => {
           description: "You'll be taken to our secure payment processor."
         });
         
-        // Add a small delay to ensure the toast is visible, then redirect
+        // Redirect to Stripe checkout
         setTimeout(() => {
-          // Use window.location.href for better compatibility
           window.location.href = result.url;
-        }, 1500);
+        }, 1000);
       } else {
         console.error("No checkout URL received");
         throw new Error("Failed to create checkout session - no URL returned");
@@ -107,8 +106,6 @@ export const useCheckoutOperations = () => {
         userMessage = "Network error. Please check your connection and try again.";
       } else if (errorMessage.includes('Authentication')) {
         userMessage = "Please sign in and try again.";
-      } else if (errorMessage.includes('Invalid request format')) {
-        userMessage = "There was a problem with your request. Please try again.";
       }
       
       toast({
