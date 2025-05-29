@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -59,6 +58,17 @@ export function useMessagePage() {
         
         const userThreads = await getChatThreads(currentUserId);
         console.log("useMessagePage - Fetched threads:", userThreads);
+        console.log("useMessagePage - Number of threads found:", userThreads.length);
+        
+        // Debug each thread's unread count
+        userThreads.forEach((thread, index) => {
+          console.log(`useMessagePage - Thread ${index + 1}:`, {
+            id: thread.id,
+            unreadCount: thread.unreadCount,
+            lastMessage: thread.lastMessage?.content?.substring(0, 50),
+            participants: thread.participants
+          });
+        });
         
         setThreads(userThreads);
         

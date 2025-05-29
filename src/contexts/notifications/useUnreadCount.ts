@@ -18,29 +18,40 @@ export function useUnreadCount() {
   // Calculate total unread count from threads
   const refreshUnreadCount = useCallback(async () => {
     if (!isLoggedIn) {
+      console.log('useUnreadCount - User not logged in, setting count to 0');
       setUnreadCount(0);
       return;
     }
 
     const currentUserId = getCurrentUserId();
     if (currentUserId === 'anonymous') {
+      console.log('useUnreadCount - Anonymous user, setting count to 0');
       setUnreadCount(0);
       return;
     }
 
     try {
+      console.log('useUnreadCount - Fetching threads for user:', currentUserId);
       const threads = await getChatThreads(currentUserId);
-      const totalUnread = threads.reduce((sum: number, thread: ChatThread) => sum + (thread.unreadCount || 0), 0);
-      console.log('NotificationContext - Total unread count:', totalUnread);
+      console.log('useUnreadCount - Fetched threads:', threads);
+      
+      const totalUnread = threads.reduce((sum: number, thread: ChatThread) => {
+        const threadUnread = thread.unreadCount || 0;
+        console.log(`useUnreadCount - Thread ${thread.id} has ${threadUnread} unread messages`);
+        return sum + threadUnread;
+      }, 0);
+      
+      console.log('useUnreadCount - Total unread count calculated:', totalUnread);
       setUnreadCount(totalUnread);
     } catch (error) {
-      console.error('Error refreshing unread count:', error);
+      console.error('useUnreadCount - Error refreshing unread count:', error);
+      setUnreadCount(0);
     }
   }, [isLoggedIn, getCurrentUserId]);
 
   // Mark specific thread as read and update count
   const markAsRead = useCallback((threadId: string) => {
-    console.log('NotificationContext - Marking thread as read:', threadId);
+    console.log('useUnreadCount - Marking thread as read:', threadId);
     // Trigger a refresh of the unread count after a short delay
     // to allow the database to update
     setTimeout(() => {
