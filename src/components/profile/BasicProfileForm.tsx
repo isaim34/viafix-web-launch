@@ -50,7 +50,10 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
     console.log('Profile image in submission:', data.profileImage?.substring(0, 50) + '...');
     
     if (onSubmit) {
+      console.log('Calling onSubmit function with data');
       onSubmit(data);
+    } else {
+      console.log('No onSubmit function provided');
     }
   };
 
@@ -107,7 +110,15 @@ const BasicProfileForm: React.FC<BasicProfileFormProps> = ({ onSubmit, initialDa
         <SpecialtiesField control={form.control} />
         <AboutField control={form.control} />
 
-        <Button type="submit">Save Changes</Button>
+        <div className="flex justify-center">
+          <Button 
+            type="submit" 
+            className="px-8"
+            onClick={() => console.log('Save Changes button clicked')}
+          >
+            Save Changes
+          </Button>
+        </div>
       </form>
     </Form>
   );

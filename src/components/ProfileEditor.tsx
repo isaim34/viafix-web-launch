@@ -73,7 +73,7 @@ const ProfileEditor = () => {
   };
   
   const onSubmit = (data: BasicProfileFormValues) => {
-    console.log('Updated profile data:', data);
+    console.log('ProfileEditor onSubmit called with data:', data);
     
     // Ensure we have the profile image in the data
     if (!data.profileImage && profileData?.profileImage) {
@@ -87,6 +87,7 @@ const ProfileEditor = () => {
     
     // Save to localStorage with user role-specific key
     localStorage.setItem(storageKey, JSON.stringify(data));
+    console.log('Profile data saved to localStorage with key:', storageKey);
     
     // Update username in localStorage if name has changed
     if (data.firstName !== undefined && data.lastName !== undefined) {
