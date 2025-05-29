@@ -19,7 +19,10 @@ export const useSmartReminders = () => {
 
   useEffect(() => {
     const generateReminders = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
 
       const newReminders: SmartReminder[] = [];
 
@@ -63,6 +66,7 @@ export const useSmartReminders = () => {
                 actionUrl: '/mechanic-dashboard'
               });
             }
+          }
         } else {
           // Customer reminders
           const { data: customerProfile } = await supabase
