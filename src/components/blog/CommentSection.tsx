@@ -20,11 +20,6 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
     { id: 'user4', name: 'Emma Wilson' },
     { id: 'user5', name: 'David Clark' },
   ];
-  
-  const handleTagUser = (userId: string, userName: string) => {
-    // This function gets passed down to child components
-    // and handles the tagging of users in comments and replies
-  };
 
   return (
     <CommentProvider
@@ -35,7 +30,6 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
     >
       <CommentsContent
         availableUsers={availableUsers}
-        onTagUser={handleTagUser}
       />
     </CommentProvider>
   );
@@ -43,11 +37,9 @@ export const CommentSection = ({ postSlug }: CommentSectionProps) => {
 
 interface CommentsContentProps {
   availableUsers: User[];
-  onTagUser: (userId: string, userName: string) => void;
 }
 
-const CommentsContent = ({ availableUsers, onTagUser }: CommentsContentProps) => {
-  // Now useCommentContext is properly imported and can be used here
+const CommentsContent = ({ availableUsers }: CommentsContentProps) => {
   const {
     comments,
     commentCount,
@@ -78,6 +70,18 @@ const CommentsContent = ({ availableUsers, onTagUser }: CommentsContentProps) =>
   } = useCommentContext();
 
   const isCommentBeingEdited = (id: string) => editingCommentId === id;
+
+  const handleTagUser = (userId: string, userName: string) => {
+    // Update the new comment with the tagged user
+    const currentText = newComment;
+    const lastAtSymbolIndex = currentText.lastIndexOf('@');
+    if (lastAtSymbolIndex !== -1) {
+      const textBeforeTag = currentText.substring(0, lastAtSymbolIndex);
+      const textAfterCaret = currentText.substring(lastAtSymbolIndex + 1);
+      const updatedText = `${textBeforeTag}@${userName} ${textAfterCaret}`;
+      setNewComment(updatedText);
+    }
+  };
   
   return (
     <div className="mt-12 relative">
@@ -89,7 +93,7 @@ const CommentsContent = ({ availableUsers, onTagUser }: CommentsContentProps) =>
           value={newComment}
           onChange={setNewComment}
           onSubmit={handleSubmitComment}
-          onTagUser={onTagUser}
+          onTagUser={handleTagUser}
           availableUsers={availableUsers}
         />
       </div>
@@ -113,7 +117,7 @@ const CommentsContent = ({ availableUsers, onTagUser }: CommentsContentProps) =>
         formatDate={formatDate}
         formatContentWithTags={formatContentWithTags}
         availableUsers={availableUsers}
-        onTagUser={onTagUser}
+        onTagUser={handleTagUser}
         isEditing={isCommentBeingEdited}
         editingReplyId={editingReplyId}
         editContent={editContent}

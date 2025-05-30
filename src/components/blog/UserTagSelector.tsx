@@ -10,10 +10,13 @@ interface UserTagSelectorProps {
 }
 
 export const UserTagSelector = ({ 
-  users, 
+  users = [], 
   position, 
   onSelectUser 
 }: UserTagSelectorProps) => {
+  // Safety check for users array
+  const safeUsers = Array.isArray(users) ? users : [];
+  
   return (
     <div 
       className="absolute z-50 bg-white rounded-md shadow-lg border border-gray-200 w-64"
@@ -24,8 +27,8 @@ export const UserTagSelector = ({
     >
       <Command className="rounded-lg border shadow-md">
         <CommandGroup heading="Tag a user">
-          {users.length > 0 ? (
-            users.map(user => (
+          {safeUsers.length > 0 ? (
+            safeUsers.map(user => (
               <CommandItem
                 key={user.id}
                 onSelect={() => onSelectUser(user.id, user.name)}
