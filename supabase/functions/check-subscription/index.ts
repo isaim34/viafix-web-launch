@@ -13,7 +13,7 @@ const corsHeaders = {
 // Enhanced logging function for debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUBSCRIPTION-V2] ${step}${detailsStr}`);
+  console.log(`[CHECK-SUBSCRIPTION-V3] ${step}${detailsStr}`);
 };
 
 // STRICT customer ID resolution - ALWAYS returns the NEWEST customer
@@ -85,7 +85,7 @@ serve(async (req) => {
   }
 
   try {
-    logStep("🚀 FUNCTION STARTED - V2 ENHANCED");
+    logStep("🚀 FUNCTION STARTED - V3 ENHANCED WITH CREATION DATE SORTING");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -157,6 +157,8 @@ serve(async (req) => {
               subscriptions: subscriptions.data.map(sub => ({
                 id: sub.id,
                 status: sub.status,
+                created: sub.created,
+                createdReadable: new Date(sub.created * 1000).toISOString(),
                 endDate: new Date(sub.current_period_end * 1000).toISOString(),
                 planType: sub.metadata?.plan_type,
                 customer: sub.customer
@@ -168,16 +170,24 @@ serve(async (req) => {
             let subscriptionEnd = null;
             
             if (hasActiveSub) {
-              const subscription = subscriptions.data[0];
+              // FIXED: Sort by creation date (most recent first) instead of end date
+              const subscription = subscriptions.data.sort((a, b) => b.created - a.created)[0];
               subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
               subscriptionTier = subscription.metadata?.plan_type || 'monthly';
               
-              logStep("🎉 ACTIVE SUBSCRIPTION FOUND VIA BODY EMAIL", { 
-                subscriptionId: subscription.id, 
+              logStep("🎉 MOST RECENT SUBSCRIPTION SELECTED VIA BODY EMAIL", { 
+                subscriptionId: subscription.id,
+                created: new Date(subscription.created * 1000).toISOString(),
                 endDate: subscriptionEnd,
                 tier: subscriptionTier,
                 status: subscription.status,
-                customerUsed: customerId
+                customerUsed: customerId,
+                sortedBy: "CREATION_DATE_DESCENDING",
+                allSubscriptions: subscriptions.data.map(s => ({
+                  id: s.id,
+                  created: new Date(s.created * 1000).toISOString(),
+                  tier: s.metadata?.plan_type
+                }))
               });
             } else {
               logStep("❌ NO ACTIVE SUBSCRIPTION FOR RESOLVED CUSTOMER", { customerId });
@@ -350,11 +360,13 @@ serve(async (req) => {
         limit: 10,
       });
       
-      // Log ALL subscriptions for this customer
+      // Log ALL subscriptions for this customer with creation dates
       subscriptions.data.forEach((sub, idx) => {
         logStep(`📄 SUBSCRIPTION ${idx+1} FOR CUSTOMER ${customerId}`, { 
           id: sub.id, 
-          status: sub.status, 
+          status: sub.status,
+          created: sub.created,
+          createdReadable: new Date(sub.created * 1000).toISOString(),
           current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
           metadata: sub.metadata,
           customer: sub.customer,
@@ -379,22 +391,28 @@ serve(async (req) => {
       let subscriptionId = null;
 
       if (hasActiveSub) {
-        // Sort by most recent period end
-        const subscription = activeSubscriptions.sort(
-          (a, b) => b.current_period_end - a.current_period_end
-        )[0];
+        // FIXED: Sort by creation date (most recent first) instead of end date
+        const subscription = activeSubscriptions.sort((a, b) => b.created - a.created)[0];
         
         subscriptionId = subscription.id;
         subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
         subscriptionTier = subscription.metadata?.plan_type || 'monthly';
         
-        logStep("🎉 FINAL ACTIVE SUBSCRIPTION SELECTED", { 
-          subscriptionId, 
+        logStep("🎉 MOST RECENT SUBSCRIPTION SELECTED BY CREATION DATE", { 
+          subscriptionId,
+          created: new Date(subscription.created * 1000).toISOString(),
           endDate: subscriptionEnd,
           status: subscription.status,
           metadata: subscription.metadata,
           resolvedCustomerId: customerId,
-          tier: subscriptionTier
+          tier: subscriptionTier,
+          sortedBy: "CREATION_DATE_DESCENDING",
+          allActiveSubscriptions: activeSubscriptions.map(s => ({
+            id: s.id,
+            created: new Date(s.created * 1000).toISOString(),
+            tier: s.metadata?.plan_type,
+            endDate: new Date(s.current_period_end * 1000).toISOString()
+          }))
         });
       } else {
         logStep("❌ NO ACTIVE SUBSCRIPTION FOR RESOLVED CUSTOMER", {
@@ -460,7 +478,8 @@ serve(async (req) => {
         subscribed: hasActiveSub, 
         subscriptionTier,
         subscriptionEnd,
-        resolvedCustomerId: customerId
+        resolvedCustomerId: customerId,
+        sortMethod: "CREATION_DATE_DESCENDING"
       });
       
       return new Response(JSON.stringify({
