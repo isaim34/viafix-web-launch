@@ -90,18 +90,6 @@ const MessageThreadsPanel = ({
 
   return (
     <div className="bg-white rounded-lg border shadow-sm">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-medium">
-          {currentUserRole === 'mechanic' 
-            ? 'Customer Conversations' 
-            : 'Mechanic Conversations'}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {currentUserRole === 'mechanic'
-            ? 'All your conversations with customers including booking requests, inquiries, and ongoing chats.'
-            : 'Contact and chat with mechanics about your vehicle repairs and maintenance.'}
-        </p>
-      </div>
       {error ? (
         <div className="p-4 bg-red-50 text-red-500 text-sm border-b">
           Error: {error}
