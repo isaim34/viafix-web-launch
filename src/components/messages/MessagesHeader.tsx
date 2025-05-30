@@ -2,8 +2,11 @@
 import React from 'react';
 
 const MessagesHeader = () => {
+  // Simplified header - just the page title without the duplicate content
   return (
-    <h1 className="text-3xl font-bold mb-6">Messages</h1>
+    <div className="mb-6">
+      <h1 className="text-3xl font-bold">Messages</h1>
+    </div>
   );
 };
 
