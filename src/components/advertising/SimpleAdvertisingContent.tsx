@@ -6,6 +6,7 @@ import { Tags } from 'lucide-react';
 import { SimpleSubscriptionPlans } from './SimpleSubscriptionPlans';
 import { SimpleMessagePackages } from './SimpleMessagePackages';
 import { SimpleFeaturedListings } from './SimpleFeaturedListings';
+import { CustomerPortalButton } from './CustomerPortalButton';
 
 export const SimpleAdvertisingContent = () => {
   return (
@@ -18,6 +19,10 @@ export const SimpleAdvertisingContent = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-6">
+            <CustomerPortalButton />
+          </div>
+          
           <Tabs defaultValue="subscription" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="subscription">Subscription Plans</TabsTrigger>
