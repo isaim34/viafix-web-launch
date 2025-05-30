@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { PerformanceSummary } from './PerformanceSummary';
-import { QuickActions } from './QuickActions';
 import { TodaysSchedule } from './TodaysSchedule';
 import { RecentActivity } from './RecentActivity';
 import { RebookingTracker } from '../analytics/RebookingTracker';
@@ -76,9 +75,6 @@ export const OverviewTab = ({ onTabChange }: OverviewTabProps) => {
           onViewAllActivity={() => onTabChange('activity')}
         />
       </div>
-      
-      {/* Quick Actions */}
-      <QuickActions onTabChange={onTabChange} />
     </div>
   );
 };
