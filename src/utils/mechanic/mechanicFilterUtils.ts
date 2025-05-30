@@ -1,4 +1,3 @@
-
 import { MechanicProfile } from '@/hooks/useMechanics';
 
 export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string): boolean => {
@@ -15,13 +14,11 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
   // Check specialties
   if (mechanic.specialties) {
     if (Array.isArray(mechanic.specialties)) {
-      // Filter to get only string specialties and then check them
-      const stringSpecialties: string[] = mechanic.specialties.filter(
-        (specialty): specialty is string => typeof specialty === 'string'
-      );
-      if (stringSpecialties.some((specialty: string) => 
-          specialty.toLowerCase().includes(lowerSearchTerm))) {
-        return true;
+      // More explicit type handling for specialties array
+      for (const specialty of mechanic.specialties) {
+        if (typeof specialty === 'string' && specialty.toLowerCase().includes(lowerSearchTerm)) {
+          return true;
+        }
       }
     } else if (typeof mechanic.specialties === 'string') {
       if (mechanic.specialties.toLowerCase().includes(lowerSearchTerm)) {
