@@ -24,7 +24,7 @@ export const ImageUploader = ({
   currentImageCount = 0 
 }: ImageUploaderProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [imageType, setImageType] = useState<MaintenanceImage['image_type']>('general');
+  const [imageType, setImageType] = useState<string>('general');
   const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -86,7 +86,7 @@ export const ImageUploader = ({
     
     try {
       const uploadPromises = selectedFiles.map(file => 
-        uploadMaintenanceImage(file, maintenanceRecordId, imageType, description)
+        uploadMaintenanceImage(file, maintenanceRecordId, imageType as MaintenanceImage['image_type'], description)
       );
       
       const results = await Promise.all(uploadPromises);
