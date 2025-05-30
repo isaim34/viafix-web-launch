@@ -1,75 +1,36 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { MechanicProfile } from '@/hooks/useMechanics';
-
-interface MechanicPerformanceData {
-  mechanic: MechanicProfile;
-  performanceScore: number;
-  completedJobs: number;
-  completionRate: number;
-  avgRating: number;
-  totalReviews: number;
-  recentActivity: number;
-  isFeatured: boolean;
-}
+import { calculatePerformanceScore } from '@/utils/mechanic/performanceScoring';
+import { 
+  fetchMechanicProfiles, 
+  fetchMechanicProfile, 
+  fetchJobCompletionData, 
+  fetchRecentActivity 
+} from '@/services/mechanic/mechanicDataService';
+import { 
+  MechanicPerformanceData,
+  shouldExcludeMechanic,
+  isMechanicFeatured,
+  formatMechanicData,
+  sortMechanicsByPerformance
+} from '@/utils/mechanic/featuredMechanicUtils';
 
 export const useFeaturedMechanics = (limit: number = 3) => {
   const [featuredMechanics, setFeaturedMechanics] = useState<MechanicProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const calculatePerformanceScore = (data: {
-    avgRating: number;
-    totalReviews: number;
-    completedJobs: number;
-    totalJobs: number;
-    recentActivity: number;
-    yearsExperience: number;
-  }): number => {
-    // Scoring algorithm weights:
-    // 40% Reviews & Rating (customer satisfaction)
-    // 30% Job completion rate (reliability)
-    // 20% Activity level (recent engagement)
-    // 10% Experience and certifications
-
-    const ratingScore = (data.avgRating / 5) * 40;
-    const reviewVolumeBonus = Math.min(data.totalReviews / 10, 5); // Bonus up to 5 points for review volume
-    
-    const completionRate = data.totalJobs > 0 ? (data.completedJobs / data.totalJobs) : 0;
-    const reliabilityScore = completionRate * 30;
-    
-    const activityScore = Math.min(data.recentActivity / 5, 20); // Recent jobs in last 30 days, max 20 points
-    
-    const experienceScore = Math.min(data.yearsExperience / 10, 10); // Max 10 points for experience
-    
-    return ratingScore + reviewVolumeBonus + reliabilityScore + activityScore + experienceScore;
-  };
-
   const fetchFeaturedMechanics = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Get all mechanic profiles with basic info
-      const { data: mechanicProfiles, error: mechanicError } = await supabase
-        .from('mechanic_profiles')
-        .select(`
-          id,
-          hourly_rate,
-          years_experience,
-          specialties,
-          rating,
-          review_count,
-          about,
-          response_time,
-          is_featured,
-          featured_until
-        `);
+      console.log('Fetching mechanic profiles...');
+      
+      const mechanicProfiles = await fetchMechanicProfiles();
 
-      if (mechanicError) throw mechanicError;
-
-      if (!mechanicProfiles || mechanicProfiles.length === 0) {
+      if (mechanicProfiles.length === 0) {
         setFeaturedMechanics([]);
         return;
       }
@@ -77,67 +38,16 @@ export const useFeaturedMechanics = (limit: number = 3) => {
       const performanceData: MechanicPerformanceData[] = [];
 
       for (const mechanic of mechanicProfiles) {
-        // Get profile data separately to avoid PGRST201 error
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, profile_image, zip_code')
-          .eq('id', mechanic.id)
-          .maybeSingle();
+        const profile = await fetchMechanicProfile(mechanic.id);
         
-        if (profileError) {
-          console.warn(`Error fetching profile for mechanic ${mechanic.id}:`, profileError);
-        }
-        
-        // Skip Isai Mercado (the user)
-        const fullName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
-        if (fullName.toLowerCase().includes('isai mercado') || 
-            profile?.first_name?.toLowerCase() === 'isai' || 
-            profile?.last_name?.toLowerCase() === 'mercado') {
+        // Skip excluded mechanics (like Isai Mercado)
+        if (shouldExcludeMechanic(profile)) {
           continue;
         }
 
-        // Check if mechanic is currently featured (paid)
-        const isFeatured = mechanic.is_featured && 
-                          mechanic.featured_until && 
-                          new Date(mechanic.featured_until) > new Date();
-
-        // Get job completion data
-        const { data: completedBookings } = await supabase
-          .from('service_bookings')
-          .select('id')
-          .eq('mechanic_id', mechanic.id)
-          .eq('status', 'completed');
-
-        const { data: totalBookings } = await supabase
-          .from('service_bookings')
-          .select('id')
-          .eq('mechanic_id', mechanic.id);
-
-        const { data: completedOffers } = await supabase
-          .from('custom_offers')
-          .select('id')
-          .eq('mechanic_id', mechanic.id)
-          .eq('status', 'completed');
-
-        const { data: totalOffers } = await supabase
-          .from('custom_offers')
-          .select('id')
-          .eq('mechanic_id', mechanic.id);
-
-        // Get recent activity (last 30 days)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const { data: recentJobs } = await supabase
-          .from('service_bookings')
-          .select('id')
-          .eq('mechanic_id', mechanic.id)
-          .eq('status', 'completed')
-          .gte('completed_at', thirtyDaysAgo.toISOString());
-
-        const completedJobsCount = (completedBookings?.length || 0) + (completedOffers?.length || 0);
-        const totalJobsCount = (totalBookings?.length || 0) + (totalOffers?.length || 0);
-        const recentActivityCount = recentJobs?.length || 0;
+        const isFeatured = isMechanicFeatured(mechanic);
+        const { completedJobsCount, totalJobsCount } = await fetchJobCompletionData(mechanic.id);
+        const recentActivityCount = await fetchRecentActivity(mechanic.id);
 
         // Calculate performance score
         const performanceScore = calculatePerformanceScore({
@@ -149,27 +59,7 @@ export const useFeaturedMechanics = (limit: number = 3) => {
           yearsExperience: mechanic.years_experience || 0
         });
 
-        // Format mechanic data
-        const formattedMechanic: MechanicProfile = {
-          id: mechanic.id,
-          name: fullName || 'Unknown Mechanic',
-          avatar: profile?.profile_image || '',
-          specialties: typeof mechanic.specialties === 'string' 
-            ? mechanic.specialties.split(',').map(s => s.trim())
-            : Array.isArray(mechanic.specialties) 
-              ? mechanic.specialties 
-              : ['General Repairs'],
-          rating: mechanic.rating || 0,
-          reviewCount: mechanic.review_count || 0,
-          location: 'Austin, TX', // Default location
-          hourlyRate: mechanic.hourly_rate || 0,
-          zipCode: profile?.zip_code || '',
-          about: mechanic.about || '',
-          years_experience: mechanic.years_experience || 0,
-          response_time: mechanic.response_time || 'Under 1 hour',
-          featured: isFeatured,
-          featuredUntil: isFeatured ? mechanic.featured_until : undefined
-        };
+        const formattedMechanic = formatMechanicData(mechanic, profile, isFeatured);
 
         performanceData.push({
           mechanic: formattedMechanic,
@@ -183,16 +73,7 @@ export const useFeaturedMechanics = (limit: number = 3) => {
         });
       }
 
-      // Sort by featured status first, then by performance score
-      const sortedMechanics = performanceData.sort((a, b) => {
-        // Featured mechanics come first
-        if (a.isFeatured && !b.isFeatured) return -1;
-        if (!a.isFeatured && b.isFeatured) return 1;
-        
-        // If both are featured or both are not featured, sort by performance score
-        return b.performanceScore - a.performanceScore;
-      });
-
+      const sortedMechanics = sortMechanicsByPerformance(performanceData);
       const topMechanics = sortedMechanics
         .slice(0, limit)
         .map(data => data.mechanic);
