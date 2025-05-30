@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
@@ -329,17 +330,17 @@ serve(async (req) => {
         client_reference_id: userId || userEmail
       });
     } else {
-      // Legacy featured listing support (keeping existing logic)
-      const unitAmount = paymentType === 'featured' ? 2499 : 10;
+      // Featured listing support with correct pricing ($9.99 base price)
+      const unitAmount = paymentType === 'featured' ? 999 : 10; // Changed from 2499 to 999 (999 cents = $9.99)
       let finalAmount = unitAmount * (quantity || 1);
       
       // Apply discounts based on quantity
       if (paymentType === 'featured') {
-        if (quantity >= 30) finalAmount = Math.floor(finalAmount * 0.8);
-        else if (quantity >= 7) finalAmount = Math.floor(finalAmount * 0.9);
+        if (quantity >= 30) finalAmount = Math.floor(finalAmount * 0.8); // 20% discount for monthly
+        else if (quantity >= 7) finalAmount = Math.floor(finalAmount * 0.9); // 10% discount for weekly
       }
 
-      logStep('Creating one-off checkout', { 
+      logStep('Creating featured listing checkout', { 
         paymentType, 
         quantity, 
         unitAmount, 
