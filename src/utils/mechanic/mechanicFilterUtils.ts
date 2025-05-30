@@ -1,4 +1,3 @@
-
 import { MechanicProfile } from '@/hooks/useMechanics';
 
 export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string): boolean => {
@@ -7,28 +6,31 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
   const lowerSearchTerm = searchTerm.toLowerCase();
   
   // Check name
-  if (mechanic.name && typeof mechanic.name === 'string' && 
-      mechanic.name.toLowerCase().includes(lowerSearchTerm)) {
-    return true;
+  if (mechanic.name && typeof mechanic.name === 'string') {
+    if (mechanic.name.toLowerCase().includes(lowerSearchTerm)) {
+      return true;
+    }
   }
   
   // Check specialties with proper type handling
-  if (mechanic.specialties) {
-    if (Array.isArray(mechanic.specialties)) {
-      return mechanic.specialties.some((specialty: unknown) => {
-        return (
-          typeof specialty === 'string' &&
-          specialty.toLowerCase().includes(lowerSearchTerm)
-        );
-      });
-    } else if (typeof mechanic.specialties === 'string') {
-      return mechanic.specialties.toLowerCase().includes(lowerSearchTerm);
+  const specialties = mechanic.specialties;
+  if (Array.isArray(specialties)) {
+    if (
+      specialties.some((item: unknown) => typeof item === 'string' && item.toLowerCase().includes(lowerSearchTerm))
+    ) {
+      return true;
+    }
+  } else if (typeof specialties === 'string') {
+    if (specialties.toLowerCase().includes(lowerSearchTerm)) {
+      return true;
     }
   }
   
   // Check location with proper type guard
   if (mechanic.location && typeof mechanic.location === 'string') {
-    return mechanic.location.toLowerCase().includes(lowerSearchTerm);
+    if (mechanic.location.toLowerCase().includes(lowerSearchTerm)) {
+      return true;
+    }
   }
   
   return false;
