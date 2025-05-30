@@ -13,7 +13,7 @@ import ReviewsTab from '@/components/ReviewsTab';
 import CustomOffersTab from '@/components/mechanic/CustomOffersTab';
 import MaintenanceRecordsTab from '@/components/mechanic/MaintenanceRecordsTab';
 import AdvertisingTab from '@/components/advertising/AdvertisingTab';
-import Messages from '@/pages/Messages';
+import MessagesContent from '@/components/messages/MessagesContent';
 
 interface DashboardTabsContentProps {
   onTabChange: (tabValue: string) => void;
@@ -57,7 +57,7 @@ export const DashboardTabsContent = ({ onTabChange }: DashboardTabsContentProps)
       <TabsContent value="messages">
         <ErrorBoundary fallback={<div className="p-4 text-red-600">Error loading messages</div>}>
           <div className="bg-white rounded-lg border shadow-sm p-6">
-            <Messages />
+            <MessagesContent />
           </div>
         </ErrorBoundary>
       </TabsContent>
