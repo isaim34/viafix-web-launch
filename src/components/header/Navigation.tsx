@@ -12,13 +12,13 @@ export const Navigation = () => {
   const isMechanicProfile = location.pathname.startsWith('/mechanics/');
   const isMobile = useIsMobile();
   
-  // Active link styling with larger size
+  // Professional link styling
   const getLinkClass = (path: string) => {
-    const baseClass = "transition-colors text-base font-medium px-4 py-2 rounded-lg hover:bg-blue-50/50";
+    const baseClass = "transition-all text-sm font-medium px-3 py-2 rounded-md";
     const isActive = location.pathname === path;
     return isActive 
-      ? `${baseClass} text-primary bg-blue-50/80 font-semibold` 
-      : `${baseClass} text-gray-700 hover:text-primary`;
+      ? `${baseClass} text-primary bg-slate-100 font-semibold` 
+      : `${baseClass} text-slate-700 hover:text-primary hover:bg-slate-50`;
   };
   
   // Don't render on mobile - it will use the MobileMenu instead
@@ -27,7 +27,7 @@ export const Navigation = () => {
   }
   
   return (
-    <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
+    <nav className="hidden md:flex items-center space-x-1">
       <Link to="/" className={getLinkClass('/')}>
         Home
       </Link>

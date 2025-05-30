@@ -11,19 +11,19 @@ export const HeroContent = () => {
   return (
     <>
       <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
-        {/* Chip label */}
+        {/* Professional badge */}
         <motion.div
-          className="bg-primary/10 text-primary rounded-full px-4 py-1.5 mb-6 text-sm font-medium"
+          className="bg-slate-100 text-slate-700 border border-slate-200 rounded-md px-4 py-2 mb-8 text-sm font-medium"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          Austin's Premier Gig-Based Auto Repair Platform
+          Professional Auto Repair Platform
         </motion.div>
         
         {/* Heading */}
         <motion.h1 
-          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight text-slate-900"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -34,12 +34,13 @@ export const HeroContent = () => {
         
         {/* Description */}
         <motion.p 
-          className="text-lg text-gray-600 mb-8 max-w-2xl"
+          className="text-lg text-slate-600 mb-8 max-w-2xl leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          ViaFix connects you with skilled mobile mechanics who come to your Austin location. Get transparent pricing, ASE-certified professionals, and the convenience of repairs wherever your vehicle is located throughout Austin, TX.
+          Professional mobile mechanic platform connecting you with certified technicians. 
+          Transparent pricing, verified professionals, and on-site service throughout Austin, TX.
         </motion.p>
         
         {/* CTA Buttons */}
@@ -53,15 +54,17 @@ export const HeroContent = () => {
             size="lg" 
             icon={<Search className="w-4 h-4" />}
             onClick={() => setIsSearchDialogOpen(true)}
+            className="shadow-sm"
           >
-            Find an Austin Mechanic Now
+            Find Austin Mechanic
           </Button>
           <Button 
             variant="outline" 
             size="lg"
             icon={<Wrench className="w-4 h-4" />}
+            className="border-slate-300 shadow-sm"
           >
-            Join as an Independent Mechanic
+            Join as Mechanic
           </Button>
         </motion.div>
       </div>
