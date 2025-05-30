@@ -12,12 +12,12 @@ export const Navigation = () => {
   const isMechanicProfile = location.pathname.startsWith('/mechanics/');
   const isMobile = useIsMobile();
   
-  // Active link styling
+  // Active link styling with larger size
   const getLinkClass = (path: string) => {
-    const baseClass = "transition-colors text-sm";
+    const baseClass = "transition-colors text-base font-medium px-4 py-2 rounded-lg hover:bg-blue-50/50";
     const isActive = location.pathname === path;
     return isActive 
-      ? `${baseClass} text-primary font-medium` 
+      ? `${baseClass} text-primary bg-blue-50/80 font-semibold` 
       : `${baseClass} text-gray-700 hover:text-primary`;
   };
   
@@ -27,7 +27,7 @@ export const Navigation = () => {
   }
   
   return (
-    <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+    <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
       <Link to="/" className={getLinkClass('/')}>
         Home
       </Link>
