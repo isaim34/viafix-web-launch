@@ -1,3 +1,4 @@
+
 import { MechanicProfile } from '@/hooks/useMechanics';
 
 export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string): boolean => {
@@ -18,7 +19,7 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
       const stringSpecialties: string[] = mechanic.specialties.filter(
         (specialty): specialty is string => typeof specialty === 'string'
       );
-      if (stringSpecialties.some(specialty => 
+      if (stringSpecialties.some((specialty: string) => 
           specialty.toLowerCase().includes(lowerSearchTerm))) {
         return true;
       }
