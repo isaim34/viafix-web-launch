@@ -4,24 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tags } from 'lucide-react';
 import { FeaturedPlansSection } from './FeaturedPlansSection';
-import { MessagePackagesSection } from './MessagePackagesSection';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import { SubscriptionPlansSection } from './SubscriptionPlansSection';
-import { useMessageBalance } from '@/hooks/useMessageBalance';
 
 export const AdvertisingContent = () => {
-  const { balance } = useMessageBalance();
-  
   // Mock pricing data - in a real app this would come from your backend/config
   const featuredDailyPrice = 9.99;
-  const messageCost = 0.50;
 
   const handlePurchaseFeatured = (days: number) => {
     console.log(`Purchasing featured listing for ${days} days`);
-  };
-
-  const handleBuyMessages = (quantity: number) => {
-    console.log(`Buying ${quantity} messages`);
   };
 
   return (
@@ -38,7 +29,6 @@ export const AdvertisingContent = () => {
             <TabsList className="mb-4">
               <TabsTrigger value="subscription">Subscription Plans</TabsTrigger>
               <TabsTrigger value="featured">Featured Listings</TabsTrigger>
-              <TabsTrigger value="messages">Message Packs</TabsTrigger>
               <TabsTrigger value="payment">Payment Methods</TabsTrigger>
             </TabsList>
             
@@ -50,14 +40,6 @@ export const AdvertisingContent = () => {
               <FeaturedPlansSection 
                 featuredDailyPrice={featuredDailyPrice}
                 onPurchaseFeatured={handlePurchaseFeatured}
-              />
-            </TabsContent>
-            
-            <TabsContent value="messages">
-              <MessagePackagesSection 
-                messageCost={messageCost}
-                messagesRemaining={balance.available}
-                onBuyMessages={handleBuyMessages}
               />
             </TabsContent>
             
