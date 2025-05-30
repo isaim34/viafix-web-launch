@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin } from 'lucide-react';
 
-interface Appointment {
-  id: number;
+interface TodayAppointment {
+  id: string;
   time: string;
   customer: string;
   service: string;
@@ -15,7 +15,7 @@ interface Appointment {
 }
 
 interface TodaysScheduleProps {
-  appointments: Appointment[];
+  appointments: TodayAppointment[];
   onViewFullSchedule: () => void;
 }
 
