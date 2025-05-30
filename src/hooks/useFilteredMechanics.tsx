@@ -47,8 +47,8 @@ export const useFilteredMechanics = (
         return false;
       }
       
-      // Check zip code matches
-      const zipMatches = matchesZipCode(mechanic, zipCode, locationName, userRole || '');
+      // Check zip code matches (removed the userRole parameter)
+      const zipMatches = matchesZipCode(mechanic, zipCode, locationName);
       
       const result = searchMatches && zipMatches;
       console.log(`Mechanic ${mechanic.name} included in results: ${result}`);
