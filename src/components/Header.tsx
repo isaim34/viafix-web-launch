@@ -16,7 +16,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
           <Logo />
           <Navigation />
@@ -47,7 +47,7 @@ const Header = () => {
       
       {/* Smart Reminders - shown below header when user is logged in */}
       {user && (
-        <div className="border-b bg-blue-50/50">
+        <div className="border-b bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-sm">
           <div className="container mx-auto px-4 sm:px-6 py-2">
             <SmartReminders />
           </div>

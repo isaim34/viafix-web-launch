@@ -45,23 +45,23 @@ export const Layout = ({ children }: LayoutProps) => {
       >
         {children}
       </motion.main>
-      <footer className="py-6 px-4 sm:px-6 md:px-8 border-t border-gray-100">
+      <footer className="py-8 px-4 sm:px-6 md:px-8 border-t border-gray-100 bg-gradient-to-r from-slate-50 via-blue-50/30 to-indigo-50/50">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600 font-medium">
               © {new Date().getFullYear()} ViaFix. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link to="/privacy" className="text-gray-500 hover:text-gray-700 transition-colors">
+              <Link to="/privacy" className="text-gray-600 hover:text-primary transition-colors font-medium">
                 Privacy
               </Link>
-              <Link to="/terms" className="text-gray-500 hover:text-gray-700 transition-colors">
+              <Link to="/terms" className="text-gray-600 hover:text-primary transition-colors font-medium">
                 Terms
               </Link>
               <a 
                 href="#" 
                 onClick={handleSupportClick}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-600 hover:text-primary transition-colors font-medium"
               >
                 Support
               </a>
