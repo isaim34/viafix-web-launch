@@ -19,7 +19,7 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
       const stringSpecialties = mechanic.specialties.filter(
         (specialty): specialty is string => typeof specialty === 'string'
       );
-      if (stringSpecialties.some((specialty: string) => 
+      if (stringSpecialties.some(specialty => 
           specialty.toLowerCase().includes(lowerSearchTerm))) {
         return true;
       }
