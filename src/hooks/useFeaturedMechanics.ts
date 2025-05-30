@@ -40,7 +40,7 @@ export const useFeaturedMechanics = (limit: number = 3) => {
       for (const mechanic of mechanicProfiles) {
         const profile = await fetchMechanicProfile(mechanic.id);
         
-        // Skip excluded mechanics (like Isai Mercado)
+        // Only exclude mechanics based on real business rules, not test names
         if (shouldExcludeMechanic(profile)) {
           continue;
         }

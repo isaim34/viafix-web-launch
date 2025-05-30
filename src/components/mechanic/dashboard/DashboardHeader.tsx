@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Bell, Plus, Calendar, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMechanicDashboardData } from '@/hooks/useMechanicDashboardData';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -23,16 +23,15 @@ const getCurrentDate = () => {
   });
 };
 
-// Mock data - in a real app this would come from API/state
-const getQuickStats = () => ({
-  todaysJobs: 3,
-  weeklyRevenue: 1250,
-  completionRate: 98
-});
-
 export const DashboardHeader = () => {
   const { currentUserName } = useAuth();
-  const stats = getQuickStats();
+  const { stats, todayAppointments, isLoading } = useMechanicDashboardData();
+
+  // Calculate this week's earnings and completion rate
+  const thisWeekEarnings = Math.round(stats.totalEarnings * 0.15); // Approximate weekly from total
+  const completionRate = stats.completedJobs + stats.ongoingJobs > 0 
+    ? Math.round((stats.completedJobs / (stats.completedJobs + stats.ongoingJobs)) * 100)
+    : 0;
 
   return (
     <motion.div
@@ -76,7 +75,9 @@ export const DashboardHeader = () => {
               </div>
               <div>
                 <p className="text-xs md:text-sm font-medium text-blue-700">Today's Jobs</p>
-                <p className="text-lg md:text-2xl font-bold text-blue-900">{stats.todaysJobs}</p>
+                <p className="text-lg md:text-2xl font-bold text-blue-900">
+                  {isLoading ? '...' : todayAppointments.length}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -90,7 +91,9 @@ export const DashboardHeader = () => {
               </div>
               <div>
                 <p className="text-xs md:text-sm font-medium text-green-700">This Week</p>
-                <p className="text-lg md:text-2xl font-bold text-green-900">${stats.weeklyRevenue}</p>
+                <p className="text-lg md:text-2xl font-bold text-green-900">
+                  {isLoading ? '...' : `$${thisWeekEarnings}`}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -104,7 +107,9 @@ export const DashboardHeader = () => {
               </div>
               <div>
                 <p className="text-xs md:text-sm font-medium text-orange-700">Completion</p>
-                <p className="text-lg md:text-2xl font-bold text-orange-900">{stats.completionRate}%</p>
+                <p className="text-lg md:text-2xl font-bold text-orange-900">
+                  {isLoading ? '...' : `${completionRate}%`}
+                </p>
               </div>
             </div>
           </CardContent>

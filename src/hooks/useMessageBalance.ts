@@ -29,16 +29,17 @@ export const useMessageBalance = () => {
 
       try {
         // TODO: Replace with actual API call to fetch user's message balance
-        // For now, simulate fetching from localStorage or use mock data
-        const mockBalance = {
-          available: 50, // This should come from successful Stripe purchase
+        // For production, this should fetch from the database
+        // For now, we'll show zero balance to indicate no credits purchased yet
+        const productionBalance = {
+          available: 0,
           used: 0,
-          total: 50,
+          total: 0,
           loading: false,
           error: null
         };
         
-        setBalance(mockBalance);
+        setBalance(productionBalance);
       } catch (error) {
         console.error('Error fetching message balance:', error);
         setBalance(prev => ({
