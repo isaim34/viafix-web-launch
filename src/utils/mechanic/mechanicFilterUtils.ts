@@ -26,10 +26,9 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
     }
   }
   
-  // Check location
-  if (mechanic.location && typeof mechanic.location === 'string' && 
-      mechanic.location.toLowerCase().includes(lowerSearchTerm)) {
-    return true;
+  // Check location with proper type guard
+  if (mechanic.location && typeof mechanic.location === 'string') {
+    return mechanic.location.toLowerCase().includes(lowerSearchTerm);
   }
   
   return false;
