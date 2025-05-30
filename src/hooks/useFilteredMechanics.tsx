@@ -150,11 +150,11 @@ export const useFilteredMechanics = (
         // Check specialties (handle both string and array types)
         else if (mechanic.specialties) {
           if (Array.isArray(mechanic.specialties)) {
-            // Handle array of specialties - use explicit string type assertion
-            const stringSpecialties = mechanic.specialties.filter((specialty: unknown): specialty is string => 
+            // Handle array of specialties - ensure proper typing
+            const validSpecialties: string[] = mechanic.specialties.filter((specialty): specialty is string => 
               typeof specialty === 'string'
             );
-            matchesSearch = stringSpecialties.some((specialty: string) => 
+            matchesSearch = validSpecialties.some(specialty => 
               specialty.toLowerCase().includes(lowerSearchTerm)
             );
           } else if (typeof mechanic.specialties === 'string') {
