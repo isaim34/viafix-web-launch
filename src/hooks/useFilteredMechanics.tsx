@@ -140,26 +140,31 @@ export const useFilteredMechanics = (
       let matchesSearch = !searchTerm;
       
       if (searchTerm) {
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        
         // Check name - ensure mechanic.name exists and is a string
-        if (mechanic.name && typeof mechanic.name === 'string' && mechanic.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        if (mechanic.name && typeof mechanic.name === 'string' && mechanic.name.toLowerCase().includes(lowerSearchTerm)) {
           matchesSearch = true;
         }
         
         // Check specialties (handle both string and array types)
         else if (mechanic.specialties) {
           if (Array.isArray(mechanic.specialties)) {
-            // Handle array of specialties
-            matchesSearch = mechanic.specialties.some(specialty => 
-              typeof specialty === 'string' && specialty.toLowerCase().includes(searchTerm.toLowerCase())
+            // Handle array of specialties - filter out non-string values first
+            const stringSpecialties = mechanic.specialties.filter((specialty): specialty is string => 
+              typeof specialty === 'string'
+            );
+            matchesSearch = stringSpecialties.some(specialty => 
+              specialty.toLowerCase().includes(lowerSearchTerm)
             );
           } else if (typeof mechanic.specialties === 'string') {
             // Handle string specialties
-            matchesSearch = mechanic.specialties.toLowerCase().includes(searchTerm.toLowerCase());
+            matchesSearch = mechanic.specialties.toLowerCase().includes(lowerSearchTerm);
           }
         }
         
         // Check location - ensure mechanic.location exists and is a string
-        else if (mechanic.location && typeof mechanic.location === 'string' && mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+        else if (mechanic.location && typeof mechanic.location === 'string' && mechanic.location.toLowerCase().includes(lowerSearchTerm)) {
           matchesSearch = true;
         }
       }
