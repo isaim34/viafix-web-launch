@@ -35,15 +35,6 @@ const ChatContainer = ({
     <div className="flex h-full">
       {/* Thread list - hidden on mobile when chat is open */}
       <div className={`w-full md:w-1/3 border-r ${showChatOnMobile ? 'hidden md:block' : 'block'}`}>
-        <div className="p-3 border-b bg-gray-50">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MessageCircle className="h-4 w-4" />
-            <span>
-              {currentUserRole === 'mechanic' ? 'Customer Messages' : 'Mechanic Messages'}
-            </span>
-          </div>
-        </div>
-        
         <ChatThreadsList
           threads={threads}
           currentUserId={currentUserId}
