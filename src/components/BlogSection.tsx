@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, FileText, Car, Wrench } from 'lucide-react';
 import { Button } from './Button';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
 import { blogPosts as blogPostsData } from '@/data/blog';
 import { BlogPost } from '@/types/blog';
@@ -62,15 +62,6 @@ export const BlogSection = () => {
               >
                 <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
                   <Link to={`/blog/${post.slug}`} className="block h-full flex flex-col">
-                    <div className="w-full relative">
-                      <AspectRatio ratio={16 / 9} className="bg-gray-100">
-                        <img 
-                          src={post.image} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover"
-                        />
-                      </AspectRatio>
-                    </div>
                     <div className="p-6 flex-grow flex flex-col">
                       <div className="flex items-center text-sm text-gray-500 mb-2">
                         <Car className="w-3 h-3 mr-1" />

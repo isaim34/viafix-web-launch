@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, User, Tag } from 'lucide-react';
+import { Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { ChevronLeft, Share2 } from 'lucide-react';
@@ -14,27 +14,22 @@ interface BlogPostHeaderProps {
 export const BlogPostHeader = ({ post, slug }: BlogPostHeaderProps) => {
   return (
     <>
-      {/* Hero section */}
-      <div 
-        className="w-full h-[400px] relative bg-cover bg-center"
-        style={{ backgroundImage: `url(${post.image})` }}
-      >
-        <div className="absolute inset-0 bg-black/50">
-          <div className="container mx-auto px-4 sm:px-6 h-full flex items-end">
-            <div className="max-w-3xl py-12">
-              <div className="bg-primary text-white text-sm px-3 py-1 rounded-full inline-block mb-4">
-                {post.category}
-              </div>
-              <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-                {post.title}
-              </h1>
-              <div className="flex items-center text-white/80 text-sm mb-4">
-                <Calendar className="w-4 h-4 mr-1" />
-                <span>{post.date}</span>
-                <span className="mx-2">•</span>
-                <User className="w-4 h-4 mr-1" />
-                <span>{post.author}</span>
-              </div>
+      {/* Hero section with just title and metadata */}
+      <div className="w-full bg-gradient-to-r from-primary to-primary/80 py-16">
+        <div className="container mx-auto px-4 sm:px-6 h-full flex items-center">
+          <div className="max-w-3xl">
+            <div className="bg-white text-primary text-sm px-3 py-1 rounded-full inline-block mb-4">
+              {post.category}
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+              {post.title}
+            </h1>
+            <div className="flex items-center text-white/80 text-sm mb-4">
+              <Calendar className="w-4 h-4 mr-1" />
+              <span>{post.date}</span>
+              <span className="mx-2">•</span>
+              <User className="w-4 h-4 mr-1" />
+              <span>{post.author}</span>
             </div>
           </div>
         </div>

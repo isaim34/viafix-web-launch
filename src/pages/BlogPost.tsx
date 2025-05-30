@@ -3,7 +3,6 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { motion } from 'framer-motion';
-import { CommentSection } from '@/components/blog/CommentSection';
 import { blogPosts as blogPostsData } from '@/data/blog';
 import { BlogPostHeader } from '@/components/blog/BlogPostHeader';
 import { BlogPostContent } from '@/components/blog/BlogPostContent';
@@ -46,11 +45,6 @@ const BlogPost = () => {
               {/* Main Content */}
               <BlogPostContent content={post.content} />
             </Card>
-            
-            {/* Comment section */}
-            <div className="mt-8">
-              <CommentSection postSlug={slug || ''} />
-            </div>
             
             {/* Tags and Related Articles */}
             <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPostsData} />

@@ -4,7 +4,6 @@ import { Layout } from '@/components/Layout';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Calendar, User, Search, Tag } from 'lucide-react';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
 import { Helmet } from 'react-helmet-async';
 import { blogPosts as blogPostsData } from '@/data/blog';
@@ -104,15 +103,6 @@ const Blog = () => {
                   >
                     <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
                       <Link to={`/blog/${post.slug}`} className="flex flex-col h-full">
-                        <div className="w-full relative">
-                          <AspectRatio ratio={16 / 9} className="bg-gray-100">
-                            <img 
-                              src={post.image} 
-                              alt={`${post.title} - Auto repair in Austin, TX`} 
-                              className="w-full h-full object-cover"
-                            />
-                          </AspectRatio>
-                        </div>
                         <div className="p-6 flex-grow flex flex-col">
                           <div className="flex items-center gap-2 mb-3">
                             <span className="inline-flex items-center bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
