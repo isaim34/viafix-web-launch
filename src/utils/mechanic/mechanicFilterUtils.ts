@@ -15,10 +15,11 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
   // Check specialties
   if (mechanic.specialties) {
     if (Array.isArray(mechanic.specialties)) {
+      // Filter to get only string specialties and then check them
       const stringSpecialties = mechanic.specialties.filter(
-        (specialty: unknown): specialty is string => typeof specialty === 'string'
+        (specialty): specialty is string => typeof specialty === 'string'
       );
-      if (stringSpecialties.some((specialty: string) => 
+      if (stringSpecialties.some((specialty) => 
           specialty.toLowerCase().includes(lowerSearchTerm))) {
         return true;
       }
