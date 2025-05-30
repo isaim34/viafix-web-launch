@@ -1,24 +1,22 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 export interface MechanicProfile {
   id: string;
-  name?: string;
-  avatar?: string;
-  specialties?: string[] | string;
-  rating?: number;
-  reviewCount?: number;
-  location?: string;
-  hourlyRate?: number;
+  name: string;
+  avatar: string;
+  specialties: string[];
+  rating: number;
+  reviewCount: number;
+  location: string;
+  hourlyRate: number;
   zipCode?: string;
-  firstName?: string;
-  lastName?: string;
-  profile_image?: string;
   about?: string;
   years_experience?: number;
   response_time?: string;
+  featured?: boolean;
+  featuredUntil?: string;
 }
 
 export const useMechanics = () => {
@@ -97,7 +95,9 @@ export const useMechanics = () => {
             zipCode: profile?.zip_code || '',
             about: mechanic.about || '',
             years_experience: mechanic.years_experience || 0,
-            response_time: mechanic.response_time || 'Under 1 hour'
+            response_time: mechanic.response_time || 'Under 1 hour',
+            featured: mechanic.is_featured,
+            featuredUntil: mechanic.featured_until
           });
         }
       }

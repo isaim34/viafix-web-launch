@@ -7,9 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/mechanic/dashboard/DashboardHeader';
 import { DashboardTabs } from '@/components/mechanic/dashboard/DashboardTabs';
+import { supabase } from '@/integrations/supabase/client';
 
 const MechanicDashboard = () => {
-  const { isLoggedIn, currentUserRole } = useAuth();
+  const { isLoggedIn, currentUserRole, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
@@ -34,6 +35,30 @@ const MechanicDashboard = () => {
       newUrl.hash = '#advertising';
       window.history.replaceState({}, '', newUrl.toString());
     } else if (success === 'featured') {
+      // Update featured status in database
+      const updateFeaturedStatus = async () => {
+        try {
+          if (user?.id && quantity) {
+            const { error } = await supabase.functions.invoke('update-featured-status', {
+              body: {
+                mechanicId: user.id,
+                days: parseInt(quantity)
+              }
+            });
+
+            if (error) {
+              console.error('Error updating featured status:', error);
+            } else {
+              console.log('Featured status updated successfully');
+            }
+          }
+        } catch (error) {
+          console.error('Error calling update-featured-status function:', error);
+        }
+      };
+
+      updateFeaturedStatus();
+
       toast({
         title: "Featured Plan Purchased!",
         description: `Your ${quantity} day featured listing has been activated.`,
@@ -58,7 +83,7 @@ const MechanicDashboard = () => {
       newUrl.searchParams.delete('canceled');
       window.history.replaceState({}, '', newUrl.toString());
     }
-  }, [searchParams, toast]);
+  }, [searchParams, toast, user?.id]);
 
   // Debug logging
   React.useEffect(() => {

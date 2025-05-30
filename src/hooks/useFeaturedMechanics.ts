@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MechanicProfile } from '@/hooks/useMechanics';
@@ -11,6 +10,7 @@ interface MechanicPerformanceData {
   avgRating: number;
   totalReviews: number;
   recentActivity: number;
+  isFeatured: boolean;
 }
 
 export const useFeaturedMechanics = (limit: number = 3) => {
@@ -62,6 +62,8 @@ export const useFeaturedMechanics = (limit: number = 3) => {
           review_count,
           about,
           response_time,
+          is_featured,
+          featured_until,
           profiles:id(
             id,
             first_name,
@@ -90,6 +92,11 @@ export const useFeaturedMechanics = (limit: number = 3) => {
             profile?.last_name?.toLowerCase() === 'mercado') {
           continue;
         }
+
+        // Check if mechanic is currently featured (paid)
+        const isFeatured = mechanic.is_featured && 
+                          mechanic.featured_until && 
+                          new Date(mechanic.featured_until) > new Date();
 
         // Get job completion data
         const { data: completedBookings } = await supabase
@@ -156,7 +163,9 @@ export const useFeaturedMechanics = (limit: number = 3) => {
           zipCode: profile?.zip_code || '',
           about: mechanic.about || '',
           years_experience: mechanic.years_experience || 0,
-          response_time: mechanic.response_time || 'Under 1 hour'
+          response_time: mechanic.response_time || 'Under 1 hour',
+          featured: isFeatured,
+          featuredUntil: isFeatured ? mechanic.featured_until : undefined
         };
 
         performanceData.push({
@@ -166,18 +175,28 @@ export const useFeaturedMechanics = (limit: number = 3) => {
           completionRate: totalJobsCount > 0 ? completedJobsCount / totalJobsCount : 0,
           avgRating: mechanic.rating || 0,
           totalReviews: mechanic.review_count || 0,
-          recentActivity: recentActivityCount
+          recentActivity: recentActivityCount,
+          isFeatured
         });
       }
 
-      // Sort by performance score and take top mechanics
-      const topMechanics = performanceData
-        .sort((a, b) => b.performanceScore - a.performanceScore)
+      // Sort by featured status first, then by performance score
+      const sortedMechanics = performanceData.sort((a, b) => {
+        // Featured mechanics come first
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        
+        // If both are featured or both are not featured, sort by performance score
+        return b.performanceScore - a.performanceScore;
+      });
+
+      const topMechanics = sortedMechanics
         .slice(0, limit)
         .map(data => data.mechanic);
 
-      console.log('Featured mechanics ranking:', performanceData.map(m => ({
+      console.log('Featured mechanics ranking:', sortedMechanics.map(m => ({
         name: m.mechanic.name,
+        isFeatured: m.isFeatured,
         score: m.performanceScore,
         rating: m.avgRating,
         reviews: m.totalReviews,
