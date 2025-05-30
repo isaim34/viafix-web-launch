@@ -18,18 +18,12 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
   }
   
   // Check specialties field
-  if (mechanic.specialties) {
-    if (Array.isArray(mechanic.specialties)) {
-      const hasMatchingSpecialty = mechanic.specialties.some((specialty) => {
-        return typeof specialty === 'string' && specialty.toLowerCase().includes(normalizedSearchTerm);
-      });
-      if (hasMatchingSpecialty) {
-        return true;
-      }
-    } else if (typeof mechanic.specialties === 'string') {
-      if (mechanic.specialties.toLowerCase().includes(normalizedSearchTerm)) {
-        return true;
-      }
+  if (mechanic.specialties && Array.isArray(mechanic.specialties)) {
+    const hasMatchingSpecialty = mechanic.specialties.some((specialty) => {
+      return typeof specialty === 'string' && specialty.toLowerCase().includes(normalizedSearchTerm);
+    });
+    if (hasMatchingSpecialty) {
+      return true;
     }
   }
   
