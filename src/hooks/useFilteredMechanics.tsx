@@ -140,8 +140,8 @@ export const useFilteredMechanics = (
       let matchesSearch = !searchTerm;
       
       if (searchTerm) {
-        // Check name
-        if (mechanic.name && mechanic.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        // Check name - ensure mechanic.name exists and is a string
+        if (mechanic.name && typeof mechanic.name === 'string' && mechanic.name.toLowerCase().includes(searchTerm.toLowerCase())) {
           matchesSearch = true;
         }
         
@@ -150,7 +150,7 @@ export const useFilteredMechanics = (
           if (Array.isArray(mechanic.specialties)) {
             // Handle array of specialties
             matchesSearch = mechanic.specialties.some(specialty => 
-              specialty.toLowerCase().includes(searchTerm.toLowerCase())
+              typeof specialty === 'string' && specialty.toLowerCase().includes(searchTerm.toLowerCase())
             );
           } else if (typeof mechanic.specialties === 'string') {
             // Handle string specialties
@@ -158,8 +158,8 @@ export const useFilteredMechanics = (
           }
         }
         
-        // Check location
-        else if (mechanic.location && mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())) {
+        // Check location - ensure mechanic.location exists and is a string
+        else if (mechanic.location && typeof mechanic.location === 'string' && mechanic.location.toLowerCase().includes(searchTerm.toLowerCase())) {
           matchesSearch = true;
         }
       }
@@ -183,7 +183,7 @@ export const useFilteredMechanics = (
       }
       
       // Also check for city/location matches when we have a location name
-      if (locationName && mechanic.location) {
+      if (locationName && mechanic.location && typeof mechanic.location === 'string') {
         const cityName = locationName.split(',')[0].toLowerCase().trim();
         const mechanicCity = mechanic.location.toLowerCase();
         const isInSameCity = mechanicCity.includes(cityName);
