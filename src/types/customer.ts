@@ -15,6 +15,10 @@ export interface MaintenanceRecord {
   mechanic: string;
   mechanicSignature: boolean;
   mechanicNotes?: string[];
+  workCategory?: 'repair' | 'maintenance' | 'inspection' | 'diagnostic' | 'custom';
+  signatureTimestamp?: string;
+  signatureIpAddress?: string;
+  imageCount?: number;
   nhtsaData?: {
     recalls: Recall[];
     complaints: Complaint[];

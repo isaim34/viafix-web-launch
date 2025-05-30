@@ -8,6 +8,7 @@ import { useMaintenanceForm } from './form/useMaintenanceForm';
 import VehicleInfoFields from './form/VehicleInfoFields';
 import ServiceDetailsFields from './form/ServiceDetailsFields';
 import SafetyDataSection from './form/SafetyDataSection';
+import { MaintenanceImageSection } from './form/MaintenanceImageSection';
 
 interface VehicleMaintenanceFormProps {
   onSave: (record: MaintenanceRecord) => void;
@@ -44,6 +45,11 @@ const VehicleMaintenanceForm = ({ onSave, onCancel, initialData }: VehicleMainte
           />
           
           <ServiceDetailsFields />
+          
+          <MaintenanceImageSection 
+            maintenanceRecordId={initialData?.id}
+            isEditMode={isEditMode}
+          />
           
           <div className="flex justify-end space-x-4">
             <Button type="button" variant="outline" onClick={onCancel}>

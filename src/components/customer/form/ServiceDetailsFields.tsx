@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MaintenanceRecord } from '@/types/customer';
+import { WorkCategoryField } from './WorkCategoryField';
 
 const ServiceDetailsFields = () => {
   const form = useFormContext<MaintenanceRecord>();
@@ -30,23 +31,25 @@ const ServiceDetailsFields = () => {
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="mechanic"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Mechanic Name</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Name of mechanic who performed service" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <WorkCategoryField />
       </div>
+      
+      <FormField
+        control={form.control}
+        name="mechanic"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Mechanic Name</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Name of mechanic who performed service" 
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       
       <FormField
         control={form.control}

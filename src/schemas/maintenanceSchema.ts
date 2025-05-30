@@ -11,6 +11,10 @@ export const maintenanceRecordSchema = z.object({
   mechanic: z.string().min(2, "Mechanic name is required"),
   mechanicSignature: z.boolean(),
   mechanicNotes: z.array(z.string()).optional(),
+  workCategory: z.enum(['repair', 'maintenance', 'inspection', 'diagnostic', 'custom']).optional(),
+  signatureTimestamp: z.string().optional(),
+  signatureIpAddress: z.string().optional(),
+  imageCount: z.number().optional(),
   nhtsaData: z.object({
     recalls: z.array(z.any()),
     complaints: z.array(z.any()),

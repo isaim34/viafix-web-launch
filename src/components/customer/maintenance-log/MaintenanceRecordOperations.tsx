@@ -84,19 +84,25 @@ export const useMaintenanceRecordOperations = () => {
         }
       }
       
+      // Prepare enhanced record data
+      const recordData = {
+        service_type: record.serviceType,
+        description: record.description,
+        mechanic_signature: record.mechanicSignature,
+        vehicle_id: vehicleId,
+        date: record.date,
+        work_category: record.workCategory || 'repair',
+        signature_timestamp: record.mechanicSignature ? new Date().toISOString() : null,
+        signature_ip_address: record.mechanicSignature ? 'auto-tracked' : null,
+      };
+      
       if (record.id) {
         // Update existing record
         console.log('Updating existing maintenance record:', record.id);
         
         const { error } = await supabase
           .from('maintenance_records')
-          .update({
-            service_type: record.serviceType,
-            description: record.description,
-            mechanic_signature: record.mechanicSignature,
-            vehicle_id: vehicleId,
-            date: record.date
-          })
+          .update(recordData)
           .eq('id', record.id);
         
         if (error) {
@@ -106,7 +112,7 @@ export const useMaintenanceRecordOperations = () => {
         
         toast({
           title: "Record updated",
-          description: "The maintenance record has been updated",
+          description: "The maintenance record has been updated with enhanced tracking",
         });
       } else {
         // Add new record
@@ -116,11 +122,7 @@ export const useMaintenanceRecordOperations = () => {
           .from('maintenance_records')
           .insert({
             customer_id: userId,
-            vehicle_id: vehicleId,
-            service_type: record.serviceType,
-            description: record.description,
-            mechanic_signature: record.mechanicSignature,
-            date: record.date
+            ...recordData
           });
         
         if (error) {
@@ -130,7 +132,7 @@ export const useMaintenanceRecordOperations = () => {
         
         toast({
           title: "Record added",
-          description: "A new maintenance record has been added",
+          description: "A new maintenance record has been added with enhanced tracking features",
         });
       }
     } catch (error) {
@@ -159,7 +161,7 @@ export const useMaintenanceRecordOperations = () => {
       
       toast({
         title: "Record deleted",
-        description: "The maintenance record has been deleted",
+        description: "The maintenance record and all associated images have been deleted",
       });
     } catch (error) {
       console.error('Error deleting record:', error);
