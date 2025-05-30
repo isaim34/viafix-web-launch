@@ -8,6 +8,7 @@ import { BlogPostHeader } from '@/components/blog/BlogPostHeader';
 import { BlogPostContent } from '@/components/blog/BlogPostContent';
 import { BlogPostFooter } from '@/components/blog/BlogPostFooter';
 import { BlogPostSEO } from '@/components/blog/BlogPostSEO';
+import { CommentSection } from '@/components/blog/CommentSection';
 import { Card } from '@/components/ui/card';
 
 const BlogPost = () => {
@@ -48,6 +49,9 @@ const BlogPost = () => {
             
             {/* Tags and Related Articles */}
             <BlogPostFooter post={post} slug={slug || ''} blogPosts={blogPostsData} />
+            
+            {/* Comments Section */}
+            <CommentSection postSlug={slug || ''} />
           </div>
         </div>
       </article>
