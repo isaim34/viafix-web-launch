@@ -11,15 +11,13 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
     return true;
   }
   
-  // Check specialties
+  // Check specialties with proper type handling
   if (mechanic.specialties) {
     if (Array.isArray(mechanic.specialties)) {
-      // More explicit type handling for specialties array
-      for (const specialty of mechanic.specialties) {
-        if (typeof specialty === 'string' && specialty.toLowerCase().includes(lowerSearchTerm)) {
-          return true;
-        }
-      }
+      // Use Array.some with explicit type checking
+      return mechanic.specialties.some((specialty: unknown) => {
+        return typeof specialty === 'string' && specialty.toLowerCase().includes(lowerSearchTerm);
+      });
     } else if (typeof mechanic.specialties === 'string') {
       if (mechanic.specialties.toLowerCase().includes(lowerSearchTerm)) {
         return true;
