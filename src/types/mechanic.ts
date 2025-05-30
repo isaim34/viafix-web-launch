@@ -91,24 +91,8 @@ export type FavoriteMechanic = {
   addedAt: string;
 };
 
-export type MassMessage = {
-  id: string;
-  title: string;
-  content: string;
-  targetZipCodes: string[];
-  sentDate: string;
-  status: 'draft' | 'sent' | 'scheduled';
-  scheduledDate?: string;
-  stats?: {
-    sent: number;
-    opened: number;
-    responded: number;
-  };
-};
-
 export type AdvertisementSettings = {
   featuredDaily: number;
-  massMessageCost: number;
   currentPlan?: {
     isFeatured: boolean;
     featuredUntil?: string;
