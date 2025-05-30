@@ -14,16 +14,13 @@ export const matchesSearchTerm = (mechanic: MechanicProfile, searchTerm: string)
   
   // Check specialties with proper type handling
   const specialties = mechanic.specialties;
+
   if (Array.isArray(specialties)) {
-    if (
-      specialties.some((item: unknown) => typeof item === 'string' && item.toLowerCase().includes(lowerSearchTerm))
-    ) {
-      return true;
-    }
+    return specialties.some((item: unknown): item is string => {
+      return typeof item === 'string' && item.toLowerCase().includes(lowerSearchTerm);
+    });
   } else if (typeof specialties === 'string') {
-    if (specialties.toLowerCase().includes(lowerSearchTerm)) {
-      return true;
-    }
+    return specialties.toLowerCase().includes(lowerSearchTerm);
   }
   
   // Check location with proper type guard
