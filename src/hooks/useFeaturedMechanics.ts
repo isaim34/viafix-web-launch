@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MechanicProfile } from '@/hooks/useMechanics';
@@ -63,14 +64,7 @@ export const useFeaturedMechanics = (limit: number = 3) => {
           about,
           response_time,
           is_featured,
-          featured_until,
-          profiles:id(
-            id,
-            first_name,
-            last_name,
-            profile_image,
-            zip_code
-          )
+          featured_until
         `);
 
       if (mechanicError) throw mechanicError;
@@ -83,7 +77,16 @@ export const useFeaturedMechanics = (limit: number = 3) => {
       const performanceData: MechanicPerformanceData[] = [];
 
       for (const mechanic of mechanicProfiles) {
-        const profile = mechanic.profiles as any;
+        // Get profile data separately to avoid PGRST201 error
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, profile_image, zip_code')
+          .eq('id', mechanic.id)
+          .maybeSingle();
+        
+        if (profileError) {
+          console.warn(`Error fetching profile for mechanic ${mechanic.id}:`, profileError);
+        }
         
         // Skip Isai Mercado (the user)
         const fullName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
