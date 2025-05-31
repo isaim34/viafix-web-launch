@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 const ProfileEditor = () => {
   const { toast } = useToast();
   const auth = useAuth();
-  const { currentUserRole, updateUserName, currentUserName, user } = auth;
+  const { currentUserRole, updateUserName, currentUserName, user, isLoggedIn } = auth;
   const [profileData, setProfileData] = useState<BasicProfileFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const storageKey = currentUserRole === 'mechanic' ? 'mechanicProfile' : 'customerProfile';
@@ -102,10 +102,22 @@ const ProfileEditor = () => {
       }
     }
 
-    // Save to Supabase database as well
-    if (user?.id) {
+    // Only attempt Supabase save if user is properly authenticated
+    if (user?.id && isLoggedIn) {
       try {
         console.log('💾 Saving profile data to database for user:', user.id);
+        
+        // Check current session to ensure we're authenticated
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !sessionData.session) {
+          console.warn('⚠️ No valid session found, skipping database save');
+          toast({
+            title: "Profile saved locally",
+            description: "Your profile changes have been saved locally. Please log in again to sync with the server.",
+          });
+          return;
+        }
         
         // First, update or insert into profiles table
         const profileUpdateData = {
@@ -187,7 +199,7 @@ const ProfileEditor = () => {
         let errorMessage = "There was an error saving your profile. Please try again.";
         
         if (error?.message?.includes('violates row-level security')) {
-          errorMessage = "You don't have permission to update this profile. Please try logging out and back in.";
+          errorMessage = "Authentication error. Please log out and log back in, then try again.";
         } else if (error?.message?.includes('new row violates')) {
           errorMessage = "Profile validation failed. Please check all required fields are filled correctly.";
         } else if (error?.message?.includes('network')) {
@@ -202,10 +214,10 @@ const ProfileEditor = () => {
         return; // Don't continue if database save failed
       }
     } else {
-      console.log('⚠️ No user ID found, skipping database save');
+      console.log('⚠️ No authenticated user found, saving locally only');
       toast({
-        title: "Profile updated locally",
-        description: "Your profile has been saved locally",
+        title: "Profile saved locally",
+        description: "Your profile has been saved locally. Please log in to sync with the server.",
       });
     }
     
