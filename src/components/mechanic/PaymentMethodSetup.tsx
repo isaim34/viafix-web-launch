@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const stripePromise = loadStripe(process.env.NODE_ENV === 'production' 
   ? 'pk_live_...' // Replace with your live publishable key
@@ -19,6 +20,7 @@ interface PaymentMethodSetupProps {
 const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [setupIntentSecret, setSetupIntentSecret] = useState<string | null>(null);
@@ -43,7 +45,7 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!stripe || !elements || !setupIntentSecret) {
+    if (!stripe || !elements || !setupIntentSecret || !user) {
       return;
     }
 
@@ -74,6 +76,7 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
         const { error: dbError } = await supabase
           .from('mechanic_payment_methods')
           .insert({
+            mechanic_id: user.id,
             stripe_setup_intent_id: setupIntent.id,
             stripe_payment_method_id: setupIntent.payment_method as string,
             is_active: true,
