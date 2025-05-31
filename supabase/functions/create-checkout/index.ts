@@ -22,11 +22,23 @@ serve(async (req) => {
     logStep('Function started');
     
     // Validate environment variables
-    const envValidation = validateEnvironment();
-    if ('error' in envValidation) {
-      return envValidation.error;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const stripeKey = Deno.env.get("sk_live");
+    
+    if (!supabaseUrl || !supabaseServiceRole || !stripeKey) {
+      logStep('ERROR: Missing environment variables', { 
+        hasSupabaseUrl: !!supabaseUrl, 
+        hasSupabaseServiceRole: !!supabaseServiceRole, 
+        hasStripeKey: !!stripeKey 
+      });
+      return new Response(JSON.stringify({ 
+        error: "Server configuration error" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
-    const { stripeKey, supabaseUrl, supabaseServiceRole } = envValidation;
     
     // Parse request body with error handling
     const bodyResult = await parseRequestBody(req);

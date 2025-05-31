@@ -8,11 +8,8 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-// Updated with your actual test publishable key
-const stripePromise = loadStripe(process.env.NODE_ENV === 'production' 
-  ? 'pk_live_...' // Replace with your live publishable key when ready
-  : 'pk_test_51RHQBoL5TpM4x7IGAYh4EkllpuCDhgkbq9zz3XncmikVMM3JBjmnHZaqUwYARgl86if2a1TeZhug1MbLmxMTFlSx00t5vQZY88'
-);
+// Updated with your live publishable key
+const stripePromise = loadStripe('pk_live_51RHQBoL5TpM4x7IGAYh4EkllpuCDhgkbq9zz3XncmikVMM3JBjmnHZaqUwYARgl86if2a1TeZhug1MbLmxMTFlSx00t5vQZY88');
 
 interface PaymentMethodSetupProps {
   onSuccess: () => void;
@@ -147,12 +144,6 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
         <p className="text-sm text-blue-700">
           🔒 Your payment information is secure and encrypted. 
           No charges will be made until you complete your first job.
-        </p>
-      </div>
-
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-        <p className="text-sm text-yellow-700">
-          💡 <strong>Test with:</strong> Card number 4242424242424242, any future expiry date, any CVC
         </p>
       </div>
 

@@ -34,9 +34,9 @@ serve(async (req) => {
 
     console.log("User authenticated:", user.email);
 
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const stripeSecretKey = Deno.env.get("sk_live");
     if (!stripeSecretKey) {
-      throw new Error("STRIPE_SECRET_KEY is not configured");
+      throw new Error("sk_live is not configured");
     }
 
     const stripe = new Stripe(stripeSecretKey, {

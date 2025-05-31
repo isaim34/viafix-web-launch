@@ -104,18 +104,6 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
                 </div>
               </div>
             </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-blue-800">Testing Mode Active</h4>
-                  <p className="text-sm text-blue-700 mt-1">
-                    Use test card: <code className="bg-blue-100 px-1 rounded">4242424242424242</code> with any future expiry and CVC.
-                  </p>
-                </div>
-              </div>
-            </div>
             
             <Card>
               <CardHeader>
