@@ -107,13 +107,13 @@ const ProfileEditor = () => {
       try {
         console.log('💾 Saving profile data to database for user:', user.id);
         
-        // Update profiles table
+        // First, update or insert into profiles table
         const profileUpdateData = {
           id: user.id,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone,
-          zip_code: data.zipCode,
+          first_name: data.firstName || null,
+          last_name: data.lastName || null,
+          phone: data.phone || null,
+          zip_code: data.zipCode || null,
           profile_image: data.profileImage || null,
         };
 
@@ -121,7 +121,10 @@ const ProfileEditor = () => {
 
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert(profileUpdateData, { onConflict: 'id' });
+          .upsert(profileUpdateData, { 
+            onConflict: 'id',
+            ignoreDuplicates: false 
+          });
 
         if (profileError) {
           console.error('❌ Error updating profiles table:', profileError);
@@ -134,17 +137,20 @@ const ProfileEditor = () => {
         if (currentUserRole === 'mechanic') {
           const mechanicUpdateData = {
             id: user.id,
-            about: data.about,
-            specialties: data.specialties,
-            hourly_rate: data.hourlyRate,
-            years_experience: data.yearsExperience,
+            about: data.about || null,
+            specialties: data.specialties || null,
+            hourly_rate: data.hourlyRate || 0,
+            years_experience: data.yearsExperience || 0,
           };
 
           console.log('🔧 Updating mechanic_profiles table with:', mechanicUpdateData);
 
           const { error: mechanicError } = await supabase
             .from('mechanic_profiles')
-            .upsert(mechanicUpdateData, { onConflict: 'id' });
+            .upsert(mechanicUpdateData, { 
+              onConflict: 'id',
+              ignoreDuplicates: false 
+            });
 
           if (mechanicError) {
             console.error('❌ Error updating mechanic_profiles table:', mechanicError);
@@ -176,9 +182,21 @@ const ProfileEditor = () => {
 
       } catch (error) {
         console.error('💥 Error saving to database:', error);
+        
+        // Provide more specific error messages based on the error
+        let errorMessage = "There was an error saving your profile. Please try again.";
+        
+        if (error?.message?.includes('violates row-level security')) {
+          errorMessage = "You don't have permission to update this profile. Please try logging out and back in.";
+        } else if (error?.message?.includes('new row violates')) {
+          errorMessage = "Profile validation failed. Please check all required fields are filled correctly.";
+        } else if (error?.message?.includes('network')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        }
+        
         toast({
           title: "Error saving profile",
-          description: "There was an error saving your profile. Please try again.",
+          description: errorMessage,
           variant: "destructive"
         });
         return; // Don't continue if database save failed
