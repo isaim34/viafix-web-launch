@@ -14,7 +14,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting subscription activation...");
+    
     const { mechanic_id, trigger_reason } = await req.json();
+    console.log("Activating subscription for mechanic:", mechanic_id, "Reason:", trigger_reason);
     
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -22,7 +25,12 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      throw new Error("STRIPE_SECRET_KEY is not configured");
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -33,8 +41,16 @@ serve(async (req) => {
       .eq("mechanic_id", mechanic_id)
       .single();
 
-    if (!subscription || subscription.subscription_status === 'active') {
-      return new Response(JSON.stringify({ message: "Subscription already active or not found" }), {
+    if (!subscription) {
+      throw new Error("No subscription record found for mechanic");
+    }
+
+    if (subscription.subscription_status === 'active') {
+      console.log("Subscription already active");
+      return new Response(JSON.stringify({ 
+        message: "Subscription already active",
+        subscription_id: subscription.stripe_subscription_id 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -52,6 +68,8 @@ serve(async (req) => {
       throw new Error("No active payment method found");
     }
 
+    console.log("Creating Stripe subscription...");
+
     // Create Stripe subscription
     const stripeSubscription = await stripe.subscriptions.create({
       customer: subscription.stripe_customer_id,
@@ -60,8 +78,9 @@ serve(async (req) => {
           currency: 'usd',
           product_data: {
             name: 'ViaFix Mechanic Monthly Subscription',
+            description: 'Monthly subscription for mechanics on ViaFix platform'
           },
-          unit_amount: subscription.monthly_amount,
+          unit_amount: subscription.monthly_amount || 5000, // Default $50
           recurring: {
             interval: 'month',
           },
@@ -71,8 +90,10 @@ serve(async (req) => {
       expand: ['latest_invoice.payment_intent'],
     });
 
+    console.log("Stripe subscription created:", stripeSubscription.id);
+
     // Update subscription record
-    await supabaseClient
+    const { error: updateError } = await supabaseClient
       .from("mechanic_subscriptions")
       .update({
         stripe_subscription_id: stripeSubscription.id,
@@ -80,21 +101,32 @@ serve(async (req) => {
         subscription_started_at: new Date().toISOString(),
         first_job_completed: trigger_reason === 'first_job',
         first_job_completed_at: trigger_reason === 'first_job' ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
       })
       .eq("mechanic_id", mechanic_id);
+
+    if (updateError) {
+      console.error("Error updating subscription record:", updateError);
+      throw updateError;
+    }
+
+    console.log("Subscription activation completed successfully");
 
     return new Response(JSON.stringify({
       success: true,
       subscription_id: stripeSubscription.id,
       status: stripeSubscription.status,
-      trigger_reason
+      trigger_reason,
+      current_period_end: stripeSubscription.current_period_end
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     console.error("Subscription activation error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message || "Failed to activate subscription" 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

@@ -8,10 +8,10 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-// Updated with complete test key - replace with your full key from Stripe dashboard
+// Updated with your actual test publishable key
 const stripePromise = loadStripe(process.env.NODE_ENV === 'production' 
-  ? 'pk_live_...' // Replace with your live publishable key
-  : 'pk_test_51QXMlPP5OwVkDIAfqEMKjL2v5bC8ZBqyGOUtgUrN7BVwP8LqNp1QqAPhhP8J5a8YT2cKEMAiGC5sKnRNTTjgZJpQ00FGTrQgPa' // Complete test key
+  ? 'pk_live_...' // Replace with your live publishable key when ready
+  : 'pk_test_51RHQBoL5TpM4x7IGAYh4EkllpuCDhgkbq9zz3XncmikVMM3JBjmnHZaqUwYARgl86if2a1TeZhug1MbLmxMTFlSx00t5vQZY88'
 );
 
 interface PaymentMethodSetupProps {

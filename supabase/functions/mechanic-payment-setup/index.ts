@@ -14,6 +14,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting mechanic payment setup...");
+    
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -21,21 +23,36 @@ serve(async (req) => {
     );
 
     const authHeader = req.headers.get("Authorization")!;
+    if (!authHeader) {
+      throw new Error("No authorization header provided");
+    }
+    
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    console.log("User authenticated:", user.email);
+
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      throw new Error("STRIPE_SECRET_KEY is not configured");
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
     });
 
+    console.log("Checking for existing customer...");
+    
     // Check if customer exists
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      console.log("Found existing customer:", customerId);
     } else {
+      console.log("Creating new customer...");
       const customer = await stripe.customers.create({
         email: user.email,
         metadata: {
@@ -44,8 +61,11 @@ serve(async (req) => {
         }
       });
       customerId = customer.id;
+      console.log("Created new customer:", customerId);
     }
 
+    console.log("Creating setup intent...");
+    
     // Create setup intent for saving payment method
     const setupIntent = await stripe.setupIntents.create({
       customer: customerId,
@@ -53,13 +73,25 @@ serve(async (req) => {
       usage: 'off_session',
     });
 
-    // Create subscription record but don't start it yet
-    await supabaseClient.from("mechanic_subscriptions").upsert({
-      mechanic_id: user.id,
-      stripe_customer_id: customerId,
-      subscription_status: 'pending',
-      created_at: new Date().toISOString(),
-    }, { onConflict: 'mechanic_id' });
+    console.log("Setup intent created:", setupIntent.id);
+
+    // Create or update subscription record but don't start it yet
+    const { error: subscriptionError } = await supabaseClient
+      .from("mechanic_subscriptions")
+      .upsert({
+        mechanic_id: user.id,
+        stripe_customer_id: customerId,
+        subscription_status: 'pending',
+        monthly_amount: 5000, // $50.00
+        created_at: new Date().toISOString(),
+      }, { onConflict: 'mechanic_id' });
+
+    if (subscriptionError) {
+      console.error("Subscription record error:", subscriptionError);
+      // Don't throw here, as the setup intent is still valid
+    }
+
+    console.log("Payment setup completed successfully");
 
     return new Response(JSON.stringify({
       setup_intent_client_secret: setupIntent.client_secret,
@@ -70,7 +102,9 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Payment setup error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message || "Failed to setup payment method" 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
