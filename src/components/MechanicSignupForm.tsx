@@ -15,6 +15,7 @@ import MechanicSpecificFields from './mechanic/MechanicSpecificFields';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { useAuth } from '@/hooks/useAuth';
 import { PaymentSetupModal } from './mechanic/PaymentSetupModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const MechanicSignupForm = () => {
   const { signUp } = useAuth();
@@ -49,7 +50,31 @@ const MechanicSignupForm = () => {
         hourly_rate: data.hourlyRate
       };
       
-      await signUp(data.email, data.password, userData);
+      const result = await signUp(data.email, data.password, userData);
+      
+      if (result?.error) {
+        throw new Error(result.error.message);
+      }
+      
+      // Send initial mechanic welcome email after successful signup
+      if (result?.data?.user) {
+        try {
+          console.log('Sending mechanic welcome email...');
+          await supabase.functions.invoke('send-welcome-email', {
+            body: {
+              userId: result.data.user.id,
+              userType: 'mechanic',
+              email: data.email,
+              firstName: data.firstName,
+              lastName: data.lastName
+            }
+          });
+          console.log('Welcome email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't block signup for email failures
+        }
+      }
       
       // Store signup data and show payment setup
       setSignupData(data);

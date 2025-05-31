@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentMethodSetup } from './PaymentMethodSetup';
 import { SpotlightPackageSelector } from './SpotlightPackageSelector';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PaymentSetupModalProps {
   isOpen: boolean;
@@ -26,10 +27,37 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
   const [currentStep, setCurrentStep] = useState<'payment' | 'spotlight' | 'complete'>('payment');
   const [paymentSetupComplete, setPaymentSetupComplete] = useState(false);
   const [selectedSpotlight, setSelectedSpotlight] = useState<string | null>(null);
+  const { user } = useAuth();
 
-  const handlePaymentMethodSaved = () => {
+  const handlePaymentMethodSaved = async () => {
     console.log('Payment method saved successfully');
     setPaymentSetupComplete(true);
+    
+    // Send subscription confirmation email
+    if (user && mechanicData) {
+      try {
+        console.log('Sending subscription confirmation email...');
+        await supabase.functions.invoke('send-welcome-email', {
+          body: {
+            userId: user.id,
+            userType: 'mechanic',
+            email: user.email,
+            firstName: mechanicData.firstName,
+            lastName: mechanicData.lastName,
+            subscriptionDetails: {
+              planType: 'monthly', // Default plan
+              amount: 5000, // $50.00 in cents
+              nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+            }
+          }
+        });
+        console.log('Subscription confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send subscription confirmation email:', emailError);
+        // Don't block the flow for email failures
+      }
+    }
+    
     toast({
       title: "Payment method added!",
       description: "Your payment method has been securely saved.",

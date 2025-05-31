@@ -13,6 +13,7 @@ import LoginCredentialsFields from './common/LoginCredentialsFields';
 import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const CustomerSignupForm = () => {
   const navigate = useNavigate();
@@ -44,6 +45,26 @@ const CustomerSignupForm = () => {
       
       if (result?.error) {
         throw new Error(result.error.message);
+      }
+      
+      // Send welcome email after successful signup
+      if (result?.data?.user) {
+        try {
+          console.log('Sending customer welcome email...');
+          await supabase.functions.invoke('send-welcome-email', {
+            body: {
+              userId: result.data.user.id,
+              userType: 'customer',
+              email: data.email,
+              firstName: data.firstName,
+              lastName: data.lastName
+            }
+          });
+          console.log('Welcome email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't block signup for email failures
+        }
       }
       
       toast({
