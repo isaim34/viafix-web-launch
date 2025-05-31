@@ -345,6 +345,39 @@ export type Database = {
           },
         ]
       }
+      job_completions: {
+        Row: {
+          amount_paid: number | null
+          completed_at: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          is_first_job: boolean | null
+          job_type: string
+          mechanic_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          completed_at?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          is_first_job?: boolean | null
+          job_type: string
+          mechanic_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          completed_at?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          is_first_job?: boolean | null
+          job_type?: string
+          mechanic_id?: string
+        }
+        Relationships: []
+      }
       maintenance_notes: {
         Row: {
           created_at: string
@@ -491,6 +524,42 @@ export type Database = {
           },
         ]
       }
+      mechanic_payment_methods: {
+        Row: {
+          card_brand: string | null
+          card_last4: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          mechanic_id: string
+          stripe_payment_method_id: string | null
+          stripe_setup_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          mechanic_id: string
+          stripe_payment_method_id?: string | null
+          stripe_setup_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          mechanic_id?: string
+          stripe_payment_method_id?: string | null
+          stripe_setup_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mechanic_profiles: {
         Row: {
           about: string | null
@@ -628,6 +697,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mechanic_spotlight_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          mechanic_id: string
+          spotlight_type: string | null
+          status: string | null
+          stripe_payment_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          mechanic_id: string
+          spotlight_type?: string | null
+          status?: string | null
+          stripe_payment_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          mechanic_id?: string
+          spotlight_type?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mechanic_subscriptions: {
+        Row: {
+          created_at: string
+          first_job_completed: boolean | null
+          first_job_completed_at: string | null
+          id: string
+          mechanic_id: string
+          monthly_amount: number | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_started_at: string | null
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_job_completed?: boolean | null
+          first_job_completed_at?: string | null
+          id?: string
+          mechanic_id: string
+          monthly_amount?: number | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_started_at?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_job_completed?: boolean | null
+          first_job_completed_at?: string | null
+          id?: string
+          mechanic_id?: string
+          monthly_amount?: number | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_started_at?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {

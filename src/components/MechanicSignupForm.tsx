@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,12 @@ import TermsOfServiceCheckbox from './common/TermsOfServiceCheckbox';
 import MechanicSpecificFields from './mechanic/MechanicSpecificFields';
 import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { useAuth } from '@/hooks/useAuth';
+import { PaymentSetupModal } from './mechanic/PaymentSetupModal';
 
 const MechanicSignupForm = () => {
   const { signUp } = useAuth();
+  const [showPaymentSetup, setShowPaymentSetup] = useState(false);
+  const [signupData, setSignupData] = useState<MechanicFormValues | null>(null);
   
   const form = useForm<MechanicFormValues>({
     resolver: zodResolver(mechanicFormSchema),
@@ -48,12 +51,9 @@ const MechanicSignupForm = () => {
       
       await signUp(data.email, data.password, userData);
       
-      toast({
-        title: "Account created!",
-        description: `Welcome to ViaFix, ${data.firstName}. Please check your email to verify your account.`,
-      });
-      
-      // Let the AuthProvider handle navigation - don't navigate directly here
+      // Store signup data and show payment setup
+      setSignupData(data);
+      setShowPaymentSetup(true);
       
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -78,38 +78,55 @@ const MechanicSignupForm = () => {
     }
   };
 
+  const handlePaymentSetupComplete = () => {
+    setShowPaymentSetup(false);
+    toast({
+      title: "Welcome to ViaFix!",
+      description: `Account created successfully! Your $50/month subscription will start after you complete your first job.`,
+    });
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <NameFields control={form.control} />
-        <LoginCredentialsFields form={form} />
-        <ZipCodeInput 
-          control={form.control}
-          description="Enter your zip code to help customers find you"
-        />
-        <MechanicSpecificFields control={form.control} />
-        <TermsOfServiceCheckbox control={form.control} />
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <NameFields control={form.control} />
+          <LoginCredentialsFields form={form} />
+          <ZipCodeInput 
+            control={form.control}
+            description="Enter your zip code to help customers find you"
+          />
+          <MechanicSpecificFields control={form.control} />
+          <TermsOfServiceCheckbox control={form.control} />
 
-        <Button type="submit" className="w-full">
-          Create Mechanic Account
-        </Button>
-        
-        <p className="text-center text-sm text-gray-500">
-          Already have an account?{" "}
-          <Link to="/signin" className="text-primary hover:underline font-medium">
-            Sign in
-          </Link>
-        </p>
-        
-        <div className="relative flex items-center">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="flex-shrink mx-4 text-gray-500 text-sm">or</span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
+          <Button type="submit" className="w-full">
+            Create Mechanic Account
+          </Button>
+          
+          <p className="text-center text-sm text-gray-500">
+            Already have an account?{" "}
+            <Link to="/signin" className="text-primary hover:underline font-medium">
+              Sign in
+            </Link>
+          </p>
+          
+          <div className="relative flex items-center">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink mx-4 text-gray-500 text-sm">or</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
 
-        <GoogleAuthButton mode="signup" />
-      </form>
-    </Form>
+          <GoogleAuthButton mode="signup" />
+        </form>
+      </Form>
+
+      <PaymentSetupModal 
+        isOpen={showPaymentSetup}
+        onClose={() => setShowPaymentSetup(false)}
+        onComplete={handlePaymentSetupComplete}
+        mechanicData={signupData}
+      />
+    </>
   );
 };
 
