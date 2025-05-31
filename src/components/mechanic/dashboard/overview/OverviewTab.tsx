@@ -5,6 +5,7 @@ import { TodaysSchedule } from './TodaysSchedule';
 import { RecentActivity } from './RecentActivity';
 import { RebookingTracker } from '../analytics/RebookingTracker';
 import { WeeklyStatsPanel } from '../stats/WeeklyStatsPanel';
+import { TrialStatusBanner } from '../TrialStatusBanner';
 import { useMechanicDashboardData } from '@/hooks/useMechanicDashboardData';
 
 interface OverviewTabProps {
@@ -14,8 +15,22 @@ interface OverviewTabProps {
 export const OverviewTab = ({ onTabChange }: OverviewTabProps) => {
   const { stats, todayAppointments, recentActivity, isLoading } = useMechanicDashboardData();
 
+  const handleOptimizeProfile = () => {
+    onTabChange('profile');
+  };
+
+  const handleViewGigs = () => {
+    onTabChange('services');
+  };
+
   return (
     <div className="space-y-6">
+      {/* Trial Status Banner */}
+      <TrialStatusBanner 
+        onOptimizeProfile={handleOptimizeProfile}
+        onViewGigs={handleViewGigs}
+      />
+      
       {/* Weekly Stats Panel */}
       <WeeklyStatsPanel />
       

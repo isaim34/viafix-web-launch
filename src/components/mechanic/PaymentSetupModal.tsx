@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, CreditCard, Star, Zap, AlertTriangle } from 'lucide-react';
+import { CheckCircle, CreditCard, Star, Zap, AlertTriangle, Gift } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentMethodSetup } from './PaymentMethodSetup';
@@ -89,6 +89,22 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
 
         {currentStep === 'payment' && (
           <div className="space-y-6">
+            {/* Trial Benefits Banner */}
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Gift className="h-5 w-5 text-green-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-green-800">🎉 Trial Period Benefits</h4>
+                  <div className="text-sm text-green-700 mt-1 space-y-1">
+                    <p>✅ <strong>Full platform access</strong> - Use all features immediately</p>
+                    <p>✅ <strong>No charges until first job</strong> - Try everything risk-free</p>
+                    <p>✅ <strong>Unlimited profile setup</strong> - Take your time to get it right</p>
+                    <p>✅ <strong>Customer interaction tools</strong> - Chat, quotes, and booking</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -108,8 +124,8 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
                   Payment Method Setup
                 </CardTitle>
                 <CardDescription>
-                  Add a payment method to activate your account. Your $50/month subscription 
-                  will only start after you complete your first job.
+                  Add a payment method to secure your account. Your $50/month subscription 
+                  will only start after you complete your first paid job.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -153,11 +169,13 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
               </p>
               
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-green-800 mb-2">Important:</h4>
-                <p className="text-sm text-green-700">
-                  Your $50/month subscription will automatically start after you complete your first paid job. 
-                  Until then, your account is free!
-                </p>
+                <h4 className="font-medium text-green-800 mb-2">🎉 Trial Period Active:</h4>
+                <div className="text-sm text-green-700 space-y-1">
+                  <p>• <strong>Complete access</strong> to all platform features</p>
+                  <p>• <strong>$0 monthly fee</strong> until your first paid job</p>
+                  <p>• <strong>Try everything risk-free</strong> - no time limits</p>
+                  <p>• <strong>$50/month subscription</strong> starts only after first job completion</p>
+                </div>
               </div>
 
               {selectedSpotlight && (

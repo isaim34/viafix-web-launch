@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useSupabaseGigManagement } from '@/hooks/useSupabaseGigManagement';
-import GigManagementHeader from '@/components/gig/GigManagementHeader';
+import { TrialAwareGigHeader } from '@/components/mechanic/dashboard/TrialAwareGigHeader';
 import GigList from '@/components/gig/GigList';
 import EmptyGigState from '@/components/gig/EmptyGigState';
 import SupabaseGigForm from '@/components/gig/SupabaseGigForm';
@@ -36,7 +36,10 @@ const GigManagement = () => {
 
   return (
     <div>
-      <GigManagementHeader onAddClick={() => setIsCreating(true)} />
+      <TrialAwareGigHeader 
+        onAddGig={() => setIsCreating(true)} 
+        gigCount={gigs.length}
+      />
 
       {(isCreating || editingGig) && (
         <div className="mb-8">

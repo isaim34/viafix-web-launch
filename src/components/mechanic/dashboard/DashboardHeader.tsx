@@ -6,6 +6,7 @@ import { Bell, Plus, Calendar, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useMechanicDashboardData } from '@/hooks/useMechanicDashboardData';
+import { TrialStatusCard } from './TrialStatusCard';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -24,7 +25,7 @@ const getCurrentDate = () => {
 };
 
 export const DashboardHeader = () => {
-  const { currentUserName } = useAuth();
+  const { currentUserName, user } = useAuth();
   const { stats, todayAppointments, isLoading } = useMechanicDashboardData();
 
   // Calculate this week's earnings and completion rate
@@ -32,6 +33,9 @@ export const DashboardHeader = () => {
   const completionRate = stats.completedJobs + stats.ongoingJobs > 0 
     ? Math.round((stats.completedJobs / (stats.completedJobs + stats.ongoingJobs)) * 100)
     : 0;
+
+  // Assume user created account recently for trial demonstration
+  const userSignupDate = user?.created_at ? new Date(user.created_at) : new Date();
 
   return (
     <motion.div
@@ -50,6 +54,12 @@ export const DashboardHeader = () => {
             <Calendar className="h-4 w-4" />
             {getCurrentDate()}
           </p>
+          {/* Trial Period Indicator */}
+          <div className="flex items-center gap-2 mt-2">
+            <div className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+              🆓 Trial Period - Free Until First Job
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -83,21 +93,7 @@ export const DashboardHeader = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-green-500 rounded-full p-2">
-                <DollarSign className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm font-medium text-green-700">This Week</p>
-                <p className="text-lg md:text-2xl font-bold text-green-900">
-                  {isLoading ? '...' : `$${thisWeekEarnings}`}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <TrialStatusCard signupDate={userSignupDate} />
 
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <CardContent className="p-3 md:p-4">
@@ -109,6 +105,22 @@ export const DashboardHeader = () => {
                 <p className="text-xs md:text-sm font-medium text-orange-700">Completion</p>
                 <p className="text-lg md:text-2xl font-bold text-orange-900">
                   {isLoading ? '...' : `${completionRate}%`}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-3 md:p-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-500 rounded-full p-2">
+                <DollarSign className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-xs md:text-sm font-medium text-purple-700">This Week</p>
+                <p className="text-lg md:text-2xl font-bold text-purple-900">
+                  {isLoading ? '...' : `$${thisWeekEarnings}`}
                 </p>
               </div>
             </div>
