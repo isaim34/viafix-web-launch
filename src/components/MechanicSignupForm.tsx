@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import ZipCodeInput from './ZipCodeInput';
 import { mechanicFormSchema, MechanicFormValues } from '@/schemas/signupSchema';
 import NameFields from './common/NameFields';
@@ -16,7 +16,6 @@ import { GoogleAuthButton } from './auth/GoogleAuthButton';
 import { useAuth } from '@/hooks/useAuth';
 
 const MechanicSignupForm = () => {
-  const navigate = useNavigate();
   const { signUp } = useAuth();
   
   const form = useForm<MechanicFormValues>({
@@ -54,8 +53,8 @@ const MechanicSignupForm = () => {
         description: `Welcome to ViaFix, ${data.firstName}. Please check your email to verify your account.`,
       });
       
-      // Navigate to sign in page for email verification
-      navigate('/signin');
+      // Let the AuthProvider handle navigation - don't navigate directly here
+      
     } catch (error: any) {
       console.error('Signup error:', error);
       

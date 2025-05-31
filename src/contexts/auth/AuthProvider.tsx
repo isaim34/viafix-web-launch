@@ -58,6 +58,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setCurrentUserName(name);
           setAuthChecked(true);
           setLoading(false);
+          
+          // For signup events, don't automatically navigate
+          // Let the user stay on the current page or use explicit navigation
+          if (event === 'SIGNED_UP') {
+            console.log('User signed up successfully, staying on current page for email verification');
+          }
         }
       }
     );

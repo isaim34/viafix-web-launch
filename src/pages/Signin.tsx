@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import type { UserRole } from '@/contexts/auth/types';
 // Import the sign in forms directly without lazy loading
@@ -17,7 +17,6 @@ const Signin = () => {
   const [activeTab, setActiveTab] = useState<string>('customer');
   const { isLoggedIn, currentUserRole, authChecked } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const { getProfileRoute } = useAuthRedirect();
 
   // Try to restore the active tab from localStorage or URL on first render
@@ -64,12 +63,6 @@ const Signin = () => {
     }
   }, [activeTab]);
 
-  // Redirect if already logged in
-  if (authChecked && isLoggedIn && currentUserRole) {
-    const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
-    return <Navigate to={redirectTo} replace />;
-  }
-
   // Show loading state while checking authentication
   if (!authChecked) {
     return (
@@ -84,6 +77,12 @@ const Signin = () => {
         </div>
       </Layout>
     );
+  }
+
+  // Redirect if already logged in - only after auth is checked
+  if (authChecked && isLoggedIn && currentUserRole) {
+    const redirectTo = location.state?.redirectTo || getProfileRoute(currentUserRole as UserRole);
+    return <Navigate to={redirectTo} replace />;
   }
 
   // Render the main sign-in content
