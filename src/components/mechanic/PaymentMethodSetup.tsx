@@ -8,9 +8,10 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+// Updated with complete test key - replace with your full key from Stripe dashboard
 const stripePromise = loadStripe(process.env.NODE_ENV === 'production' 
   ? 'pk_live_...' // Replace with your live publishable key
-  : 'pk_test_51QXMlPP5OwVkDIAfqEMKjL2v5bC8ZBqyGOUtgUrN7BVwP8LqNp1QqAPhhP8J5a8YT2cKEMAiGC5sKnRNTTjgZJpQ00FGTrQgPa' // Test key
+  : 'pk_test_51QXMlPP5OwVkDIAfqEMKjL2v5bC8ZBqyGOUtgUrN7BVwP8LqNp1QqAPhhP8J5a8YT2cKEMAiGC5sKnRNTTjgZJpQ00FGTrQgPa' // Complete test key
 );
 
 interface PaymentMethodSetupProps {
@@ -28,10 +29,15 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
   useEffect(() => {
     const setupPaymentIntent = async () => {
       try {
+        console.log('Setting up payment intent...');
         const { data, error } = await supabase.functions.invoke('mechanic-payment-setup');
         
-        if (error) throw error;
+        if (error) {
+          console.error('Setup intent error:', error);
+          throw error;
+        }
         
+        console.log('Setup intent response:', data);
         setSetupIntentSecret(data.setup_intent_client_secret);
       } catch (err: any) {
         console.error('Setup intent error:', err);
@@ -61,6 +67,8 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
     }
 
     try {
+      console.log('Confirming card setup with secret:', setupIntentSecret);
+      
       const { error: stripeError, setupIntent } = await stripe.confirmCardSetup(setupIntentSecret, {
         payment_method: {
           card: cardElement,
@@ -68,10 +76,13 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
       });
 
       if (stripeError) {
+        console.error('Stripe error:', stripeError);
         throw new Error(stripeError.message);
       }
 
       if (setupIntent && setupIntent.status === 'succeeded') {
+        console.log('Setup intent succeeded:', setupIntent);
+        
         // Save payment method info to our database
         const { error: dbError } = await supabase
           .from('mechanic_payment_methods')
@@ -82,8 +93,12 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
             is_active: true,
           });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+          console.error('Database error:', dbError);
+          throw dbError;
+        }
 
+        console.log('Payment method saved successfully');
         onSuccess();
       }
     } catch (err: any) {
@@ -132,6 +147,12 @@ const PaymentMethodForm: React.FC<PaymentMethodSetupProps> = ({ onSuccess }) => 
         <p className="text-sm text-blue-700">
           🔒 Your payment information is secure and encrypted. 
           No charges will be made until you complete your first job.
+        </p>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+        <p className="text-sm text-yellow-700">
+          💡 <strong>Test with:</strong> Card number 4242424242424242, any future expiry date, any CVC
         </p>
       </div>
 

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, CreditCard, Star, Zap } from 'lucide-react';
+import { CheckCircle, CreditCard, Star, Zap, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentMethodSetup } from './PaymentMethodSetup';
@@ -28,19 +28,31 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
   const [selectedSpotlight, setSelectedSpotlight] = useState<string | null>(null);
 
   const handlePaymentMethodSaved = () => {
+    console.log('Payment method saved successfully');
     setPaymentSetupComplete(true);
+    toast({
+      title: "Payment method added!",
+      description: "Your payment method has been securely saved.",
+    });
     setCurrentStep('spotlight');
   };
 
   const handleSpotlightPurchase = async (spotlightType: string) => {
     try {
+      console.log('Purchasing spotlight package:', spotlightType);
+      
       const { data, error } = await supabase.functions.invoke('mechanic-spotlight-purchase', {
         body: { spotlight_type: spotlightType }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Spotlight purchase error:', error);
+        throw error;
+      }
 
+      console.log('Spotlight purchase response:', data);
       setSelectedSpotlight(spotlightType);
+      
       toast({
         title: "Spotlight activated!",
         description: `Your ${spotlightType} spotlight package is now active.`,
@@ -51,17 +63,19 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
       console.error('Spotlight purchase error:', error);
       toast({
         title: "Purchase failed",
-        description: error.message || "Failed to activate spotlight package.",
+        description: error.message || "Failed to activate spotlight package. Please try again.",
         variant: "destructive"
       });
     }
   };
 
   const handleSkipSpotlight = () => {
+    console.log('Skipping spotlight package');
     setCurrentStep('complete');
   };
 
   const handleFinish = () => {
+    console.log('Finishing payment setup modal');
     onComplete();
     onClose();
   };
@@ -75,6 +89,18 @@ export const PaymentSetupModal: React.FC<PaymentSetupModalProps> = ({
 
         {currentStep === 'payment' && (
           <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-800">Testing Mode Active</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Use test card: <code className="bg-blue-100 px-1 rounded">4242424242424242</code> with any future expiry and CVC.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
