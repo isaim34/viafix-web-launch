@@ -21,6 +21,7 @@ export default {
 		extend: {
 			screens: {
 				'xs': '480px',
+				'3xl': '1600px',
 			},
 			fontFamily: {
 				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
@@ -75,6 +76,16 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			spacing: {
+				'18': '4.5rem',
+				'88': '22rem',
+			},
+			minHeight: {
+				'touch': '44px',
+			},
+			minWidth: {
+				'touch': '44px',
 			},
 			keyframes: {
 				'accordion-down': {

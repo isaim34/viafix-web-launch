@@ -17,10 +17,10 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+        <div className="mobile-container mx-auto flex h-14 sm:h-16 items-center justify-between">
           <Logo />
           <Navigation />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Desktop Auth/User Menu */}
             <div className="hidden md:block">
               <AuthButtons />
@@ -30,7 +30,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden touch-target"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -48,7 +48,7 @@ const Header = () => {
       {/* Smart Reminders - shown below header when user is logged in */}
       {user && (
         <div className="border-b border-slate-200 bg-slate-50">
-          <div className="container mx-auto px-4 sm:px-6 py-2">
+          <div className="mobile-container mx-auto py-2">
             <SmartReminders />
           </div>
         </div>
