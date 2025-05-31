@@ -9,9 +9,9 @@ const corsHeaders = {
 };
 
 const SPOTLIGHT_PACKAGES = {
-  basic: { amount: 1000, duration: 7 }, // $10 for 7 days
-  premium: { amount: 2500, duration: 14 }, // $25 for 14 days
-  enterprise: { amount: 5000, duration: 30 }, // $50 for 30 days
+  basic: { amount: 999, duration: 1 }, // $9.99 for 1 day
+  premium: { amount: 6294, duration: 7 }, // $62.94 for 7 days
+  enterprise: { amount: 23976, duration: 30 }, // $239.76 for 30 days
 };
 
 serve(async (req) => {

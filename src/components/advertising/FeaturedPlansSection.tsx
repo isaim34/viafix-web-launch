@@ -86,26 +86,26 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <FeaturedPlanCard 
           title="1 Day Spotlight"
-          price={featuredDailyPrice}
+          price={9.99}
           description="Get featured in the homepage for 24 hours"
           days={1}
           isSelected={selectedPlan?.days === 1}
           onSelect={() => handleSelectPlan({
             days: 1,
-            price: featuredDailyPrice,
+            price: 9.99,
             title: "1 Day Spotlight"
           })}
         />
         
         <FeaturedPlanCard 
           title="Weekly Spotlight"
-          price={featuredDailyPrice * 7 * 0.9}
-          description="Get featured in the homepage for 7 days (10% discount)"
+          price={62.94}
+          description="Get featured in the homepage for 7 days"
           days={7}
           isSelected={selectedPlan?.days === 7}
           onSelect={() => handleSelectPlan({
             days: 7,
-            price: featuredDailyPrice * 7 * 0.9,
+            price: 62.94,
             title: "Weekly Spotlight"
           })}
           recommended
@@ -113,13 +113,13 @@ export const FeaturedPlansSection: React.FC<FeaturedPlansSectionProps> = ({
         
         <FeaturedPlanCard 
           title="Monthly Spotlight"
-          price={featuredDailyPrice * 30 * 0.8}
-          description="Get featured in the homepage for 30 days (20% discount)"
+          price={239.76}
+          description="Get featured in the homepage for 30 days"
           days={30}
           isSelected={selectedPlan?.days === 30}
           onSelect={() => handleSelectPlan({
             days: 30,
-            price: featuredDailyPrice * 30 * 0.8,
+            price: 239.76,
             title: "Monthly Spotlight"
           })}
         />

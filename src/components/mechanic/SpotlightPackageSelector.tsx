@@ -14,8 +14,8 @@ const SPOTLIGHT_PACKAGES = [
   {
     id: 'basic',
     name: 'Basic Spotlight',
-    price: '$10',
-    duration: '7 days',
+    price: '$9.99',
+    duration: '1 day',
     icon: Star,
     features: [
       'Higher visibility in search results',
@@ -27,8 +27,8 @@ const SPOTLIGHT_PACKAGES = [
   {
     id: 'premium',
     name: 'Premium Spotlight',
-    price: '$25',
-    duration: '14 days',
+    price: '$62.94',
+    duration: '7 days',
     icon: Zap,
     features: [
       'Top priority in search results',
@@ -41,7 +41,7 @@ const SPOTLIGHT_PACKAGES = [
   {
     id: 'enterprise',
     name: 'Enterprise Spotlight',
-    price: '$50',
+    price: '$239.76',
     duration: '30 days',
     icon: Crown,
     features: [
@@ -68,7 +68,7 @@ export const SpotlightPackageSelector: React.FC<SpotlightPackageSelectorProps> =
             <Card key={pkg.id} className={`relative ${pkg.popular ? 'border-primary shadow-lg' : ''}`}>
               {pkg.popular && (
                 <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-                  Most Popular
+                  Best Value
                 </Badge>
               )}
               <CardHeader className="text-center">
