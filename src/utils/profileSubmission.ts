@@ -3,8 +3,9 @@ import { BasicProfileFormValues } from '@/schemas/profileSchema';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AuthContextType } from '@/contexts/auth/types';
+import { handleAsyncError, withErrorHandler } from '@/utils/errorHandler';
 
-export const submitProfileData = async (
+export const submitProfileData = withErrorHandler(async (
   data: BasicProfileFormValues,
   storageKey: string,
   auth: AuthContextType,
@@ -17,6 +18,11 @@ export const submitProfileData = async (
   
   const { currentUserRole, updateUserName, user, isLoggedIn } = auth;
   
+  // Validate required fields
+  if (!data.firstName?.trim() || !data.lastName?.trim()) {
+    throw new Error('First name and last name are required');
+  }
+  
   // Ensure we have the profile image in the data
   if (!data.profileImage && profileData?.profileImage) {
     data.profileImage = profileData.profileImage;
@@ -28,17 +34,27 @@ export const submitProfileData = async (
   }
   
   // Save to localStorage with user role-specific key
-  localStorage.setItem(storageKey, JSON.stringify(data));
-  console.log('💾 Profile data saved to localStorage with key:', storageKey);
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    console.log('💾 Profile data saved to localStorage with key:', storageKey);
+  } catch (err) {
+    console.error('Failed to save to localStorage:', err);
+    throw new Error('Failed to save profile data locally');
+  }
   
   // Update username in localStorage if name has changed
   if (data.firstName !== undefined && data.lastName !== undefined) {
     const fullName = `${data.firstName} ${data.lastName}`.trim();
     
     if (fullName) {
-      // Use the updateUserName function from useAuth to ensure proper updates
-      updateUserName(fullName);
-      console.log('👤 Updated userName in localStorage to:', fullName);
+      try {
+        // Use the updateUserName function from useAuth to ensure proper updates
+        updateUserName(fullName);
+        console.log('👤 Updated userName in localStorage to:', fullName);
+      } catch (err) {
+        console.error('Failed to update username:', err);
+        // Don't throw here as this is not critical
+      }
     }
   }
 
@@ -50,7 +66,12 @@ export const submitProfileData = async (
       // Check current session to ensure we're authenticated
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError || !sessionData.session) {
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication session error');
+      }
+      
+      if (!sessionData.session) {
         console.warn('⚠️ No valid session found, skipping database save');
         toast({
           title: "Profile saved locally",
@@ -151,7 +172,9 @@ export const submitProfileData = async (
         description: errorMessage,
         variant: "destructive"
       });
-      return; // Don't continue if database save failed
+      
+      // Don't re-throw the error since we've handled it
+      return;
     }
   } else {
     console.log('⚠️ No authenticated user found, saving locally only');
@@ -162,4 +185,4 @@ export const submitProfileData = async (
   }
   
   console.log('✅ PROFILE EDITOR SUBMIT COMPLETE');
-};
+}, 'Profile submission');

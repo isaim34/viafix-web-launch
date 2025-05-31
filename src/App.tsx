@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { HelmetProvider } from 'react-helmet-async';
 import { CommentProvider } from '@/contexts/CommentContext';
 import { useAuth } from '@/hooks/useAuth';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Page imports
 import Index from '@/pages/Index';
@@ -34,61 +35,124 @@ import ZipcodeTest from '@/pages/ZipcodeTest';
 
 import './App.css';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 function AppContent() {
   const { user, currentUserName, isLoggedIn } = useAuth();
   
   return (
-    <CommentProvider 
-      postSlug="" 
-      currentUserId={user?.id || ''} 
-      currentUserName={currentUserName || ''} 
-      isLoggedIn={isLoggedIn}
-    >
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/signin" element={<Signin />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
-        <Route path="/mechanics" element={<Mechanics />} />
-        <Route path="/mechanics/:id" element={<MechanicProfile />} />
-        <Route path="/mechanic/:id" element={<MechanicProfile />} />
-        <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
-        <Route path="/customer-profile" element={<CustomerProfile />} />
-        <Route path="/account-settings" element={<AccountSettings />} />
-        <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/favorites" element={<Favorites />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/how-it-works" element={<HowItWorks />} />
-        <Route path="/zipcode-test" element={<ZipcodeTest />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
-      <Sonner />
-    </CommentProvider>
+    <ErrorBoundary>
+      <CommentProvider 
+        postSlug="" 
+        currentUserId={user?.id || ''} 
+        currentUserName={currentUserName || ''} 
+        isLoggedIn={isLoggedIn}
+      >
+        <Routes>
+          <Route path="/" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load homepage</div>}>
+              <Index />
+            </ErrorBoundary>
+          } />
+          <Route path="/signin" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load sign in page</div>}>
+              <Signin />
+            </ErrorBoundary>
+          } />
+          <Route path="/signup" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load sign up page</div>}>
+              <Signup />
+            </ErrorBoundary>
+          } />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
+          <Route path="/mechanics" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load mechanics page</div>}>
+              <Mechanics />
+            </ErrorBoundary>
+          } />
+          <Route path="/mechanics/:id" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load mechanic profile</div>}>
+              <MechanicProfile />
+            </ErrorBoundary>
+          } />
+          <Route path="/mechanic/:id" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load mechanic profile</div>}>
+              <MechanicProfile />
+            </ErrorBoundary>
+          } />
+          <Route path="/mechanic-dashboard" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load dashboard</div>}>
+              <MechanicDashboard />
+            </ErrorBoundary>
+          } />
+          <Route path="/customer-profile" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load customer profile</div>}>
+              <CustomerProfile />
+            </ErrorBoundary>
+          } />
+          <Route path="/account-settings" element={<AccountSettings />} />
+          <Route path="/vehicle-safety-check" element={<VehicleSafetyCheck />} />
+          <Route path="/messages" element={
+            <ErrorBoundary fallback={<div className="p-8 text-center">Unable to load messages</div>}>
+              <Messages />
+            </ErrorBoundary>
+          } />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/zipcode-test" element={<ZipcodeTest />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+        <Sonner />
+      </CommentProvider>
+    </ErrorBoundary>
   );
 }
 
 function App() {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <AuthProvider>
-            <NotificationProvider>
-              <AppContent />
-            </NotificationProvider>
-          </AuthProvider>
-        </Router>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary onError={(error, errorInfo) => {
+      console.error('Global error caught:', error, errorInfo);
+    }}>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router>
+            <ErrorBoundary>
+              <AuthProvider>
+                <ErrorBoundary>
+                  <NotificationProvider>
+                    <AppContent />
+                  </NotificationProvider>
+                </ErrorBoundary>
+              </AuthProvider>
+            </ErrorBoundary>
+          </Router>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 }
 
