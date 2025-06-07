@@ -1,40 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { MechanicDetail } from '@/types/mechanic';
-import { createLocalMechanicProfile } from '@/utils/mechanic/formatMechanicData';
+import { formatMechanicProfile } from '@/utils/mechanic/formatMechanicData';
 
 /**
- * Fetch data for a local mechanic (default vendor or local mechanic account)
+ * Fetch data for a specific mechanic from Supabase
  */
 export const fetchLocalMechanic = async (id: string): Promise<MechanicDetail | null> => {
   try {
-    // Use consistent vendor name - prioritize what's set by test account generator
-    const vendorName = localStorage.getItem('vendorName') || 'Mike Rodriguez';
-    const vendorAvatar = localStorage.getItem('vendorAvatar') || 
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=256&q=80';
-    
-    // Get mechanic profile from localStorage if available
-    const storedProfile = localStorage.getItem('mechanicProfile');
-    let mechanicProfile: Record<string, any> = {};
-    
-    if (storedProfile) {
-      try {
-        mechanicProfile = JSON.parse(storedProfile);
-      } catch (error) {
-        console.error('Error parsing mechanic profile:', error);
-      }
+    // Fetch the mechanic profile from Supabase
+    const { data: mechanicProfile, error: mechanicError } = await supabase
+      .from('mechanic_profiles')
+      .select(`
+        id,
+        hourly_rate,
+        years_experience,
+        specialties,
+        rating,
+        review_count,
+        about,
+        response_time,
+        is_featured,
+        featured_until,
+        profiles:id(
+          id,
+          first_name,
+          last_name,
+          profile_image,
+          zip_code,
+          phone
+        )
+      `)
+      .eq('id', id)
+      .single();
+      
+    if (mechanicError || !mechanicProfile) {
+      console.error("Error fetching mechanic profile:", mechanicError);
+      return null;
     }
     
-    // Reviews will be fetched separately in useMechanicData from Supabase
-    // Don't fetch reviews here to avoid duplication
-    console.log('Creating local mechanic profile for:', id);
+    // Get services
+    const { data: services } = await supabase
+      .from('mechanic_services')
+      .select('id, name, price')
+      .eq('mechanic_id', id);
+      
+    // Get reviews
+    const { data: reviews } = await supabase
+      .from('mechanic_reviews')
+      .select('id, author, rating, text, created_at')
+      .eq('mechanic_id', id);
+      
+    // Get gallery images
+    const { data: gallery } = await supabase
+      .from('mechanic_gallery')
+      .select('id, image_url')
+      .eq('mechanic_id', id);
     
-    return createLocalMechanicProfile(
-      id,
-      vendorName,
-      vendorAvatar,
-      mechanicProfile,
-      [] // Empty reviews array - will be populated from Supabase
+    // Format the mechanic data
+    const profile = mechanicProfile.profiles as any;
+    
+    return formatMechanicProfile(
+      mechanicProfile, 
+      profile, 
+      services || [], 
+      reviews || [], 
+      gallery || []
     );
   } catch (error) {
     console.error('Error in fetchLocalMechanic:', error);

@@ -3,11 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MechanicDetail } from '@/types/mechanic';
 import { fetchMechanicProfile } from '@/services/mechanic/fetchMechanicProfile';
-import { fetchLocalMechanic } from '@/services/mechanic/fetchLocalMechanic';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Custom hook to fetch and prepare mechanic data based on ID
+ * Custom hook to fetch and prepare mechanic data based on ID from Supabase
  */
 export const useMechanicData = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,40 +20,21 @@ export const useMechanicData = () => {
     setRefreshTrigger(prev => prev + 1);
   }, []);
   
-  // Helper function to check if a string is a valid UUID
-  const isValidUUID = (str: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(str);
-  };
-  
   useEffect(() => {
-    // Check if user is logged in as a mechanic
-    const userRole = localStorage.getItem('userRole');
-    const isLoggedInMechanic = userRole === 'mechanic';
-    
-    // If the user is a mechanic and trying to view a mechanic profile,
-    // redirect them to their dashboard if it's their own profile (local-mechanic)
-    if (isLoggedInMechanic && id === 'local-mechanic') {
-      navigate('/mechanic-dashboard');
-      return;
-    }
-    
     const fetchMechanicData = async () => {
       console.log('Starting to fetch mechanic data for ID:', id);
       setLoading(true);
       
       try {
-        let mechanicData: MechanicDetail | null = null;
-        
-        // Handle special cases: default-vendor or local-mechanic
-        if ((id === 'default-vendor' || id === 'local-mechanic')) {
-          console.log('Fetching local mechanic data for:', id);
-          mechanicData = await fetchLocalMechanic(id || '');
-        } else {
-          // For other mechanics, fetch from the database
-          console.log('Fetching database mechanic data for:', id);
-          mechanicData = await fetchMechanicProfile(id || '');
+        if (!id) {
+          setMechanic(null);
+          setLoading(false);
+          return;
         }
+
+        // Fetch mechanic from the database
+        console.log('Fetching database mechanic data for:', id);
+        let mechanicData = await fetchMechanicProfile(id);
         
         // Always fetch reviews from Supabase for all mechanics
         if (mechanicData && id) {
@@ -69,7 +49,6 @@ export const useMechanicData = () => {
             
             if (reviewsError) {
               console.error('Error fetching reviews:', reviewsError);
-              // Set default values on error
               mechanicData.reviews = [];
               mechanicData.reviewCount = 0;
               mechanicData.rating = 0;
@@ -80,7 +59,6 @@ export const useMechanicData = () => {
               });
               
               if (reviews && reviews.length > 0) {
-                // Map reviews to the expected format
                 mechanicData.reviews = reviews.map(review => ({
                   id: review.id,
                   author: review.author || 'Anonymous',
@@ -89,10 +67,8 @@ export const useMechanicData = () => {
                   user_id: review.user_id
                 }));
                 
-                // Update review count
                 mechanicData.reviewCount = reviews.length;
                 
-                // Calculate average rating
                 const validRatings = reviews.filter(r => r.rating && r.rating > 0);
                 if (validRatings.length > 0) {
                   const totalRating = validRatings.reduce((sum, review) => sum + (review.rating || 0), 0);
@@ -107,7 +83,6 @@ export const useMechanicData = () => {
                   reviewsArray: mechanicData.reviews
                 });
               } else {
-                // No reviews found
                 mechanicData.reviews = [];
                 mechanicData.reviewCount = 0;
                 mechanicData.rating = 0;
@@ -116,7 +91,6 @@ export const useMechanicData = () => {
             }
           } catch (error) {
             console.error('Error in review fetching process:', error);
-            // Set default values on error
             mechanicData.reviews = [];
             mechanicData.reviewCount = 0;
             mechanicData.rating = 0;

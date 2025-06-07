@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MechanicDetail } from '@/types/mechanic';
 import { formatMechanicProfile } from '@/utils/mechanic/formatMechanicData';
-import { mechanicsDetailedData } from '@/data/mechanicsData';
 
 /**
  * Fetch mechanic profile data from Supabase
@@ -37,7 +36,7 @@ export const fetchMechanicProfile = async (id: string): Promise<MechanicDetail |
       
     if (mechanicError) {
       console.error("Error fetching mechanic profile:", mechanicError);
-      throw mechanicError;
+      return null;
     }
     
     if (!mechanicProfile) {
@@ -86,19 +85,6 @@ export const fetchMechanicProfile = async (id: string): Promise<MechanicDetail |
     );
   } catch (error) {
     console.error('Error in fetchMechanicProfile:', error);
-    
-    // Fallback to mock data if available
-    if (id && mechanicsDetailedData[id]) {
-      // Return fallback data without mock reviews - reviews will be loaded separately
-      const fallbackData = {
-        ...mechanicsDetailedData[id],
-        reviews: [], // Will be populated by useMechanicData
-        reviewCount: 0, // Will be updated by useMechanicData
-        rating: 0 // Will be updated by useMechanicData
-      };
-      return fallbackData;
-    }
-    
     return null;
   }
 };
