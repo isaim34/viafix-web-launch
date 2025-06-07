@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, Users, Zap, Heart, ArrowRight } from 'lucide-react';
+import { CheckCircle, Users, Car, Heart, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -87,7 +88,7 @@ const QRWelcome = () => {
         <div className="max-w-md mx-auto text-center">
           <div className="flex justify-center mb-6">
             <div className="bg-blue-600 text-white p-4 rounded-full">
-              <Zap className="h-8 w-8" />
+              <Car className="h-8 w-8" />
             </div>
           </div>
           
