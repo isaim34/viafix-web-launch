@@ -905,6 +905,21 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_scans: {
+        Row: {
+          id: number
+          scan_time: string
+        }
+        Insert: {
+          id?: number
+          scan_time?: string
+        }
+        Update: {
+          id?: number
+          scan_time?: string
+        }
+        Relationships: []
+      }
       recalls: {
         Row: {
           camp_no: string
