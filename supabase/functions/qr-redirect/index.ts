@@ -44,24 +44,32 @@ Deno.serve(async (req) => {
       console.log('QR scan logged successfully with ID:', scanData.id)
     }
 
-    // Redirect to the QR welcome page instead of the main website
+    // Get the redirect URL from environment variable or use default
+    // You can set REDIRECT_BASE_URL in your Supabase environment variables
+    const redirectBaseUrl = Deno.env.get('REDIRECT_BASE_URL') || 'https://tryviafix.com'
+    const redirectUrl = `${redirectBaseUrl}/qr-welcome`
+
+    console.log('Redirecting to:', redirectUrl)
+
+    // Redirect to the QR welcome page
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': 'https://tryviafix.com/qr-welcome'
+        'Location': redirectUrl
       }
     })
 
   } catch (error) {
     console.error('Error in QR redirect function:', error)
     
-    // Even if there's an error, redirect to the welcome page
+    // Fallback redirect
+    const fallbackUrl = Deno.env.get('REDIRECT_BASE_URL') || 'https://tryviafix.com'
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': 'https://tryviafix.com/qr-welcome'
+        'Location': `${fallbackUrl}/qr-welcome`
       }
     })
   }
