@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,13 +5,11 @@ import { Input } from '@/components/ui/input';
 import { CheckCircle, Users, Zap, Heart, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 
 const QRWelcome = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +39,8 @@ const QRWelcome = () => {
     }
   };
 
-  const handleExploreMechanics = () => {
-    navigate('/mechanics');
+  const handleVisitWebsite = () => {
+    window.open('https://tryviafix.com', '_blank');
   };
 
   if (isSubmitted) {
@@ -74,8 +71,8 @@ const QRWelcome = () => {
                 <span className="text-sm">Behind-the-scenes founder updates</span>
               </div>
             </div>
-            <Button onClick={handleExploreMechanics} className="w-full">
-              Explore Mechanics Now <ArrowRight className="h-4 w-4 ml-2" />
+            <Button onClick={handleVisitWebsite} className="w-full">
+              Visit ViaFix.com <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </CardContent>
         </Card>
@@ -178,14 +175,14 @@ const QRWelcome = () => {
       <div className="px-4 pb-12">
         <div className="max-w-md mx-auto text-center">
           <p className="text-sm text-gray-500 mb-3">
-            Or explore now without joining (you can always join later!)
+            Or learn more about our vision first
           </p>
           <Button 
             variant="outline" 
-            onClick={handleExploreMechanics}
+            onClick={handleVisitWebsite}
             className="w-full"
           >
-            Browse Mechanics
+            Visit ViaFix.com
           </Button>
         </div>
       </div>
