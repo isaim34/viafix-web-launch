@@ -1,6 +1,5 @@
 
 import { useMemo } from 'react';
-import { BasicProfileFormValues } from '@/schemas/profileSchema';
 import { MechanicProfile } from '@/hooks/useMechanics';
 import { buildMechanicsList } from '@/utils/mechanic/mechanicListBuilder';
 import { matchesSearchTerm, matchesZipCode, shouldExcludeMechanic } from '@/utils/mechanic/mechanicFilterUtils';
@@ -9,8 +8,7 @@ export const useFilteredMechanics = (
   searchTerm: string,
   zipCode: string,
   locationName: string,
-  mechanics: MechanicProfile[],
-  localMechanicProfile: BasicProfileFormValues | null
+  mechanics: MechanicProfile[]
 ) => {
   return useMemo(() => {
     console.log('useFilteredMechanics running with:', { 
@@ -22,14 +20,8 @@ export const useFilteredMechanics = (
     
     const userRole = localStorage.getItem('userRole');
     
-    // Build the complete list of mechanics
-    const allMechanics = buildMechanicsList(
-      mechanics,
-      localMechanicProfile,
-      locationName,
-      zipCode,
-      userRole || ''
-    );
+    // Build the complete list of mechanics (now just returns the Supabase mechanics)
+    const allMechanics = buildMechanicsList(mechanics);
     
     // Filter mechanics based on search criteria
     const filteredMechanics = allMechanics.filter(mechanic => {
@@ -47,7 +39,7 @@ export const useFilteredMechanics = (
         return false;
       }
       
-      // Check zip code matches (removed the userRole parameter)
+      // Check zip code matches
       const zipMatches = matchesZipCode(mechanic, zipCode, locationName);
       
       const result = searchMatches && zipMatches;
@@ -57,5 +49,5 @@ export const useFilteredMechanics = (
     
     console.log('Final filtered mechanics:', filteredMechanics.map(m => m.name));
     return filteredMechanics;
-  }, [searchTerm, zipCode, locationName, mechanics, localMechanicProfile]);
+  }, [searchTerm, zipCode, locationName, mechanics]);
 };
