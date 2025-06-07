@@ -9,8 +9,8 @@ const QRCodeGenerator = () => {
   const [functionUrl, setFunctionUrl] = useState('');
 
   useEffect(() => {
-    // The public URL of our edge function
-    const edgeFunctionUrl = 'https://npwxxmboagkouafjwhhw.functions.supabase.co/qr-redirect';
+    // The custom domain URL for our edge function
+    const edgeFunctionUrl = 'https://qr.tryviafix.com';
     setFunctionUrl(edgeFunctionUrl);
     
     // Generate QR code using QR Server API (free, high-quality)
@@ -73,7 +73,7 @@ const QRCodeGenerator = () => {
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Edge Function URL:
+                QR Code URL:
               </label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 p-2 bg-gray-100 rounded text-sm break-all">
