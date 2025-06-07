@@ -44,10 +44,11 @@ Deno.serve(async (req) => {
       console.log('QR scan logged successfully with ID:', scanData.id)
     }
 
-    // Redirect to the main ViaFix app QR welcome page
-    const redirectUrl = 'https://tryviafix.com/qr-welcome'
+    // TEMPORARY: Redirect to Lovable preview for testing
+    // TODO: Change back to 'https://tryviafix.com/qr-welcome' when deploying to live site
+    const redirectUrl = 'https://gptengineer-qr-tracking-system.lovable.app/qr-welcome'
 
-    console.log('Redirecting to:', redirectUrl)
+    console.log('Redirecting to PREVIEW URL for testing:', redirectUrl)
 
     // Redirect to the QR welcome page
     return new Response(null, {
@@ -61,12 +62,12 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error in QR redirect function:', error)
     
-    // Fallback redirect to main ViaFix app
+    // Fallback redirect to preview URL for testing
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': 'https://tryviafix.com/qr-welcome'
+        'Location': 'https://gptengineer-qr-tracking-system.lovable.app/qr-welcome'
       }
     })
   }
