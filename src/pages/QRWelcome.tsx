@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { CheckCircle, Users, Zap, Heart, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const QRWelcome = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,8 +42,8 @@ const QRWelcome = () => {
     }
   };
 
-  const handleExploreNow = () => {
-    window.location.href = '/mechanics';
+  const handleExploreMechanics = () => {
+    navigate('/mechanics');
   };
 
   if (isSubmitted) {
@@ -72,7 +74,7 @@ const QRWelcome = () => {
                 <span className="text-sm">Behind-the-scenes founder updates</span>
               </div>
             </div>
-            <Button onClick={handleExploreNow} className="w-full">
+            <Button onClick={handleExploreMechanics} className="w-full">
               Explore Mechanics Now <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </CardContent>
@@ -180,7 +182,7 @@ const QRWelcome = () => {
           </p>
           <Button 
             variant="outline" 
-            onClick={handleExploreNow}
+            onClick={handleExploreMechanics}
             className="w-full"
           >
             Browse Mechanics
