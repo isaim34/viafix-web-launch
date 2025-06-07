@@ -19,38 +19,49 @@ Deno.serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Log the QR scan to the database
-    const { error } = await supabase
+    // Extract client info for better tracking
+    const userAgent = req.headers.get('user-agent') || null
+    const forwarded = req.headers.get('x-forwarded-for')
+    const realIp = req.headers.get('x-real-ip')
+    const ipAddress = forwarded?.split(',')[0] || realIp || null
+
+    console.log('QR scan from:', { userAgent, ipAddress })
+
+    // Log the QR scan to the database with enhanced tracking
+    const { data: scanData, error: scanError } = await supabase
       .from('qr_scans')
       .insert({
-        // scan_time will be automatically set to NOW() by the database
+        user_agent: userAgent,
+        ip_address: ipAddress
       })
+      .select()
+      .single()
 
-    if (error) {
-      console.error('Error logging QR scan:', error)
+    if (scanError) {
+      console.error('Error logging QR scan:', scanError)
       // Even if logging fails, we still want to redirect the user
     } else {
-      console.log('QR scan logged successfully')
+      console.log('QR scan logged successfully with ID:', scanData.id)
     }
 
-    // Redirect to tryviafix.com
+    // Redirect to the QR welcome page instead of the main website
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': 'https://tryviafix.com'
+        'Location': 'https://tryviafix.com/qr-welcome'
       }
     })
 
   } catch (error) {
     console.error('Error in QR redirect function:', error)
     
-    // Even if there's an error, redirect to the website
+    // Even if there's an error, redirect to the welcome page
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': 'https://tryviafix.com'
+        'Location': 'https://tryviafix.com/qr-welcome'
       }
     })
   }

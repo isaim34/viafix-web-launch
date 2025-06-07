@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import QRTracking from '@/pages/QRTracking';
+import QRWelcome from '@/pages/QRWelcome';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             </div>
           } />
           <Route path="/qr-tracking" element={<QRTracking />} />
+          <Route path="/qr-welcome" element={<QRWelcome />} />
           <Route path="*" element={
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
               <div className="text-center">

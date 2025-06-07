@@ -905,18 +905,74 @@ export type Database = {
         }
         Relationships: []
       }
-      qr_scans: {
+      qr_leads: {
         Row: {
-          id: number
-          scan_time: string
+          conversion_timestamp: string | null
+          created_at: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          is_founding_member: boolean | null
+          scan_id: number | null
+          source: string | null
+          updated_at: string | null
+          user_agent: string | null
         }
         Insert: {
-          id?: number
-          scan_time?: string
+          conversion_timestamp?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          is_founding_member?: boolean | null
+          scan_id?: number | null
+          source?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
         }
         Update: {
+          conversion_timestamp?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          is_founding_member?: boolean | null
+          scan_id?: number | null
+          source?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_leads_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "qr_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_scans: {
+        Row: {
+          converted_to_lead: boolean | null
+          id: number
+          ip_address: string | null
+          scan_time: string
+          user_agent: string | null
+        }
+        Insert: {
+          converted_to_lead?: boolean | null
           id?: number
+          ip_address?: string | null
           scan_time?: string
+          user_agent?: string | null
+        }
+        Update: {
+          converted_to_lead?: boolean | null
+          id?: number
+          ip_address?: string | null
+          scan_time?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
