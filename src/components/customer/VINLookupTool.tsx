@@ -26,7 +26,7 @@ const VINLookupTool = () => {
   const [vin, setVin] = useState('');
   const [isDecoding, setIsDecoding] = useState(false);
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [vinError, setVinError] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscribedEmail, setSubscribedEmail] = useState('');
   
@@ -50,19 +50,30 @@ const VINLookupTool = () => {
       if (vehicleInfo) {
         setVehicleInfo(null);
       }
-      if (error) {
-        setError(null);
+      if (vinError) {
+        setVinError(null);
       }
     }
   };
   
   const handleLookup = async () => {
+    console.log('🚀 Starting VIN lookup process');
+    console.log('📋 Current state:', {
+      vin,
+      vinLength: vin.length,
+      isSubscribed,
+      subscribedEmail
+    });
+    
     if (!vin || vin.length !== 17) {
-      setError("Please enter a valid 17-character VIN");
+      const errorMsg = "Please enter a valid 17-character VIN";
+      console.log('❌ VIN validation failed:', errorMsg);
+      setVinError(errorMsg);
       return;
     }
     
     if (!isSubscribed) {
+      console.log('❌ User not subscribed');
       toast({
         title: "Email required",
         description: "Please subscribe with your email to access vehicle safety data",
@@ -72,29 +83,42 @@ const VINLookupTool = () => {
     }
     
     setIsDecoding(true);
-    setError(null);
+    setVinError(null);
+    console.log('🔄 Starting VIN decode...');
     
     try {
       const info = await decodeVin(vin);
-      setVehicleInfo(info);
-      if (!info) {
-        setError("Could not decode this VIN. Please check if it's correct.");
+      console.log('📊 VIN decode result:', info);
+      
+      if (info) {
+        setVehicleInfo(info);
+        console.log('✅ Vehicle info set successfully');
+      } else {
+        const errorMsg = "Could not decode this VIN. Please check if it's correct.";
+        console.log('❌ VIN decode returned null');
+        setVinError(errorMsg);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to decode VIN");
+      console.error('💥 VIN lookup error:', err);
+      const errorMsg = err instanceof Error ? err.message : "Failed to decode VIN";
+      setVinError(errorMsg);
       setVehicleInfo(null);
     } finally {
       setIsDecoding(false);
+      console.log('🏁 VIN lookup process completed');
     }
   };
   
   const resetForm = () => {
+    console.log('🔄 Resetting form');
     setVin('');
     setVehicleInfo(null);
-    setError(null);
+    setVinError(null);
   };
 
   const onSubscribe = async (data: SubscriptionFormData) => {
+    console.log('📧 Starting subscription process for:', data.email);
+    
     try {
       // Check if the email is already subscribed
       const { data: existingSubscriber, error: checkError } = await supabase
@@ -104,11 +128,14 @@ const VINLookupTool = () => {
         .maybeSingle();
         
       if (checkError) {
-        console.error("Error checking subscription:", checkError);
+        console.error("❌ Error checking subscription:", checkError);
         throw new Error("Failed to check subscription status");
       }
       
+      console.log('📋 Existing subscriber check:', existingSubscriber);
+      
       if (!existingSubscriber) {
+        console.log('📝 Creating new subscriber record');
         // If not already subscribed, add to subscribers table (without user_id since no account required)
         const { error: insertError } = await supabase
           .from('subscribers')
@@ -120,9 +147,12 @@ const VINLookupTool = () => {
           });
           
         if (insertError) {
-          console.error("Error subscribing:", insertError);
+          console.error("❌ Error creating subscriber:", insertError);
           throw new Error("Failed to subscribe");
         }
+        console.log('✅ Subscriber created successfully');
+      } else {
+        console.log('ℹ️ Email already subscribed');
       }
       
       // Store subscription status in localStorage
@@ -131,12 +161,14 @@ const VINLookupTool = () => {
       
       setIsSubscribed(true);
       setSubscribedEmail(data.email);
+      console.log('🎉 Subscription process completed successfully');
+      
       toast({
         title: "Access granted",
         description: "You can now lookup vehicle safety information",
       });
     } catch (error) {
-      console.error("Subscription error:", error);
+      console.error("💥 Subscription error:", error);
       toast({
         title: "Subscription failed",
         description: error instanceof Error ? error.message : "Failed to subscribe",
@@ -149,6 +181,7 @@ const VINLookupTool = () => {
   React.useEffect(() => {
     const savedEmail = localStorage.getItem('vin_lookup_email');
     if (savedEmail) {
+      console.log('🔄 Restoring saved subscription for:', savedEmail);
       form.setValue('email', savedEmail);
       setSubscribedEmail(savedEmail);
       setIsSubscribed(true);
@@ -229,7 +262,7 @@ const VINLookupTool = () => {
                 id="vin-lookup"
                 value={vin}
                 onChange={handleVINChange}
-                placeholder="Enter 17-character VIN"
+                placeholder="Enter 17-character VIN (try: 1HGBH41JXMN109186)"
                 className="font-mono"
                 maxLength={17}
                 disabled={isDecoding}
@@ -254,11 +287,11 @@ const VINLookupTool = () => {
             </p>
           </div>
           
-          {error && (
+          {vinError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertTitle>VIN Lookup Error</AlertTitle>
+              <AlertDescription>{vinError}</AlertDescription>
             </Alert>
           )}
           
