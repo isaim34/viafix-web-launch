@@ -90,14 +90,14 @@ export const useVINLookupActions = (
       
       if (!existingSubscriber) {
         console.log('📝 Creating new subscriber record');
-        // If not already subscribed, add to subscribers table (without user_id since no account required)
+        // Create subscriber with null user_id for VIN lookup users
         const { error: insertError } = await supabase
           .from('subscribers')
           .insert({
             email: data.email,
             subscription_tier: 'free',
             subscribed: true,
-            user_id: null, // No user account required for VIN lookup
+            user_id: null, // Explicitly set to null for VIN lookup users
           });
           
         if (insertError) {
