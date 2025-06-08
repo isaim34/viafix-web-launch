@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
+import Index from '@/pages/Index';
 import QRTracking from '@/pages/QRTracking';
 import QRWelcome from '@/pages/QRWelcome';
 
@@ -10,24 +11,7 @@ function App() {
     <div className="min-h-screen bg-background">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  QR Code Tracking System
-                </h1>
-                <p className="text-lg text-gray-600 mb-8">
-                  Generate and track QR codes for your marketing materials
-                </p>
-                <a 
-                  href="/qr-tracking" 
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  Go to QR Tracking
-                </a>
-              </div>
-            </div>
-          } />
+          <Route path="/" element={<Index />} />
           <Route path="/qr-tracking" element={<QRTracking />} />
           <Route path="/qr-welcome" element={<QRWelcome />} />
           <Route path="/mechanics" element={
