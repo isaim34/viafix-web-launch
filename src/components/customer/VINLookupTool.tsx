@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,6 +28,7 @@ const VINLookupTool = () => {
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribedEmail, setSubscribedEmail] = useState('');
   
   const safetyData = useVehicleSafetyData(vin, vehicleInfo);
 
@@ -95,7 +96,7 @@ const VINLookupTool = () => {
 
   const onSubscribe = async (data: SubscriptionFormData) => {
     try {
-      // First, check if the email is already subscribed
+      // Check if the email is already subscribed
       const { data: existingSubscriber, error: checkError } = await supabase
         .from('subscribers')
         .select('email')
@@ -108,14 +109,14 @@ const VINLookupTool = () => {
       }
       
       if (!existingSubscriber) {
-        // If not already subscribed, add to subscribers table
+        // If not already subscribed, add to subscribers table (without user_id since no account required)
         const { error: insertError } = await supabase
           .from('subscribers')
           .insert({
             email: data.email,
             subscription_tier: 'free',
             subscribed: true,
-            user_id: null, // No user account required
+            user_id: null, // No user account required for VIN lookup
           });
           
         if (insertError) {
@@ -125,13 +126,14 @@ const VINLookupTool = () => {
       }
       
       // Store subscription status in localStorage
-      localStorage.setItem('subscribed_email', data.email);
-      localStorage.setItem('subscription_updated_at', new Date().toISOString());
+      localStorage.setItem('vin_lookup_email', data.email);
+      localStorage.setItem('vin_lookup_subscribed_at', new Date().toISOString());
       
       setIsSubscribed(true);
+      setSubscribedEmail(data.email);
       toast({
-        title: "Subscribed successfully",
-        description: "You now have access to VIN lookup features",
+        title: "Access granted",
+        description: "You can now lookup vehicle safety information",
       });
     } catch (error) {
       console.error("Subscription error:", error);
@@ -145,9 +147,10 @@ const VINLookupTool = () => {
 
   // Check for existing subscription on component mount
   React.useEffect(() => {
-    const subscribedEmail = localStorage.getItem('subscribed_email');
-    if (subscribedEmail) {
-      form.setValue('email', subscribedEmail);
+    const savedEmail = localStorage.getItem('vin_lookup_email');
+    if (savedEmail) {
+      form.setValue('email', savedEmail);
+      setSubscribedEmail(savedEmail);
       setIsSubscribed(true);
     }
   }, []);
@@ -157,7 +160,7 @@ const VINLookupTool = () => {
       <CardHeader>
         <CardTitle>Vehicle Safety Lookup</CardTitle>
         <CardDescription>
-          Enter your Vehicle Identification Number (VIN) to check for recalls, complaints, and safety investigations
+          Enter your email and Vehicle Identification Number (VIN) to check for recalls, complaints, and safety investigations
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -166,10 +169,10 @@ const VINLookupTool = () => {
             <div className="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
               <h3 className="flex items-center text-blue-800 text-sm font-medium mb-2">
                 <Mail className="h-4 w-4 mr-2" />
-                Subscribe for Free VIN Lookup
+                Enter Email for Free VIN Lookup
               </h3>
               <p className="text-blue-700 text-xs mb-4">
-                Enter your email to access our VIN lookup tool and receive updates about vehicle safety
+                No account required! Just enter your email to access vehicle safety information
               </p>
               
               <Form {...form}>
@@ -194,10 +197,10 @@ const VINLookupTool = () => {
                               {form.formState.isSubmitting ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Subscribing
+                                  Processing
                                 </>
                               ) : (
-                                'Subscribe'
+                                'Get Access'
                               )}
                             </Button>
                           </div>
@@ -212,9 +215,9 @@ const VINLookupTool = () => {
           ) : (
             <Alert className="bg-green-50 border-green-200 mb-4">
               <Check className="h-4 w-4 text-green-600" />
-              <AlertTitle className="text-green-800">Subscribed</AlertTitle>
+              <AlertTitle className="text-green-800">Access Granted</AlertTitle>
               <AlertDescription className="text-green-700">
-                Thank you for subscribing! You now have full access to our VIN lookup tools.
+                Welcome! You can now lookup vehicle safety information with the email: {subscribedEmail}
               </AlertDescription>
             </Alert>
           )}
